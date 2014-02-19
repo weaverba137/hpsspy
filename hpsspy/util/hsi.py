@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-def hsi(*args,tmpdir='/tmp'):
+def hsi(*args,**kwargs):
     """Run hsi command with arguments.
 
     Parameters
@@ -29,7 +29,10 @@ def hsi(*args,tmpdir='/tmp'):
         path = get_hpss_dir()
     except:
         raise
-    ofile = join(tmpdir,'hsi.txt')
+    if 'tmpdir' in kwargs:
+        ofile = join(kwargs['tmpdir'],'hsi.txt')
+    else:
+        ofile = join('/tmp','hsi.txt')
     base_command = [join(path,'hsi'),'-O', ofile, '-s', 'archive']
     command = base_command + list(args)
     status = call(command)
