@@ -1,7 +1,26 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-def hsi(*args):
-    """Run hsi command with arguments."""
+def hsi(*args,tmpdir='/tmp'):
+    """Run hsi command with arguments.
+
+    Parameters
+    ----------
+    args : tuple
+        Arguments to be passed to the hsi command.
+    tmpdir : str, optional
+        Write temporary files to this directory.  Defaults to '/tmp'.
+        This option must be passed as a keyword!
+
+    Returns
+    -------
+    hsi : str
+        The standard output from the hsi command.
+
+    Raises
+    ------
+    ValueError
+        If the ``$HPSS_DIR`` environment variable has not been set.
+    """
     from . import get_hpss_dir
     from os import remove
     from os.path import exists, join
@@ -10,7 +29,7 @@ def hsi(*args):
         path = get_hpss_dir()
     except:
         raise
-    ofile = '/tmp/hsi.txt'
+    ofile = join(tmpdir,'hsi.txt')
     base_command = [join(path,'hsi'),'-O', ofile, '-s', 'archive']
     command = base_command + list(args)
     status = call(command)

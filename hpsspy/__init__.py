@@ -7,4 +7,4 @@ hpsspy
 
 Python interface to the HPSS system.
 """
-import util
+from . import util
