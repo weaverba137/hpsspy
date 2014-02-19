@@ -5,7 +5,7 @@ def listdir(path):
     """
     from . import linere
     from .. import HpssOSError
-    from ..util import hsi
+    from ..util import hpss_file, hsi
     import re
     out = hsi('ls','-la',path)
     if out.startswith('**'):
@@ -19,5 +19,5 @@ def listdir(path):
         m = linere.match(f)
         if m is None:
             raise HpssOSError("Could not match line!\n{0}".format(f))
-        files.append(m.groups())
+        files.append(hpss_file(m.groups()))
     return files

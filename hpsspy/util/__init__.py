@@ -8,5 +8,6 @@ hpsspy.util
 Low-level utilities.
 """
 from .get_hpss_dir import get_hpss_dir
+from .hpss_file import hpss_file
 from .hsi import hsi
 from .htar import htar
