@@ -12,9 +12,12 @@ def listdir(path):
         raise HpssOSError(out)
     lines = out.split('\n')
     lspath = lines[1]
+    files = list()
     for f in lines[2:]:
+        if len(f) == 0:
+            continue
         m = linere.match(f)
         if m is None:
             raise HpssOSError("Could not match line!\n{0}".format(f))
-        g = m.groups()
-    return g
+        files.append(m.groups())
+    return files
