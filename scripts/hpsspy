@@ -16,7 +16,7 @@ def main():
         print(dirs)
         print([f.path for f in files])
         print([f.st_mtime for f in files])
-        #print([f.ishtar for f in files])
+        print([f.st_mode for f in files])
     #print(stat('boss').st_mode)
     #print(lstat('boss').st_mode)
     #out,err = htar('-t', '-f', 'boss/dr8/boss/calib.tar')

@@ -21,24 +21,21 @@ def stat(path,lstat=False):
     if out.startswith('**'):
         raise HpssOSError(out)
     lines = out.split('\n')
-    lspath = path
-    found_path = False
+    lspath = path # sometimes you don't get the path echoed back.
     files = list()
     for f in lines:
         if len(f) == 0:
             continue
-        if f.endswith(':') and not found_path:
-            lspath = f.strip(': ')
-            found_path = True
-            continue
         m = linere.match(f)
         if m is None:
-            raise HpssOSError("Could not match line!\n{0}".format(f))
-        g = m.groups()
-        files.append(hpss_file(lspath,*g))
-    try:
-        assert len(files) == 1
-    except AssertionError:
+            if f.endswith(':'):
+                lspath = f.strip(': ')
+            else:
+                raise HpssOSError("Could not match line!\n{0}".format(f))
+        else:
+            g = m.groups()
+            files.append(hpss_file(lspath,*g))
+    if len(files) != 1:
         raise HpssOSError("Non-unique response for {0}!".format(path))
     if files[0].islink and not lstat:
         new_path = files[0].readlink

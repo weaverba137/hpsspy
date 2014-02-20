@@ -11,7 +11,7 @@ Reproduces some features of the Python built-in `os module`_.
 """
 from re import compile
 
-linere = compile('(\S+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\d+)\s+([A-Za-z]+)\s+(\d+)\s+([0-9:]+) (.*)$')
+linere = compile('([dl-])([rwxsStT-]+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\d+)\s+([A-Za-z]+)\s+(\d+)\s+([0-9:]+) (.*)$')
 
 from . import path
 from .chmod import chmod

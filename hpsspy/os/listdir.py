@@ -20,20 +20,19 @@ def listdir(path):
         raise HpssOSError(out)
     lines = out.split('\n')
     lspath = path # sometimes you don't get the path echoed back.
-    found_path = False
     files = list()
     for f in lines:
         if len(f) == 0:
             continue
-        if f.endswith(':') and not found_path:
-            lspath = f.strip(': ')
-            found_path = True
-            continue
         m = linere.match(f)
         if m is None:
-            raise HpssOSError("Could not match line!\n{0}".format(f))
-        g = m.groups()
-        files.append(hpss_file(lspath,*g))
+            if f.endswith(':'):
+                lspath = f.strip(': ')
+            else:
+                raise HpssOSError("Could not match line!\n{0}".format(f))
+        else:
+            g = m.groups()
+            files.append(hpss_file(lspath,*g))
     #
     # Create a unique set of filenames for use below.
     #

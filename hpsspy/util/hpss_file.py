@@ -16,15 +16,16 @@ class hpss_file(object):
     def __init__(self,*args):
         """Usually this will be initialized by a tuple produced by listdir."""
         self.hpss_path = args[0]
-        self.raw_permission = args[1]
-        self.st_nlink = int(args[2])
-        self.st_uid = args[3]
-        self.st_gid = args[4]
-        self.st_size = int(args[5])
-        self.raw_month = args[6]
-        self.raw_day = int(args[7])
-        self.raw_year = args[8]
-        self.raw_name = args[9]
+        self.raw_type = args[1]
+        self.raw_permission = args[2]
+        self.st_nlink = int(args[3])
+        self.st_uid = args[4]
+        self.st_gid = args[5]
+        self.st_size = int(args[6])
+        self.raw_month = args[7]
+        self.raw_day = int(args[8])
+        self.raw_year = args[9]
+        self.raw_name = args[10]
         self.ishtar = False
         return
     #
@@ -42,7 +43,7 @@ class hpss_file(object):
     #
     @property
     def islink(self):
-        return self.raw_permission.startswith('l')
+        return self.raw_type == 'l'
     #
     #
     #
@@ -55,7 +56,7 @@ class hpss_file(object):
             else:
                 return hpss_stat(join(self.hpss_path,new_path)).isdir
         else:
-            return self.raw_permission.startswith('d')
+            return self.raw_type == 'd'
     #
     #
     #
@@ -86,38 +87,38 @@ class hpss_file(object):
     @property
     def st_mode(self):
         try:
-            mode = self._file_modes[self.raw_permission[0]]
+            mode = self._file_modes[self.raw_type]
         except KeyError:
             raise
-        if self.raw_permission[1] == 'r':
+        if self.raw_permission[0] == 'r':
             mode |= stat.S_IRUSR
-        if self.raw_permission[2] == 'w':
+        if self.raw_permission[1] == 'w':
             mode |= stat.S_IWUSR
-        if self.raw_permission[3] == 'x':
+        if self.raw_permission[2] == 'x':
             mode |= stat.S_IXUSR
-        if self.raw_permission[3] == 'S':
+        if self.raw_permission[2] == 'S':
             mode |= stat.S_ISUID
-        if self.raw_permission[3] == 's':
+        if self.raw_permission[2] == 's':
             mode |= (stat.S_IXUSR | stat.S_ISUID)
-        if self.raw_permission[4] == 'r':
+        if self.raw_permission[3] == 'r':
             mode |= stat.S_IRGRP
-        if self.raw_permission[5] == 'w':
+        if self.raw_permission[4] == 'w':
             mode |= stat.S_IWGRP
-        if self.raw_permission[6] == 'x':
+        if self.raw_permission[5] == 'x':
             mode |= stat.S_IXGRP
-        if self.raw_permission[6] == 'S':
+        if self.raw_permission[5] == 'S':
             mode |= stat.S_ISGID
-        if self.raw_permission[6] == 's':
+        if self.raw_permission[5] == 's':
             mode |= (stat.S_IXGRP | stat.S_ISGID)
-        if self.raw_permission[7] == 'r':
+        if self.raw_permission[6] == 'r':
             mode |= stat.S_IROTH
-        if self.raw_permission[8] == 'w':
+        if self.raw_permission[7] == 'w':
             mode |= stat.S_IWOTH
-        if self.raw_permission[9] == 'x':
+        if self.raw_permission[8] == 'x':
             mode |= stat.S_IXOTH
-        if self.raw_permission[9] == 'T':
+        if self.raw_permission[8] == 'T':
             mode |= stat.S_ISVTX
-        if self.raw_permission[9] == 't':
+        if self.raw_permission[8] == 't':
             mode |= (stat.S_IXOTH | stat.S_ISVTX)
         return mode
     #
