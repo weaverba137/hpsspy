@@ -19,5 +19,9 @@ def listdir(path):
         m = linere.match(f)
         if m is None:
             raise HpssOSError("Could not match line!\n{0}".format(f))
-        files.append(hpss_file(m.groups()))
+        g = m.groups()
+        files.append(hpss_file(*g))
+    #
+    # Go back and identify htar files
+    #
     return files
