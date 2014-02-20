@@ -5,7 +5,8 @@ def walk(top,topdown=True,onerror=None,followlinks=False):
     """
     from .. import HpssOSError
     from . import listdir
-    from .path import isdir, islink, join
+    from os.path import join
+    #from .path import isdir, islink, join
 
     #islink, join, isdir = path.islink, path.join, path.isdir
 
@@ -23,7 +24,7 @@ def walk(top,topdown=True,onerror=None,followlinks=False):
 
     dirs, nondirs = [], []
     for name in names:
-        if isdir(join(top, name)):
+        if name.isdir():
             dirs.append(name)
         else:
             nondirs.append(name)
@@ -31,8 +32,9 @@ def walk(top,topdown=True,onerror=None,followlinks=False):
     if topdown:
         yield top, dirs, nondirs
     for name in dirs:
-        new_path = join(top, name)
-        if followlinks or not islink(new_path):
+        new_path = join(top, str(name))
+        if not followlinks:
+        #if followlinks or not islink(new_path):
             for x in walk(new_path, topdown, onerror, followlinks):
                 yield x
     if not topdown:

@@ -5,12 +5,16 @@ from __future__ import print_function
 #
 def main():
     """Main program."""
-    from hpsspy.os import listdir
+    from hpsspy.os import listdir, walk
     #from hpsspy.util import hsi, htar
     #out = hsi('ls', '-la', 'boss/dr8/boss')
     out = listdir('boss/')
     for f in out:
-        print(out)
+        print(f)
+    for root, dirs, files in walk('test/'):
+        print(root)
+        print(dirs)
+        print(files)
     #out,err = htar('-t', '-f', 'boss/dr8/boss/calib.tar')
     #print('STDOUT=')
     #print(out)
