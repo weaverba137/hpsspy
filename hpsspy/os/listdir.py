@@ -11,7 +11,7 @@ def listdir(path):
     if out.startswith('**'):
         raise HpssOSError(out)
     lines = out.split('\n')
-    lspath = lines[1]
+    lspath = lines[1].rstrip(': ')
     files = list()
     for f in lines[2:]:
         if len(f) == 0:
@@ -20,7 +20,7 @@ def listdir(path):
         if m is None:
             raise HpssOSError("Could not match line!\n{0}".format(f))
         g = m.groups()
-        files.append(hpss_file(*g))
+        files.append(hpss_file(lspath,*g))
     #
     # Go back and identify htar files
     #

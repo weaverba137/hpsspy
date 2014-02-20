@@ -9,7 +9,8 @@ def main():
     #from hpsspy.util import hsi, htar
     #out = hsi('ls', '-la', 'boss/dr8/boss')
     out = listdir('boss/')
-    print(out)
+    for f in out:
+        print(out)
     #out,err = htar('-t', '-f', 'boss/dr8/boss/calib.tar')
     #print('STDOUT=')
     #print(out)
