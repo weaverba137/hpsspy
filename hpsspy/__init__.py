@@ -7,11 +7,16 @@ hpsspy
 
 Python interface to the HPSS system.
 """
-from . import os
-from . import util
-
+#
+# Exceptions
+#
 class HpssError(Exception):
     pass
 
 class HpssOSError(HpssError):
     pass
+#
+# Set up namespace
+#
+from . import os
+from . import util
