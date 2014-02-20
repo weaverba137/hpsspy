@@ -31,4 +31,4 @@ class hpss_file(object):
         if islink(self):
             return self.raw_name.split('->')[1].strip()
         else:
-            raise HpssOSError("Invalid argument: '{0}'".format(self.raw_name)
+            raise HpssOSError("Invalid argument: '{0}'".format(self.raw_name))
