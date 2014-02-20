@@ -13,7 +13,11 @@ from re import compile
 
 linere = compile('(\S+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\d+)\s+([A-Za-z]+)\s+(\d+)\s+([0-9:]+) (.*)$')
 
+from . import path
+from .chmod import chmod
 from .listdir import listdir
+from .mkdir import mkdir
+from .stat import lstat, stat
 from .walk import walk
 
 del compile

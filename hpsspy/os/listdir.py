@@ -15,15 +15,19 @@ def listdir(path):
     from . import linere
     from .. import HpssOSError
     from ..util import hpss_file, hsi
-    import re
     out = hsi('ls','-la',path)
     if out.startswith('**'):
         raise HpssOSError(out)
     lines = out.split('\n')
-    lspath = lines[1].rstrip(': ')
+    lspath = path # sometimes you don't get the path echoed back.
+    found_path = False
     files = list()
-    for f in lines[2:]:
+    for f in lines:
         if len(f) == 0:
+            continue
+        if f.endswith(':') and not found_path:
+            lspath = f.strip(': ')
+            found_path = True
             continue
         m = linere.match(f)
         if m is None:

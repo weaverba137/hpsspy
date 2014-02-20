@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 #
 from .. import HpssOSError
+from ..os import stat as hpss_stat
 from os.path import join
 import stat
 #
 class hpss_file(object):
     """Contains lots of information about a file."""
     _file_modes = {'l':stat.S_IFLNK,'d':stat.S_IFDIR,'-':stat.S_IFREG}
+    _months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
     #
     #
     #
@@ -46,8 +48,14 @@ class hpss_file(object):
     #
     @property
     def isdir(self):
-        # TODO: This should also be true for links that point to directories.
-        return self.raw_permission.startswith('d')
+        if self.islink:
+            new_path = self.readlink
+            if new_path.startswith('/'):
+                return hpss_stat(new_path).isdir
+            else:
+                return hpss_stat(join(self.hpss_path,new_path)).isdir
+        else:
+            return self.raw_permission.startswith('d')
     #
     #
     #
@@ -112,3 +120,21 @@ class hpss_file(object):
         if self.raw_permission[9] == 't':
             mode |= (stat.S_IXOTH | stat.S_ISVTX)
         return mode
+    #
+    #
+    #
+    @property
+    def st_mtime(self):
+        from datetime import datetime
+        seconds = 0
+        month = self._months.index(self.raw_month) + 1
+        if self.raw_year.find(':') > 0:
+            hm = self.raw_year.split(':')
+            hours = int(hm[0])
+            minutes = int(hm[1])
+            year = datetime.now().year
+        else:
+            hours = 0
+            minutes = 0
+            year = int(self.raw_year)
+        return int(datetime(year, month, self.raw_day, hours, minutes, seconds).strftime('%s'))

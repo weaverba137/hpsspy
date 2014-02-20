@@ -17,6 +17,7 @@ def walk(top,topdown=True,onerror=None,followlinks=False):
     """
     from .. import HpssOSError
     from . import listdir
+    from .path import islink
     from os.path import join
     #
     # We may not have read permission for top, in which case we can't
@@ -41,8 +42,7 @@ def walk(top,topdown=True,onerror=None,followlinks=False):
         yield top, dirs, nondirs
     for name in dirs:
         new_path = join(top, str(name))
-        if not followlinks:
-        #if followlinks or not islink(new_path):
+        if followlinks or not islink(new_path):
             for x in walk(new_path, topdown, onerror, followlinks):
                 yield x
     if not topdown:
