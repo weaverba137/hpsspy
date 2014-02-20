@@ -1,7 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 def listdir(path):
-    """
+    """List the contents of an HPSS directory.
+
+    Parameters
+    ----------
+    path : str
+
+    Returns
+    -------
+    listdir : list
+
     """
     from . import linere
     from .. import HpssOSError
@@ -22,6 +31,13 @@ def listdir(path):
         g = m.groups()
         files.append(hpss_file(lspath,*g))
     #
+    # Create a unique set of filenames for use below.
+    #
+    fileset = set([f.name for f in files])
+    #
     # Go back and identify htar files
     #
+    for f in files:
+        if f.name.endswith('.tar') and f.name + '.idx' in fileset:
+            f.ishtar = True
     return files
