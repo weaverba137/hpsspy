@@ -3,7 +3,7 @@
 #
 from .. import HpssOSError
 from ..os import stat as hpss_stat
-from . import htar
+from .htar import htar
 from os.path import join
 import stat
 #
