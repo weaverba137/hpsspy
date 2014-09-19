@@ -3,6 +3,7 @@
 #
 from .. import HpssOSError
 from ..os import stat as hpss_stat
+from . import htar
 from os.path import join
 import stat
 #
@@ -27,12 +28,24 @@ class hpss_file(object):
         self.raw_year = args[9]
         self.raw_name = args[10]
         self.ishtar = False
+        self._contents = None # placeholder for htar file contents.
         return
     #
     #
     #
     def __repr__(self):
-        return str(self)
+        return "hpss_file('{0}','{1}','{2}','{3:d}','{4}','{5}','{6:d}','{7}','{8:d}','{9}','{10}')".format(
+            self.hpss_path,
+            self.raw_type,
+            self.raw_permission,
+            self.st_nlink,
+            self.st_uid,
+            self.st_gid,
+            self.st_size,
+            self.raw_month,
+            self.raw_day,
+            self.raw_year,
+            self.raw_name)
     #
     #
     #
@@ -139,3 +152,19 @@ class hpss_file(object):
             minutes = 0
             year = int(self.raw_year)
         return int(datetime(year, month, self.raw_day, hours, minutes, seconds).strftime('%s'))
+    #
+    #
+    #
+    def htar_contents(self):
+        """Return (and cache) the contents of an htar file."""
+        if self.ishtar:
+            if self._contents is None:
+                out,err = htar('-t','-f',self.path)
+                self._contents = list()
+                for line in out.split('\n'):
+                    m = htarre.match(line)
+                    if m is not None:
+                        self._contents.append(m.groups())
+            return self._contents
+        else:
+            return None

@@ -12,7 +12,7 @@ Reproduces some features of the Python built-in `os module`_.
 from re import compile
 
 linere = compile('([dl-])([rwxsStT-]+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\d+)\s+([A-Za-z]+)\s+(\d+)\s+([0-9:]+) (.*)$')
-
+htarre = compile('HTAR: ([dl-])([rwxsStT-]+)\s+([^/]+)/(\S+)\s+(\d+)\s+(\d+)-(\d+)-(\d+)\s+([0-9:]+)\s+(\S.*)$')
 from . import path
 from .chmod import chmod
 from .listdir import listdir
