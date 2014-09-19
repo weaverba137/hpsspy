@@ -4,7 +4,7 @@
 from __future__ import absolute_import, print_function
 from .. import HpssOSError
 from ..os import stat as hpss_stat
-from . import htarre
+from ..os import htarre
 from .htar import htar
 from os.path import join
 import stat
