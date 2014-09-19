@@ -5,25 +5,41 @@ from __future__ import print_function
 #
 def main():
     """Main program."""
+    #
+    # How to proceed.
+    # * walk works
+    # * walk can find regular files and htar files.
+    # * walk dr10 tree to find all files
+    # * verify the non-htar files
+    # * separate out the htar files
+    # * verify the htar files.
+    #
     from hpsspy.os import listdir, lstat, stat, walk
-    #from hpsspy.util import hsi, htar
-    #out = hsi('ls', '-la', 'boss/dr8/boss')
-    #out = listdir('boss/')
-    #for f in out:
-    #    print(f)
-    for root, dirs, files in walk(''):
+    htar_files = list()
+    non_htar_files = list()
+    links = list()
+    for root, dirs, files in walk(getenv('HPSS_ROOT')):
         print(root)
         print(dirs)
         print([f.path for f in files])
-        print([f.st_mtime for f in files])
-        print([f.st_mode for f in files])
-    #print(stat('boss').st_mode)
-    #print(lstat('boss').st_mode)
-    #out,err = htar('-t', '-f', 'boss/dr8/boss/calib.tar')
-    #print('STDOUT=')
-    #print(out)
-    #print('STDERR=')
-    #print(err)
+        htar_files += [f for f in files if f.ishtar]
+        non_htar_files += [f for f in files if not f.ishtar]
+        links += [f for f in files if f.islink]
+        # print([f.st_mtime for f in files])
+        # print([f.st_mode for f in files])
+    print(htar_files)
+    print(non_htar_files)
+    for root, dirs, files in walk(getenv('SAS_ROOT')):
+        print(root)
+        print(dirs)
+        print(files)
+    # print(stat('boss').st_mode)
+    # print(lstat('boss').st_mode)
+    # out,err = htar('-t', '-f', 'boss/dr8/boss/calib.tar')
+    # print('STDOUT=')
+    # print(out)
+    # print('STDERR=')
+    # print(err)
     return 0
 #
 #
