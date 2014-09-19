@@ -14,6 +14,7 @@ def main():
     # * separate out the htar files
     # * verify the htar files.
     #
+    from os import getenv
     from hpsspy.os import listdir, lstat, stat, walk
     htar_files = list()
     non_htar_files = list()
