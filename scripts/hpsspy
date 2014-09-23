@@ -25,7 +25,7 @@ def main():
         # print(dirs)
         # print([f.path for f in files])
         # hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.ishtar]
-        hpss_files += [f.path.replace(hpss_root+'/','') for f in files]
+        hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.endswith('.idx')]
         # htar_files = [f for f in files if f.ishtar]
         # for h in htar_files:
         #     contents = h.htar_contents()
@@ -42,7 +42,7 @@ def main():
     disk_files = list()
     for disk_root in disk_roots:
         for root, dirs, files in walk(disk_root):
-            # print(root)
+            print(root)
             # print(dirs)
             # print(files)
             disk_files += [join(root,f).replace(disk_root+'/','') for f in files]
