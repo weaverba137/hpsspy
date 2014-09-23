@@ -14,11 +14,11 @@ def main():
     # * separate out the htar files
     # * verify the htar files.
     #
-    from os import getenv
+    import os
     from os.path import join
     from hpsspy.os import listdir, lstat, stat, walk
     # from hpsspy.util import htar
-    hpss_root = getenv('HPSS_ROOT')
+    hpss_root = os.getenv('HPSS_ROOT')
     hpss_files = list()
     for root, dirs, files in walk(hpss_root):
         # print(root)
@@ -36,17 +36,17 @@ def main():
     # print(htar_files)
     # print(non_htar_files)
     # print(links)
-    with open(join(getenv('HOME'),'scratch','hpss_files.txt'),'w') as t:
+    with open(join(os.getenv('HOME'),'scratch','hpss_files.txt'),'w') as t:
         t.write('\n'.join(hpss_files)+'\n')
-    disk_roots = [getenv('SAS_ROOT').replace('raid006',d) for d in ('raid006','raid000','raid005','raid007','raid008','raid2008','netapp')]
+    disk_roots = [os.getenv('SAS_ROOT').replace('raid006',d) for d in ('raid006','raid000','raid005','raid007','raid008','raid2008','netapp')]
     disk_files = list()
     for disk_root in disk_roots:
-        for root, dirs, files in walk(disk_root):
+        for root, dirs, files in os.walk(disk_root):
             print(root)
             # print(dirs)
             # print(files)
             disk_files += [join(root,f).replace(disk_root+'/','') for f in files]
-    with open(join(getenv('HOME'),'scratch','disk_files.txt'),'w') as t:
+    with open(join(os.getenv('HOME'),'scratch','disk_files.txt'),'w') as t:
         t.write('\n'.join(disk_files)+'\n')
     # for f in disk_files:
     #     if f not in hpss_files:
