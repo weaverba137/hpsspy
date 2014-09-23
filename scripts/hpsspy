@@ -78,10 +78,7 @@ def main():
                 if reName in hpss_files:
                     message = "{0} in {1}.".format(f,reName)
                 break
-    if verbose:
-        print(message)
-    else:
-        if 'NOT' in message:
+        if verbose or 'NOT' in message:
             print(message)
     return 0
 #
