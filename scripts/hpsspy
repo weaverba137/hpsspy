@@ -21,30 +21,36 @@ def main():
     hpss_root = getenv('HPSS_ROOT')
     hpss_files = list()
     for root, dirs, files in walk(hpss_root):
-        print(root)
+        # print(root)
         # print(dirs)
         # print([f.path for f in files])
-        hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.ishtar]
-        htar_files = [f for f in files if f.ishtar]
-        for h in htar_files:
-            contents = h.htar_contents()
-            hpss_files += [join(root,c[9]).replace(hpss_root+'/','') for c in contents if c[0] == '-']
+        # hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.ishtar]
+        hpss_files += [f.path.replace(hpss_root+'/','') for f in files]
+        # htar_files = [f for f in files if f.ishtar]
+        # for h in htar_files:
+        #     contents = h.htar_contents()
+        #     hpss_files += [join(root,c[9]).replace(hpss_root+'/','') for c in contents if c[0] == '-']
         # links += [f for f in files if f.islink]
         # print([f.st_mtime for f in files])
         # print([f.st_mode for f in files])
     # print(htar_files)
     # print(non_htar_files)
     # print(links)
-    disk_root = getenv('SAS_ROOT')
+    with open(join(getenv('HOME'),'scratch','hpss_files.txt'),'w') as t:
+        t.write('\n'.join(hpss_files)+'\n')
+    disk_roots = [getenv('SAS_ROOT').replace('raid006',d) for d in ('raid006','raid000','raid005','raid007','raid008','raid2008','netapp')]
     disk_files = list()
-    for root, dirs, files in walk(disk_root):
-        print(root)
-        # print(dirs)
-        # print(files)
-        disk_files += [join(root,f).replace(disk_root+'/','') for f in files]
-    for f in disk_files:
-        if f not in hpss_files:
-            print(f)
+    for disk_root in disk_roots:
+        for root, dirs, files in walk(disk_root):
+            # print(root)
+            # print(dirs)
+            # print(files)
+            disk_files += [join(root,f).replace(disk_root+'/','') for f in files]
+    with open(join(getenv('HOME'),'scratch','disk_files.txt'),'w') as t:
+        t.write('\n'.join(disk_files)+'\n')
+    # for f in disk_files:
+    #     if f not in hpss_files:
+    #         print(f)
     # print(stat('boss').st_mode)
     # print(lstat('boss').st_mode)
     # out,err = htar('-t', '-f', 'boss/dr8/boss/calib.tar')
