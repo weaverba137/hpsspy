@@ -15,49 +15,74 @@ def main():
     # * verify the htar files.
     #
     import os
-    from os.path import join
+    import re
+    import json
+    from os.path import basename, dirname, exists, islink, join
     from hpsspy.os import listdir, lstat, stat, walk
-    # from hpsspy.util import htar
-    hpss_root = os.getenv('HPSS_ROOT')
-    hpss_files = list()
-    for root, dirs, files in walk(hpss_root):
-        # print(root)
-        # print(dirs)
-        # print([f.path for f in files])
-        # hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.ishtar]
-        hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.path.endswith('.idx')]
-        # htar_files = [f for f in files if f.ishtar]
-        # for h in htar_files:
-        #     contents = h.htar_contents()
-        #     hpss_files += [join(root,c[9]).replace(hpss_root+'/','') for c in contents if c[0] == '-']
-        # links += [f for f in files if f.islink]
-        # print([f.st_mtime for f in files])
-        # print([f.st_mode for f in files])
-    # print(htar_files)
-    # print(non_htar_files)
-    # print(links)
-    with open(join(os.getenv('HOME'),'scratch','hpss_files.txt'),'w') as t:
-        t.write('\n'.join(hpss_files)+'\n')
-    disk_roots = [os.getenv('SAS_ROOT').replace('raid006',d) for d in ('raid006','raid000','raid005','raid007','raid008','raid2008','netapp')]
-    disk_files = list()
-    for disk_root in disk_roots:
-        for root, dirs, files in os.walk(disk_root):
-            print(root)
-            # print(dirs)
-            # print(files)
-            disk_files += [join(root,f).replace(disk_root+'/','') for f in files]
-    with open(join(os.getenv('HOME'),'scratch','disk_files.txt'),'w') as t:
-        t.write('\n'.join(disk_files)+'\n')
-    # for f in disk_files:
-    #     if f not in hpss_files:
-    #         print(f)
-    # print(stat('boss').st_mode)
-    # print(lstat('boss').st_mode)
-    # out,err = htar('-t', '-f', 'boss/dr8/boss/calib.tar')
-    # print('STDOUT=')
-    # print(out)
-    # print('STDERR=')
-    # print(err)
+    #
+    # Options
+    #
+    verbose = False
+    #
+    # Read HPSS files and cache.
+    #
+    hpss_files_cache = join(os.getenv('HOME'),'scratch','hpss_files.txt')
+    if exists(hpss_files_cache):
+        with open(hpss_files_cache) as t:
+            hpss_files = [l.strip() for l in t.readlines()]
+    else:
+        hpss_root = os.getenv('HPSS_ROOT')
+        hpss_files = list()
+        for root, dirs, files in walk(hpss_root):
+            # hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.ishtar]
+            hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.path.endswith('.idx')]
+            # htar_files = [f for f in files if f.ishtar]
+            # for h in htar_files:
+            #     contents = h.htar_contents()
+            #     hpss_files += [join(root,c[9]).replace(hpss_root+'/','') for c in contents if c[0] == '-']
+            # links += [f for f in files if f.islink]
+        with open(hpss_files_cache,'w') as t:
+            t.write('\n'.join(hpss_files)+'\n')
+    #
+    # Read disk files and cache.
+    #
+    disk_files_cache = join(os.getenv('HOME'),'scratch','disk_files.txt')
+    if exists(disk_files_cache):
+        with open(disk_files_cache) as t:
+            disk_files = [l.strip() for l in t.readlines()]
+    else:
+        disk_roots = [os.getenv('SAS_ROOT').replace('raid006',d) for d in ('raid006','raid000','raid005','raid007','raid008','raid2008','netapp')]
+        disk_files = list()
+        for disk_root in disk_roots:
+            for root, dirs, files in os.walk(disk_root):
+                disk_files += [join(root,f).replace(disk_root+'/','') for f in files if not islink(join(root,f))]
+        with open(join(os.getenv('HOME'),'scratch','disk_files.txt'),'w') as t:
+            t.write('\n'.join(disk_files)+'\n')
+    #
+    # See if the files are on HPSS.
+    #
+    hpss_map_cache = join(os.getenv('HOME'),'scratch','hpss_map.json')
+    if exists(hpss_map_cache):
+        with open(hpss_map_cache) as t:
+            hpss_map = json.load(t)
+    else:
+        hpss_map = {"exclude":[],"regex":{}}
+    for f in disk_files:
+        message = "{0} NOT FOUND!".format(f)
+        if f in hpss_map["exclude"]:
+            message = "{0} skipped.".format(f)
+            continue
+        for r in hpss_map["regex"]:
+            if re.match(r,f) is not None:
+                reName = re.sub(r,hpss_map["regex"][r],f)
+                if reName in hpss_files:
+                    message = "{0} in {1}.".format(f,reName)
+                break
+    if verbose:
+        print(message)
+    else:
+        if 'NOT' in message:
+            print(message)
     return 0
 #
 #
