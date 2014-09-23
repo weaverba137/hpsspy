@@ -25,7 +25,7 @@ def main():
         # print(dirs)
         # print([f.path for f in files])
         # hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.ishtar]
-        hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.endswith('.idx')]
+        hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.path.endswith('.idx')]
         # htar_files = [f for f in files if f.ishtar]
         # for h in htar_files:
         #     contents = h.htar_contents()
