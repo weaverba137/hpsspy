@@ -5,28 +5,27 @@ from __future__ import print_function
 #
 def main():
     """Main program."""
-    #
-    # How to proceed.
-    # * walk works
-    # * walk can find regular files and htar files.
-    # * walk dr10 tree to find all files
-    # * verify the non-htar files
-    # * separate out the htar files
-    # * verify the htar files.
-    #
     import os
     import re
     import json
+    # from sys import argv
     from os.path import basename, dirname, exists, islink, join
     from hpsspy.os import listdir, lstat, stat, walk
     #
     # Options
     #
+    release = 'dr10'
     verbose = False
+    if os.getenv('SAS_ROOT') is None:
+        print("SAS_ROOT is not set!  Do 'module load tree/{0}'.".format(release))
+        return 1
+    if basename(os.getenv('SAS_ROOT')) != release:
+        print("SAS_ROOT is inconsistent with {0}! Do 'module switch tree/{0}'.".format(release))
+        return 1
     #
     # Read HPSS files and cache.
     #
-    hpss_files_cache = join(os.getenv('HOME'),'scratch','hpss_files.txt')
+    hpss_files_cache = join(os.getenv('HOME'),'scratch','hpss_files_{0}.txt'.format(release))
     if exists(hpss_files_cache):
         with open(hpss_files_cache) as t:
             hpss_files = [l.strip() for l in t.readlines()]
@@ -46,7 +45,7 @@ def main():
     #
     # Read disk files and cache.
     #
-    disk_files_cache = join(os.getenv('HOME'),'scratch','disk_files.txt')
+    disk_files_cache = join(os.getenv('HOME'),'scratch','disk_files_{0}.txt'.format(release))
     if exists(disk_files_cache):
         with open(disk_files_cache) as t:
             disk_files = [l.strip() for l in t.readlines()]
@@ -61,20 +60,21 @@ def main():
     #
     # See if the files are on HPSS.
     #
-    hpss_map_cache = join(os.getenv('HOME'),'scratch','hpss_map.json')
+    hpss_map_cache = join(os.getenv('HOME'),'scratch','hpss_map_{0}.json'.format(release))
     if exists(hpss_map_cache):
         with open(hpss_map_cache) as t:
             hpss_map = json.load(t)
     else:
-        hpss_map = {"exclude":[],"regex":{}}
+        hpss_map = {"exclude":[],"regex":{"casload":{},"apogee":{},"boss":{},"sdss":{}}}
     for f in disk_files:
         message = "{0} NOT FOUND!".format(f)
         if f in hpss_map["exclude"]:
             message = "{0} skipped.".format(f)
             continue
-        for r in hpss_map["regex"]:
+        section = f.split('/')[0]
+        for r in hpss_map["regex"][section]:
             if re.match(r,f) is not None:
-                reName = re.sub(r,hpss_map["regex"][r],f)
+                reName = re.sub(r,hpss_map["regex"][section][r],f)
                 if reName in hpss_files:
                     message = "{0} in {1}.".format(f,reName)
                 break
