@@ -8,13 +8,13 @@ def main():
     import os
     import re
     import json
-    # from sys import argv
+    from sys import argv
     from os.path import basename, dirname, exists, islink, join
     from hpsspy.os import listdir, lstat, stat, walk
     #
     # Options
     #
-    release = 'dr10'
+    release = argv[1]
     verbose = False
     if os.getenv('SAS_ROOT') is None:
         print("SAS_ROOT is not set!  Do 'module load tree/{0}'.".format(release))
@@ -60,7 +60,7 @@ def main():
     #
     # See if the files are on HPSS.
     #
-    hpss_map_cache = join(os.getenv('HOME'),'scratch','hpss_map_{0}.json'.format(release))
+    hpss_map_cache = join(os.getenv('HPSSPY_DIR'),'data','hpss_map_{0}.json'.format(release))
     if exists(hpss_map_cache):
         with open(hpss_map_cache) as t:
             hpss_map = json.load(t)
