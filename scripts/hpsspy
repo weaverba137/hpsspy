@@ -55,7 +55,7 @@ def main():
         for disk_root in disk_roots:
             for root, dirs, files in os.walk(disk_root):
                 disk_files += [join(root,f).replace(disk_root+'/','') for f in files if not islink(join(root,f))]
-        with open(join(os.getenv('HOME'),'scratch','disk_files.txt'),'w') as t:
+        with open(disk_files_cache,'w') as t:
             t.write('\n'.join(disk_files)+'\n')
     #
     # See if the files are on HPSS.
