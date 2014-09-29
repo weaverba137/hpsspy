@@ -46,10 +46,7 @@ def main():
     # Read disk files and cache.
     #
     disk_files_cache = join(os.getenv('HOME'),'scratch','disk_files_{0}.txt'.format(release))
-    if exists(disk_files_cache):
-        with open(disk_files_cache) as t:
-            disk_files = [l.strip() for l in t.readlines()]
-    else:
+    if not exists(disk_files_cache):
         disk_roots = [os.getenv('SAS_ROOT').replace('raid006',d) for d in ('raid006','raid000','raid005','raid007','raid008','raid2008','netapp')]
         disk_files = list()
         for disk_root in disk_roots:
@@ -66,20 +63,22 @@ def main():
             hpss_map = json.load(t)
     else:
         hpss_map = {"exclude":[],"regex":{"casload":{},"apogee":{},"boss":{},"sdss":{}}}
-    for f in disk_files:
-        message = "{0} NOT FOUND!".format(f)
-        if f in hpss_map["exclude"]:
-            message = "{0} skipped.".format(f)
-            continue
-        section = f.split('/')[0]
-        for r in hpss_map["regex"][section]:
-            if re.match(r,f) is not None:
-                reName = re.sub(r,hpss_map["regex"][section][r],f)
-                if reName in hpss_files:
-                    message = "{0} in {1}.".format(f,reName)
-                break
-        if verbose or 'NOT' in message:
-            print(message)
+    with open(disk_files_cache) as t:
+        for l in t:
+            f = l.strip()
+            message = "{0} NOT FOUND!".format(f)
+            if f in hpss_map["exclude"]:
+                message = "{0} skipped.".format(f)
+                continue
+            section = f.split('/')[0]
+            for r in hpss_map["regex"][section]:
+                if re.match(r,f) is not None:
+                    reName = re.sub(r,hpss_map["regex"][section][r],f)
+                    if reName in hpss_files:
+                        message = "{0} in {1}.".format(f,reName)
+                    break
+            if verbose or 'NOT' in message:
+                print(message)
     return 0
 #
 #
