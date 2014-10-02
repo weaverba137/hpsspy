@@ -38,7 +38,7 @@
       "sdss/spectro/redux/[^/]+$":"sdss/spectro/redux/redux_files.tar",
       "sdss/sspp/[^/]+$":"sdss/sspp/sspp-dr9-files.tar",
       "sdss/sspp/122/[^/]+$":"sdss/sspp/122/sspp_122_files.tar",
-      "sdss/sspp/122/([0-9]+|allParamFiles)/.*$":"sdss/sspp/122/sspp_122_\\1.tar",
+      "sdss/sspp/122/([0-9]+|allParamFiles)/.*$":"sdss/sspp/122/sspp_122_\\1.tar"
     }
   }
 }
