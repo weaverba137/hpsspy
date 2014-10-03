@@ -4,7 +4,7 @@
   ],
   "regex":{
     "casload":{
-      "casload/(bossgal|mask|pm|spPatchPrimary|sspp|ssppPatchObjid|sta)CSV/.*$":"casload/\\1CSV.tar",
+      "casload/(bossgal|mask|pm|sp|spPatchPrimary|sspp|ssppPatchObjid|sta)CSV/.*$":"casload/\\1CSV.tar",
       "casload/phPatchAstroCSV/2/([0-9]+)/.*$":"casload/phPatchAstroCSV/2/phPatchAstroCSV_2_\\1.tar"
     },
     "boss":{
