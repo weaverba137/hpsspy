@@ -1,39 +1,55 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 #
+"""Verify the presence of files on HPSS.
+"""
 from __future__ import print_function
 #
 def main():
-    """Main program."""
+    """Main program.
+    """
     import os
-    import re
     import json
+    import logging
+    from argparse import ArgumentParser
     from sys import argv
     from os.path import basename, dirname, exists, islink, join
     from hpsspy.os import listdir, lstat, stat, walk
     #
     # Options
     #
-    release = argv[1]
-    verbose = False
+    parser = ArgumentParser(description=__doc__,prog=basename(argv[0]))
+    parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
+        help="Increase verbosity.")
+    parser.add_argument('release',metavar='RELEASE', dest='release'
+        help="Scan files associated with data release RELEASE.")
+    options = parser.parse_args()
+    ll = logging.INFO
+    if options.verbose:
+        ll = logging.DEBUG
+    logging.basicConfig(level=ll, format='%(asctime)s %(name)s %(levelname)s: %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
+    logger = logging.getLogger('hpsspy')
     if os.getenv('SAS_ROOT') is None:
-        print("SAS_ROOT is not set!  Do 'module load tree/{0}'.".format(release))
+        logger.error("SAS_ROOT is not set!  Do 'module load tree/{0}'.".format(options.release))
         return 1
-    if basename(os.getenv('SAS_ROOT')) != release:
-        print("SAS_ROOT is inconsistent with {0}! Do 'module switch tree/{0}'.".format(release))
+    if basename(os.getenv('SAS_ROOT')) != options.release:
+        logger.error("SAS_ROOT is inconsistent with {0}! Do 'module switch tree/{0}'.".format(options.release))
         return 1
     #
     # Read HPSS files and cache.
     #
-    hpss_files_cache = join(os.getenv('HOME'),'scratch','hpss_files_{0}.txt'.format(release))
+    hpss_files_cache = join(os.getenv('HOME'),'scratch','hpss_files_{0}.txt'.format(options.release))
     if exists(hpss_files_cache):
+        logger.debug("Found cache file {0}.".format(hpss_files_cache))
         with open(hpss_files_cache) as t:
             hpss_files = [l.strip() for l in t.readlines()]
     else:
+        logger.debug("No HPSS cache file, starting scan.")
         hpss_root = os.getenv('HPSS_ROOT')
         hpss_files = list()
         for root, dirs, files in walk(hpss_root):
             # hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.ishtar]
+            logger.debug("Scanning HPSS directory {0}.".format(root))
             hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.path.endswith('.idx')]
             # htar_files = [f for f in files if f.ishtar]
             # for h in htar_files:
@@ -42,44 +58,70 @@ def main():
             # links += [f for f in files if f.islink]
         with open(hpss_files_cache,'w') as t:
             t.write('\n'.join(hpss_files)+'\n')
+    hpss_files = frozenset(hpss_files)
     #
     # Read disk files and cache.
     #
-    disk_files_cache = join(os.getenv('HOME'),'scratch','disk_files_{0}.txt'.format(release))
+    disk_files_cache = join(os.getenv('HOME'),'scratch','disk_files_{0}.txt'.format(options.release))
     if not exists(disk_files_cache):
+        logger.debug("No HPSS cache file, starting scan.")
         disk_roots = [os.getenv('SAS_ROOT').replace('raid006',d) for d in ('raid006','raid000','raid005','raid007','raid008','raid2008','netapp')]
         disk_files = list()
         for disk_root in disk_roots:
             for root, dirs, files in os.walk(disk_root):
+                logger.debug("Scanning disk directory {0}.".format(root))
                 disk_files += [join(root,f).replace(disk_root+'/','') for f in files if not islink(join(root,f))]
         with open(disk_files_cache,'w') as t:
             t.write('\n'.join(disk_files)+'\n')
     #
     # See if the files are on HPSS.
     #
-    hpss_map_cache = join(os.getenv('HPSSPY_DIR'),'data','hpss_map_{0}.json'.format(release))
+    hpss_map_cache = join(os.getenv('HPSSPY_DIR'),'data','hpss_map.json')
     if exists(hpss_map_cache):
+        logger.debug("Found map file {0}.".format(hpss_map_cache))
         with open(hpss_map_cache) as t:
             hpss_map = json.load(t)
     else:
-        hpss_map = {"exclude":[],"regex":{"casload":{},"apogee":{},"boss":{},"sdss":{}}}
+        hpss_map = {"dr8":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}},
+            "dr9":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}},
+            "dr10":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}}}
+    hpss_map = compile_map(hpss_map,options.release)
     with open(disk_files_cache) as t:
         for l in t:
             f = l.strip()
             message = "{0} NOT FOUND!".format(f)
             if f in hpss_map["exclude"]:
                 message = "{0} skipped.".format(f)
-                continue
-            section = f.split('/')[0]
-            for r in hpss_map["regex"][section]:
-                if re.match(r,f) is not None:
-                    reName = re.sub(r,hpss_map["regex"][section][r],f)
-                    if reName in hpss_files:
-                        message = "{0} in {1}.".format(f,reName)
-                    break
-            if verbose or 'NOT' in message:
-                print(message)
+            else:
+                section = f.split('/')[0]
+                for r in hpss_map[section]:
+                    if r[0].match(f) is not None:
+                        reName = r[0].sub(r[1],f)
+                        if reName in hpss_files:
+                            message = "{0} in {1}.".format(f,reName)
+                        break
+            if 'NOT' in message:
+                logger.warning(message)
+            else:
+                logger.debug(message)
     return 0
+#
+#
+#
+def compile_map(old_map,release):
+    """Compile the regular expressions in a map.
+    """
+    from re import compile
+    new_map = dict()
+    for key in old_map[release]:
+        if key == 'exclude':
+            new_map[key] = frozenset(old_map[release][key])
+        else:
+            foo = list()
+            for r in old_map[release][key]:
+                foo.append((compile(r),old_map[release][key][r]))
+            new_map[key] = tuple(foo)
+    return new_map
 #
 #
 #
