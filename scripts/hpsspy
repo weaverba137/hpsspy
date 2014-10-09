@@ -107,7 +107,7 @@ def main():
                 logger.debug(message)
             nfiles += 1
             if (nfiles % 1000) == 0:
-                logger.info("{0:d} files scanned.")
+                logger.info("{0:9d} files scanned.".format(nfiles))
     return 0
 #
 #
