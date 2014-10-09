@@ -2,7 +2,8 @@
     "dr8":{
         "exclude":[
             "env/index.html",
-            "boss/photoObj/frames/301/index.html"
+            "boss/photoObj/frames/301/index.html",
+            "sdss/spectro/data/README.html"
         ],
         "casload":{
             "casload/(gz|phPatch1297|phPatch952|pm|re|sp|sspp|sta|ti|wi|xd)CSV/.*$":"casload/\\1CSV.tar",
