@@ -21,7 +21,7 @@ def main():
     parser = ArgumentParser(description=__doc__,prog=basename(argv[0]))
     parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
         help="Increase verbosity.")
-    parser.add_argument('release',metavar='RELEASE', dest='release',
+    parser.add_argument('release',metavar='RELEASE', 
         help="Scan files associated with data release RELEASE.")
     options = parser.parse_args()
     ll = logging.INFO
