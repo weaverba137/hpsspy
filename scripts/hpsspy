@@ -19,6 +19,9 @@ def main():
     # Options
     #
     parser = ArgumentParser(description=__doc__,prog=basename(argv[0]))
+    parser.add_argument('-r', '--report', action='store', type=int, metavar='N',
+        dest='report', default=10000,
+        help="Print an informational message after every N files.")
     parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
         help="Increase verbosity.")
     parser.add_argument('release',metavar='RELEASE',
@@ -106,7 +109,7 @@ def main():
             else:
                 logger.debug(message)
             nfiles += 1
-            if (nfiles % 1000) == 0:
+            if (nfiles % options.report) == 0:
                 logger.info("{0:9d} files scanned.".format(nfiles))
     return 0
 #
