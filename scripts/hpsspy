@@ -21,7 +21,7 @@ def main():
     parser = ArgumentParser(description=__doc__,prog=basename(argv[0]))
     parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
         help="Increase verbosity.")
-    parser.add_argument('release',metavar='RELEASE', 
+    parser.add_argument('release',metavar='RELEASE',
         help="Scan files associated with data release RELEASE.")
     options = parser.parse_args()
     ll = logging.INFO
@@ -40,11 +40,11 @@ def main():
     #
     hpss_files_cache = join(os.getenv('HOME'),'scratch','hpss_files_{0}.txt'.format(options.release))
     if exists(hpss_files_cache):
-        logger.debug("Found cache file {0}.".format(hpss_files_cache))
+        logger.info("Found cache file {0}.".format(hpss_files_cache))
         with open(hpss_files_cache) as t:
             hpss_files = [l.strip() for l in t.readlines()]
     else:
-        logger.debug("No HPSS cache file, starting scan.")
+        logger.info("No HPSS cache file, starting scan.")
         hpss_root = os.getenv('HPSS_ROOT')
         hpss_files = list()
         for root, dirs, files in walk(hpss_root):
@@ -64,7 +64,7 @@ def main():
     #
     disk_files_cache = join(os.getenv('HOME'),'scratch','disk_files_{0}.txt'.format(options.release))
     if not exists(disk_files_cache):
-        logger.debug("No HPSS cache file, starting scan.")
+        logger.info("No HPSS cache file, starting scan.")
         disk_roots = [os.getenv('SAS_ROOT').replace('raid006',d) for d in ('raid006','raid000','raid005','raid007','raid008','raid2008','netapp')]
         disk_files = list()
         for disk_root in disk_roots:
@@ -78,7 +78,7 @@ def main():
     #
     hpss_map_cache = join(os.getenv('HPSSPY_DIR'),'data','hpss_map.json')
     if exists(hpss_map_cache):
-        logger.debug("Found map file {0}.".format(hpss_map_cache))
+        logger.info("Found map file {0}.".format(hpss_map_cache))
         with open(hpss_map_cache) as t:
             hpss_map = json.load(t)
     else:
@@ -86,6 +86,7 @@ def main():
             "dr9":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}},
             "dr10":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}}}
     hpss_map = compile_map(hpss_map,options.release)
+    nfiles = 0
     with open(disk_files_cache) as t:
         for l in t:
             f = l.strip()
@@ -104,6 +105,9 @@ def main():
                 logger.warning(message)
             else:
                 logger.debug(message)
+            nfiles += 1
+            if (nfiles % 1000) == 0:
+                logger.info("{0:d} files scanned.")
     return 0
 #
 #
