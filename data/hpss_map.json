@@ -66,6 +66,7 @@
         "boss":{
             "boss/(lss|lya|papers|qso|sweeps)/.*$":"boss/\\1.tar",
             "boss/photo/redux/(157|301)/([0-9]+)/(dr9_astrom|dr9_logs)/.*$":"boss/photo/redux/\\1/\\2/\\1_\\2_\\3.tar",
+            "boss/photo/redux/(157|301)/([0-9]+)/(astrom|logs)/.*$":"boss/photo/redux/\\1/\\2/\\1_\\2_dr9_\\3.tar",
             "boss/photoObj/[^/]+$":"boss/photoObj/boss_photoObj_files.tar",
             "boss/photoObj/301/([0-9]+)/.*$":"boss/photoObj/301/photoObj_301_\\1.tar",
             "boss/photoObj/astromqa/[^/]+$":"boss/photoObj/astromqa/astromqa_files.tar",
