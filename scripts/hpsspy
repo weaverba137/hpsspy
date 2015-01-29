@@ -87,7 +87,10 @@ def main():
     else:
         hpss_map = {"dr8":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}},
             "dr9":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}},
-            "dr10":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}}}
+            "dr10":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}},
+            "dr11":{"exclude":[],"casload":{},"apogee":{},"boss":{},"marvels":{},"sdss":{}},
+            "dr12":{"exclude":[],"casload":{},"apo":{},"apogee":{},"boss":{},"marvels":{},"sdss":{}},
+            }
     hpss_map = compile_map(hpss_map,options.release)
     nfiles = 0
     with open(disk_files_cache) as t:

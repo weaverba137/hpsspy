@@ -144,5 +144,19 @@
             "sdss/spectro/redux/galaxy/v1_0/[^/]+$":"sdss/spectro/redux/galaxy/v1_0/redux_galaxy_v1_0_files.tar",
             "sdss/spectro/redux/galaxy/v1_0/([0-9]+)/([0-9]+)/.*$":"sdss/spectro/redux/galaxy/v1_0/\\1/galaxy_v1_0_\\1_\\2.tar"
         }
+    },
+    "dr11":{
+        "exclude":[
+            "env/index.html"
+        ],
+        "casload":{},
+        "apogee":{},
+        "boss":{},
+        "marvels":{},
+        "sdss":{
+            "sdss/spectro/redux/[^/]+$":"sdss/spectro/redux/sdss_spectro_redux_files.tar",
+            "sdss/spectro/redux/galaxy/v1_1/[^/]+$":"sdss/spectro/redux/galaxy/v1_1/spectro_redux_galaxy_v1_1_files.tar",
+            "sdss/spectro/redux/galaxy/v1_1/([0-9]+)/([0-9]+)/.*$":"sdss/spectro/redux/galaxy/v1_1/\\1/galaxy_v1_1_\\1_\\2.tar"
+        }
     }
 }
