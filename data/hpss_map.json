@@ -158,5 +158,24 @@
             "sdss/spectro/redux/galaxy/v1_1/[^/]+$":"sdss/spectro/redux/galaxy/v1_1/spectro_redux_galaxy_v1_1_files.tar",
             "sdss/spectro/redux/galaxy/v1_1/([0-9]+)/([0-9]+)/.*$":"sdss/spectro/redux/galaxy/v1_1/\\1/galaxy_v1_1_\\1_\\2.tar"
         }
+    },
+    "dr12":{
+        "exclude":[
+            "env/index.html"
+        ],
+        "casload":{},
+        "apo":{
+            "apo/(ecam|gcam|ircam|mapper)/([0-9]+)/.*$":"apo/\\1/\\2_\\1.tar"
+        },
+        "apogee":{},
+        "boss":{},
+        "marvels":{},
+        "sdss":{
+            "sdss/spectro/redux/[^/]+$":"sdss/spectro/redux/sdss_spectro_redux_files.tar",
+            "sdss/spectro/redux/galaxy/v1_1/[^/]+$":"sdss/spectro/redux/galaxy/v1_1/spectro_redux_galaxy_v1_1_files.tar",
+            "sdss/spectro/redux/pngCutout/[^/]+$":"sdss/spectro/redux/pngCutout/pngCutout_files.tar",
+            "sdss/spectro/redux/pngCutout/([v_0-9]+)/([0-9]+)-([0-9]+)/.*$":"sdss/spectro/redux/pngCutout/\\1/pngCutout_\\1_\\2-\\3.tar"
+        }
     }
+
 }
