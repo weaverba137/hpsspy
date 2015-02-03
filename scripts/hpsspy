@@ -15,6 +15,7 @@ def main():
     from sys import argv
     from os.path import basename, dirname, exists, islink, join
     from hpsspy.os import listdir, lstat, stat, walk
+    from hpsspy.scan import compile_map, files_to_hpss, scan_hpss
     #
     # Options
     #
@@ -31,7 +32,7 @@ def main():
     if options.verbose:
         ll = logging.DEBUG
     logging.basicConfig(level=ll, format='%(asctime)s %(name)s %(levelname)s: %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
-    logger = logging.getLogger('hpsspy')
+    logger = logging.getLogger(__name__)
     if os.getenv('SAS_ROOT') is None:
         logger.error("SAS_ROOT is not set!  Do 'module load tree/{0}'.".format(options.release))
         return 1
@@ -42,26 +43,7 @@ def main():
     # Read HPSS files and cache.
     #
     hpss_files_cache = join(os.getenv('HOME'),'scratch','hpss_files_{0}.txt'.format(options.release))
-    if exists(hpss_files_cache):
-        logger.info("Found cache file {0}.".format(hpss_files_cache))
-        with open(hpss_files_cache) as t:
-            hpss_files = [l.strip() for l in t.readlines()]
-    else:
-        logger.info("No HPSS cache file, starting scan.")
-        hpss_root = os.getenv('HPSS_ROOT')
-        hpss_files = list()
-        for root, dirs, files in walk(hpss_root):
-            # hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.ishtar]
-            logger.debug("Scanning HPSS directory {0}.".format(root))
-            hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.path.endswith('.idx')]
-            # htar_files = [f for f in files if f.ishtar]
-            # for h in htar_files:
-            #     contents = h.htar_contents()
-            #     hpss_files += [join(root,c[9]).replace(hpss_root+'/','') for c in contents if c[0] == '-']
-            # links += [f for f in files if f.islink]
-        with open(hpss_files_cache,'w') as t:
-            t.write('\n'.join(hpss_files)+'\n')
-    hpss_files = frozenset(hpss_files)
+    hpss_files = scan_hpss(os.getenv('HPSS_ROOT'),hpss_files_cache)
     #
     # Read disk files and cache.
     #
@@ -80,18 +62,7 @@ def main():
     # See if the files are on HPSS.
     #
     hpss_map_cache = join(os.getenv('HPSSPY_DIR'),'data','hpss_map.json')
-    if exists(hpss_map_cache):
-        logger.info("Found map file {0}.".format(hpss_map_cache))
-        with open(hpss_map_cache) as t:
-            hpss_map = json.load(t)
-    else:
-        hpss_map = {"dr8":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}},
-            "dr9":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}},
-            "dr10":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}},
-            "dr11":{"exclude":[],"casload":{},"apogee":{},"boss":{},"marvels":{},"sdss":{}},
-            "dr12":{"exclude":[],"casload":{},"apo":{},"apogee":{},"boss":{},"marvels":{},"sdss":{}},
-            }
-    hpss_map = compile_map(hpss_map,options.release)
+    hpss_map = files_to_hpss(hpss_map_cache)
     nfiles = 0
     with open(disk_files_cache) as t:
         for l in t:
@@ -115,23 +86,6 @@ def main():
             if (nfiles % options.report) == 0:
                 logger.info("{0:9d} files scanned.".format(nfiles))
     return 0
-#
-#
-#
-def compile_map(old_map,release):
-    """Compile the regular expressions in a map.
-    """
-    from re import compile
-    new_map = dict()
-    for key in old_map[release]:
-        if key == 'exclude':
-            new_map[key] = frozenset(old_map[release][key])
-        else:
-            foo = list()
-            for r in old_map[release][key]:
-                foo.append((compile(r),old_map[release][key][r]))
-            new_map[key] = tuple(foo)
-    return new_map
 #
 #
 #

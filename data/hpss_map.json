@@ -150,9 +150,15 @@
             "env/index.html"
         ],
         "casload":{},
-        "apogee":{},
-        "boss":{},
-        "marvels":{},
+        "apogee":{
+            "apogee/spectro/data/([0-9]{5})/.*$":"apogee/spectro/data/apogee_spectro_data_\\1.tar"
+        },
+        "boss":{
+            "boss/spectro/data/([0-9]{5})/.*$":"boss/spectro/data/boss_spectro_data_\\1.tar"
+        },
+        "marvels":{
+            "marvels/spectro/data/([0-9]{5})/.*$":"marvels/spectro/data/marvels_spectro_data_\\1.tar"
+        },
         "sdss":{
             "sdss/spectro/redux/[^/]+$":"sdss/spectro/redux/sdss_spectro_redux_files.tar",
             "sdss/spectro/redux/galaxy/v1_1/[^/]+$":"sdss/spectro/redux/galaxy/v1_1/spectro_redux_galaxy_v1_1_files.tar",
@@ -167,9 +173,19 @@
         "apo":{
             "apo/(ecam|gcam|ircam|mapper)/([0-9]+)/.*$":"apo/\\1/\\2_\\1.tar"
         },
-        "apogee":{},
-        "boss":{},
-        "marvels":{},
+        "apogee":{
+            "apogee/spectro/data/([0-9]{5})/.*$":"apogee/spectro/data/apogee_spectro_data_\\1.tar"
+        },
+        "boss":{
+            "boss/photo/data/([0-9]+)/gangs/.*$":"boss/photo/data/\\1/\\1_gangs.tar",
+            "boss/photo/data/([0-9]+)/fields/([1-6])/idR-[0-9]{6}-([ugriz])[0-9]-[0-9]{4}\\.fit\\.Z$":"boss/photo/data/\\1/\\1_fields_\\2_\\3.tar",
+            "boss/photo/data/([0-9]+)/fields/([1-6])/cksum.current$":"boss/photo/data/\\1/\\1_fields_\\2_g.tar",
+            "boss/photo/data/([0-9]+)/fields/([1-6])/([ugriz])raw/.*$":"boss/photo/data/\\1/\\1_fields_\\2_\\3raw.tar",
+            "boss/spectro/data/([0-9]{5})/.*$":"boss/spectro/data/boss_spectro_data_\\1.tar"
+        },
+        "marvels":{
+            "marvels/spectro/data/([0-9]{5})/.*$":"marvels/spectro/data/marvels_spectro_data_\\1.tar"
+        },
         "sdss":{
             "sdss/spectro/redux/[^/]+$":"sdss/spectro/redux/sdss_spectro_redux_files.tar",
             "sdss/spectro/redux/galaxy/v1_1/[^/]+$":"sdss/spectro/redux/galaxy/v1_1/spectro_redux_galaxy_v1_1_files.tar",
