@@ -19,6 +19,7 @@ class HpssOSError(HpssError):
 # Set up namespace
 #
 from . import os
+from . import scan
 from . import util
 #
 #

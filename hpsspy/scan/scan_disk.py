@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-def scan_disks(disk_roots,disk_files_cache):
+def scan_disk(disk_roots,disk_files_cache):
     """Scan a directory tree on disk and cache the files found there.
 
     Parameters
