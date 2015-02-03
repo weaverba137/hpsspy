@@ -58,7 +58,7 @@ def main():
     #
     # See if the files are on HPSS.
     #
-    hpss_map_cache = join(getenv('HPSSPY_DIR'),'data','hpss_map.json')
-    hpss_map = files_to_hpss(hpss_map_cache)
+    # hpss_map_cache = join(getenv('HPSSPY_DIR'),'data','sdss.json')
+    hpss_map = files_to_hpss('sdss.json')
     missing = find_missing(hpss_map,hpss_files,disk_files_cache,options.report)
     return 0
