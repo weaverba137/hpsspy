@@ -57,7 +57,7 @@ setup_keywords['requires'] = ['Python (>2.7.0)']
 setup_keywords['zip_safe'] = False # Sphinx extensions may do some introspection.
 setup_keywords['use_2to3'] = True
 setup_keywords['packages'] = find_packages()
-setup_keywords['package_data'] = {'':'*.json'}
+setup_keywords['package_data'] = {'':['*.json']}
 #
 # Autogenerate command-line scripts.
 #
