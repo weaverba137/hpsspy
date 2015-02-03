@@ -20,3 +20,7 @@ class HpssOSError(HpssError):
 #
 from . import os
 from . import util
+#
+#
+#
+__version__ = '0.1.0'
