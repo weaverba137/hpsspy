@@ -1,0 +1,4 @@
+include LICENSE.rst
+include README.rst
+
+prune data
