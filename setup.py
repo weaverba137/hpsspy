@@ -68,8 +68,8 @@ setup_keywords['requires'] = ['Python (>2.7.0)']
 # setup_keywords['install_requires'] = ['Python (>2.6.0)']
 setup_keywords['zip_safe'] = False # Sphinx extensions may do some introspection.
 setup_keywords['use_2to3'] = True
-setup_keywords['packages'] = find_packages('python')
-setup_keywords['package_dir'] = {'':'python'}
+setup_keywords['packages'] = find_packages('.')
+# setup_keywords['package_dir'] = {'':'python'}
 #
 # Autogenerate command-line scripts.
 #
