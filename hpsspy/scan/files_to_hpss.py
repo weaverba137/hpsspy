@@ -14,6 +14,7 @@ def files_to_hpss(hpss_map_cache):
         The mapping.
     """
     import logging
+    import json
     from os.path import exists
     from . import compile_map
     logger = logging.getLogger(__name__)
