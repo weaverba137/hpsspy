@@ -13,7 +13,7 @@ setup_keywords = dict()
 # General settings.
 #
 setup_keywords['name'] = 'hpsspy'
-setup_keywords['description'] = 'SDSS data transfer package'
+setup_keywords['description'] = 'Package for interacting with HPSS.'
 setup_keywords['author'] = 'Benjamin Alan Weaver'
 setup_keywords['author_email'] = 'benjamin.weaver@nyu.edu'
 setup_keywords['license'] = 'BSD'
@@ -48,18 +48,6 @@ except ImportError:
         setup_keywords['long_description'] = ''
     setup_keywords['version'] = '0.0.1.dev'
 #
-# Indicates if this version is a release version.
-#
-if setup_keywords['version'].endswith('dev'):
-    #
-    # Try to obtain svn information.
-    #
-    try:
-        from desiUtil.install import get_svn_devstr
-        setup_keywords['version'] += get_svn_devstr()
-    except ImportError:
-        pass
-#
 # Set other keywords for the setup function.  These are automated, & should
 # be left alone unless you are an expert.
 #
@@ -68,7 +56,7 @@ setup_keywords['requires'] = ['Python (>2.7.0)']
 # setup_keywords['install_requires'] = ['Python (>2.6.0)']
 setup_keywords['zip_safe'] = False # Sphinx extensions may do some introspection.
 setup_keywords['use_2to3'] = True
-setup_keywords['packages'] = find_packages('.')
+setup_keywords['packages'] = find_packages()
 # setup_keywords['package_dir'] = {'':'python'}
 #
 # Autogenerate command-line scripts.
