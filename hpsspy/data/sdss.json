@@ -157,7 +157,9 @@
             "boss/spectro/data/([0-9]{5})/.*$":"boss/spectro/data/boss_spectro_data_\\1.tar"
         },
         "marvels":{
-            "marvels/spectro/data/([0-9]{5})/.*$":"marvels/spectro/data/marvels_spectro_data_\\1.tar"
+            "marvels/spectro/data/([0-9]{5})/.*$":"marvels/spectro/data/marvels_spectro_data_\\1.tar",
+            "marvels/spectro/redux/v001.88/([0-9]{5}|ASCII|PARAMS|RESULTS|TEMP)/.*$":"marvels/spectro/redux/v001.88/marvels_spectro_redux_v001.88_\\1.tar",
+            "marvels/target/.*$":"marvels/marvels_target.tar",
         },
         "sdss":{
             "sdss/spectro/redux/[^/]+$":"sdss/spectro/redux/sdss_spectro_redux_files.tar",
