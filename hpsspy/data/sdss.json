@@ -176,7 +176,9 @@
             "apo/(ecam|gcam|ircam|mapper)/([0-9]+)/.*$":"apo/\\1/\\2_\\1.tar"
         },
         "apogee":{
-            "apogee/spectro/data/([0-9]{5})/.*$":"apogee/spectro/data/apogee_spectro_data_\\1.tar"
+            "apogee/spectro/data/([0-9]{5})/.*$":"apogee/spectro/data/apogee_spectro_data_\\1.tar",
+            "apogee/target/.*$":"apogee/apogee_target.tar",
+            "apogee/vac/apogee-rc/.*$":"apogee/vac/apogee_vac_apogee-rc.tar"
         },
         "boss":{
             "boss/photo/data/([0-9]+)/gangs/.*$":"boss/photo/data/\\1/\\1_gangs.tar",
@@ -186,7 +188,8 @@
             "boss/spectro/data/([0-9]{5})/.*$":"boss/spectro/data/boss_spectro_data_\\1.tar"
         },
         "marvels":{
-            "marvels/spectro/data/([0-9]{5})/.*$":"marvels/spectro/data/marvels_spectro_data_\\1.tar"
+            "marvels/spectro/data/([0-9]{5})/.*$":"marvels/spectro/data/marvels_spectro_data_\\1.tar",
+            "marvels/spectro/redux/v003.06/.*$":"marvels/spectro/redux/marvels_spectro_redux_v003.06.tar"
         },
         "sdss":{
             "sdss/spectro/redux/[^/]+$":"sdss/spectro/redux/sdss_spectro_redux_files.tar",
