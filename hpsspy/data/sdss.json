@@ -151,7 +151,14 @@
         ],
         "casload":{},
         "apogee":{
-            "apogee/spectro/data/([0-9]{5})/.*$":"apogee/spectro/data/apogee_spectro_data_\\1.tar"
+            "apogee/spectro/data/([0-9]{5})/.*$":"apogee/spectro/data/apogee_spectro_data_\\1.tar",
+            "apogee/spectro/redux/r4/[^/]+$":"apogee/spectro/redux/r4/r4_files.tar",
+            "apogee/spectro/redux/r4/(1m|apo25m|cal|fields|plates|red)/[^/]+$":"apogee/spectro/redux/r4/\\1/r4_\\1_files.tar",
+            "apogee/spectro/redux/r4/(1m|apo25m|cal|fields|plates|red)/([^/]+)/.*$":"apogee/spectro/redux/r4/\\1/r4_\\1_\\2.tar",
+            "apogee/spectro/redux/r4/s4/([0-9]+|plan)/.*$":"apogee/spectro/redux/r4/s4/r4_s4_\\1.tar",
+            "apogee/spectro/redux/r4/s4/a4/([0-9]+|fts|hip|Mdwarfs|misc)/.*$":"apogee/spectro/redux/r4/s4/a4/r4_s4_a4_\\1.tar",
+            "apogee/spectro/redux/r4/s4/a4/v402/[^/]+$":"apogee/spectro/redux/r4/s4/a4/v402/r4_s4_a4_v402_files.tar",
+            "apogee/spectro/redux/r4/s4/a4/v402/([0-9]+|calibration|fts|hip|html|log|Mdwarfs|misc|pbs|plan)/.*$":"apogee/spectro/redux/r4/s4/a4/v402/r4_s4_a4_v402_\\1.tar"
         },
         "boss":{
             "boss/spectro/data/([0-9]{5})/.*$":"boss/spectro/data/boss_spectro_data_\\1.tar"
