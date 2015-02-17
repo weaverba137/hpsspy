@@ -161,7 +161,13 @@
             "apogee/spectro/redux/r4/s4/a4/v402/([0-9]+|calibration|fts|hip|html|log|Mdwarfs|misc|pbs|plan)/.*$":"apogee/spectro/redux/r4/s4/a4/v402/r4_s4_a4_v402_\\1.tar"
         },
         "boss":{
-            "boss/spectro/data/([0-9]{5})/.*$":"boss/spectro/data/boss_spectro_data_\\1.tar"
+            "boss/spectro/data/([0-9]{5})/.*$":"boss/spectro/data/boss_spectro_data_\\1.tar",
+            "boss/spectro/redux/v5_6_5/[^/]+$":"boss/spectro/redux/v5_6_5/v5_6_5_files.tar",
+            "boss/spectro/redux/v5_6_5/([0-9]+)/.*$":"boss/spectro/redux/v5_6_5/v5_6_5_\\1.tar",
+            "boss/spectro/redux/v5_6_5/spectra/([^/]+)\\.(fits|txt|tgz|sha1sum)$":"boss/spectro/redux/v5_6_5/spectra/\\1.\\2",
+            "boss/spectro/redux/v5_6_5/spectra/([0-9]+)/.*$":"boss/spectro/redux/v5_6_5/spectra/v5_6_5_spectra_\\1.tar",
+            "boss/spectro/redux/v5_6_5/spectra/lite/([^/]+)\\.(fits|txt|tgz|sha1sum)$":"boss/spectro/redux/v5_6_5/spectra/lite/\\1.\\2",
+            "boss/spectro/redux/v5_6_5/spectra/lite/([0-9]+)/.*$":"boss/spectro/redux/v5_6_5/spectra/lite/v5_6_5_spectra_lite_\\1.tar"
         },
         "marvels":{
             "marvels/spectro/data/([0-9]{5})/.*$":"marvels/spectro/data/marvels_spectro_data_\\1.tar",
