@@ -12,7 +12,7 @@ def main():
     from sys import argv
     from os import getenv
     from os.path import basename, join
-    from hpsspy.scan import compile_map, files_to_hpss, scan_disk, scan_hpss
+    from hpsspy.scan import compile_map, files_to_hpss, find_missing, scan_disk, scan_hpss
     #
     # Options
     #
