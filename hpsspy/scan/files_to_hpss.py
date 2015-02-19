@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-def files_to_hpss(hpss_map_cache='sdss.json',release):
+def files_to_hpss(hpss_map_cache,release):
     """Create a map of files on disk to HPSS files.
 
     Parameters
