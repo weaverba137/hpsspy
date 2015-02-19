@@ -17,7 +17,7 @@ def scan_disk(disk_roots,disk_files_cache):
     """
     import logging
     import os
-    from os.path import exists, islink
+    from os.path import exists, islink, join
     logger = logging.getLogger(__name__)
     if exists(disk_files_cache):
         logger.debug("Using existing file cache: {0}".format(disk_files_cache))
@@ -29,8 +29,8 @@ def scan_disk(disk_roots,disk_files_cache):
                 for disk_root in disk_roots:
                     for root, dirs, files in os.walk(disk_root):
                         logger.debug("Scanning disk directory {0}.".format(root))
-                        disk_files = [join(root,f).replace(disk_root+'/','') for f in files if not islink(join(root,f))]
-                        t.write('\n'.join(disk_files)+'\n')
+                        disk_files = [join(root,f).replace(disk_root+'/','')+'\n' for f in files if not islink(join(root,f))]
+                        t.writelines(disk_files)
             except:
                 logger.error('Exception encountered while creating disk cache file!')
                 return False
