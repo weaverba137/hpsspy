@@ -46,11 +46,13 @@ def main():
     # Read HPSS files and cache.
     #
     hpss_files_cache = join(getenv('HOME'),'scratch','hpss_files_{0}.txt'.format(options.release))
+    logger.debug('HPSS file cache = {0}'.format(hpss_files_cache))
     hpss_files = scan_hpss(getenv('HPSS_ROOT'),hpss_files_cache)
     #
     # Read disk files and cache.
     #
     disk_files_cache = join(getenv('HOME'),'scratch','disk_files_{0}.txt'.format(options.release))
+    logger.debug('Disk file cache = {0}'.format(disk_files_cache))
     disk_roots = [getenv('SAS_ROOT').replace('raid006',d) for d in ('raid006','raid000','raid005','raid007','raid008','raid2008','netapp')]
     status = scan_disk(disk_roots,disk_files_cache)
     if not status:
