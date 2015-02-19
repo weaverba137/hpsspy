@@ -147,9 +147,12 @@
     },
     "dr11":{
         "exclude":[
-            "env/index.html"
+            "env/index.html",
+            "boss/lss/index.html"
         ],
-        "casload":{},
+        "casload":{
+            "casload/(apogee|galaxy|sp)CSV/.*$":"casload/\\1CSV.tar"
+        },
         "apogee":{
             "apogee/spectro/data/([0-9]{5})/.*$":"apogee/spectro/data/apogee_spectro_data_\\1.tar",
             "apogee/spectro/data1m/([0-9]{5})/.*$":"apogee/spectro/data1m/apogee_spectro_data1m_\\1.tar",
@@ -163,8 +166,10 @@
             "apogee/spectro/redux/speclib/(asset|linelists)/.*$":"apogee/spectro/redux/speclib/\\1.tar"
         },
         "boss":{
+            "boss/photoObj/[^/]+$":"boss/photoObj/boss_photoObj_files.tar",
+            "boss/photoObj/plates/.*$":"boss/photoObj/boss_photoObj_plates.tar",
             "boss/spectro/data/([0-9]{5})/.*$":"boss/spectro/data/boss_spectro_data_\\1.tar",
-            "boss/spectro/redux/galaxy/v1_1/[^/]+$":"boss/spectro/redux/galaxy/v1_0/galaxy_v1_1_v5_5_5_files.tar",
+            "boss/spectro/redux/galaxy/v1_1/[^/]+$":"boss/spectro/redux/galaxy/v1_1/galaxy_v1_1_v5_6_5_files.tar",
             "boss/spectro/redux/galaxy/v1_1/v5_6_5/([0-9]+)/.*$":"boss/spectro/redux/galaxy/v1_1/v5_6_5/galaxy_v1_1_v5_6_5_\\1.tar",
             "boss/spectro/redux/images/v5_6_5/v5_6_5/([0-9]+)-([0-9]+)/.*$":"boss/spectro/redux/images/v5_6_5/v5_6_5/redux_images_v5_6_5_v5_6_5_\\1-\\2.tar",
             "boss/spectro/redux/v5_6_5/[^/]+$":"boss/spectro/redux/v5_6_5/v5_6_5_files.tar",
