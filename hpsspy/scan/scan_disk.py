@@ -27,11 +27,10 @@ def scan_disk(disk_roots,disk_files_cache):
         with open(disk_files_cache,'w') as t:
             try:
                 for disk_root in disk_roots:
-                    disk_files = list()
                     for root, dirs, files in os.walk(disk_root):
                         logger.debug("Scanning disk directory {0}.".format(root))
-                        disk_files += [join(root,f).replace(disk_root+'/','') for f in files if not islink(join(root,f))]
-                    t.write('\n'.join(disk_files)+'\n')
+                        disk_files = [join(root,f).replace(disk_root+'/','') for f in files if not islink(join(root,f))]
+                        t.write('\n'.join(disk_files)+'\n')
             except:
                 logger.error('Exception encountered while creating disk cache file!')
                 return False
