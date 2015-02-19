@@ -1,12 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-def files_to_hpss(hpss_map_cache='sdss.json'):
+def files_to_hpss(hpss_map_cache='sdss.json',release):
     """Create a map of files on disk to HPSS files.
 
     Parameters
     ----------
     hpss_map_cache : str
         Data file containing the map.
+    release : str
+        Release name.
 
     Returns
     -------
@@ -38,4 +40,4 @@ def files_to_hpss(hpss_map_cache='sdss.json'):
                 "dr11":{"exclude":[],"casload":{},"apogee":{},"boss":{},"marvels":{},"sdss":{}},
                 "dr12":{"exclude":[],"casload":{},"apo":{},"apogee":{},"boss":{},"marvels":{},"sdss":{}},
                 }
-    return compile_map(hpss_map,options.release)
+    return compile_map(hpss_map,release)
