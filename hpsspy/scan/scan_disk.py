@@ -16,6 +16,8 @@ def scan_disk(disk_roots,disk_files_cache):
         Returns ``True`` if the cache is populated and ready to read.
     """
     import logging
+    import os
+    from os.path import exists, islink
     logger = logging.getLogger(__name__)
     if exists(disk_files_cache):
         logger.debug("Using existing file cache: {0}".format(disk_files_cache))
