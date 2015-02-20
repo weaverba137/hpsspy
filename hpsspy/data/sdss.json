@@ -147,12 +147,9 @@
     },
     "dr11":{
         "exclude":[
-            "env/index.html",
-            "boss/lss/index.html"
+            "env/index.html"
         ],
-        "casload":{
-            "casload/(apogee|galaxy|sp)CSV/.*$":"casload/\\1CSV.tar"
-        },
+        "casload":{},
         "apogee":{
             "apogee/spectro/data/([0-9]{5})/.*$":"apogee/spectro/data/apogee_spectro_data_\\1.tar",
             "apogee/spectro/data1m/([0-9]{5})/.*$":"apogee/spectro/data1m/apogee_spectro_data1m_\\1.tar",
@@ -166,10 +163,8 @@
             "apogee/spectro/redux/speclib/(asset|linelists)/.*$":"apogee/spectro/redux/speclib/\\1.tar"
         },
         "boss":{
-            "boss/photoObj/[^/]+$":"boss/photoObj/boss_photoObj_files.tar",
-            "boss/photoObj/plates/.*$":"boss/photoObj/boss_photoObj_plates.tar",
             "boss/spectro/data/([0-9]{5})/.*$":"boss/spectro/data/boss_spectro_data_\\1.tar",
-            "boss/spectro/redux/galaxy/v1_1/[^/]+$":"boss/spectro/redux/galaxy/v1_1/galaxy_v1_1_v5_6_5_files.tar",
+            "boss/spectro/redux/galaxy/v1_1/[^/]+$":"boss/spectro/redux/galaxy/v1_0/galaxy_v1_1_v5_5_5_files.tar",
             "boss/spectro/redux/galaxy/v1_1/v5_6_5/([0-9]+)/.*$":"boss/spectro/redux/galaxy/v1_1/v5_6_5/galaxy_v1_1_v5_6_5_\\1.tar",
             "boss/spectro/redux/images/v5_6_5/v5_6_5/([0-9]+)-([0-9]+)/.*$":"boss/spectro/redux/images/v5_6_5/v5_6_5/redux_images_v5_6_5_v5_6_5_\\1-\\2.tar",
             "boss/spectro/redux/v5_6_5/[^/]+$":"boss/spectro/redux/v5_6_5/v5_6_5_files.tar",
@@ -182,7 +177,7 @@
         "marvels":{
             "marvels/spectro/data/([0-9]{5})/.*$":"marvels/spectro/data/marvels_spectro_data_\\1.tar",
             "marvels/spectro/redux/v001.88/([0-9]{5}|ASCII|PARAMS|RESULTS|TEMP)/.*$":"marvels/spectro/redux/v001.88/marvels_spectro_redux_v001.88_\\1.tar",
-            "marvels/target/.*$":"marvels/marvels_target.tar"
+            "marvels/target/.*$":"marvels/marvels_target.tar",
         },
         "sdss":{
             "sdss/spectro/redux/[^/]+$":"sdss/spectro/redux/sdss_spectro_redux_files.tar",
@@ -201,6 +196,15 @@
         "apogee":{
             "apogee/spectro/data/([0-9]{5})/.*$":"apogee/spectro/data/apogee_spectro_data_\\1.tar",
             "apogee/spectro/data1m/([0-9]{5})/.*$":"apogee/spectro/data1m/apogee_spectro_data1m_\\1.tar",
+            "apogee/spectro/redux/r5/[^/]+$":"apogee/spectro/redux/r5/r5_files.tar",
+            "apogee/spectro/redux/r5/(apo1m|apo25m|cal|fields|red)/[^/]+$":"apogee/spectro/redux/r5/\\1/r5_\\1_files.tar",
+            "apogee/spectro/redux/r5/(apo1m|apo25m|cal|fields|red)/([^/]+)/.*$":"apogee/spectro/redux/r5/\\1/r5_\\1_\\2.tar",
+            "apogee/spectro/redux/r5/monitor/.*$":"apogee/spectro/redux/r5/r5_monitor.tar",
+            "apogee/spectro/redux/r5/stars/(cal|l25|plan)/.*$":"apogee/spectro/redux/r5/stars/r5_stars_\\1.tar",
+            "apogee/spectro/redux/r5/stars/(apo1m|apo25m)/([^/]+)/.*$":"apogee/spectro/redux/r5/stars/\\1/r5_stars_\\1_\\2.tar",
+            "apogee/spectro/redux/r5/stars/l25_6d/([0-9]{4}|cal|calibration|hip|l25_6d|misc|moving_groups|rrlyr)/.*$":"apogee/spectro/redux/r5/stars/l25_6d/r5_stars_l25_6d_\\1.tar",
+            "apogee/spectro/redux/r5/stars/l25_6d/v603/[^/]+$":"apogee/spectro/redux/r5/stars/l25_6d/v603/r5_stars_l25_6d_v603_files.tar",
+            "apogee/spectro/redux/r5/stars/l25_6d/v603/([0-9]{4}}|calibration|hip|html|misc|moving_groups|plan|res|rrlyr)/.*$":"apogee/spectro/redux/r5/stars/l25_6d/v603/r5_stars_l25_6d_v603_\\1.tar",
             "apogee/target/.*$":"apogee/apogee_target.tar",
             "apogee/vac/apogee-rc/.*$":"apogee/vac/apogee_vac_apogee-rc.tar"
         },
@@ -209,7 +213,11 @@
             "boss/photo/data/([0-9]+)/fields/([1-6])/idR-[0-9]{6}-([ugriz])[0-9]-[0-9]{4}\\.fit\\.Z$":"boss/photo/data/\\1/\\1_fields_\\2_\\3.tar",
             "boss/photo/data/([0-9]+)/fields/([1-6])/cksum.current$":"boss/photo/data/\\1/\\1_fields_\\2_g.tar",
             "boss/photo/data/([0-9]+)/fields/([1-6])/([ugriz])raw/.*$":"boss/photo/data/\\1/\\1_fields_\\2_\\3raw.tar",
-            "boss/spectro/data/([0-9]{5})/.*$":"boss/spectro/data/boss_spectro_data_\\1.tar"
+            "boss/spectro/data/([0-9]{5})/.*$":"boss/spectro/data/boss_spectro_data_\\1.tar",
+            "boss/spectro/redux/v5_7_([02])/[^/]+$":"boss/spectro/redux/v5_7_\\1/v5_7_\\1_files.tar",
+            "boss/spectro/redux/v5_7_([02])/([0-9]+|platelist)/.*$":"boss/spectro/redux/v5_7_\\1/v5_7_\\1_\\2.tar",
+            "boss/spectro/redux/v5_7_([02])/spectra/([0-9]+)/.*$":"boss/spectro/redux/v5_7_\\1/spectra/v5_7_\\1_spectra_\\2.tar",
+            "boss/spectro/redux/v5_7_([02])/spectra/lite/([0-9]+)/.*$":"boss/spectro/redux/v5_7_\\1/spectra/lite/v5_7_\\1_spectra_lite_\\2.tar"
         },
         "marvels":{
             "marvels/spectro/data/([0-9]{5})/.*$":"marvels/spectro/data/marvels_spectro_data_\\1.tar",
@@ -222,5 +230,4 @@
             "sdss/spectro/redux/pngCutout/([v_0-9]+)/([0-9]+)-([0-9]+)/.*$":"sdss/spectro/redux/pngCutout/\\1/pngCutout_\\1_\\2-\\3.tar"
         }
     }
-
 }
