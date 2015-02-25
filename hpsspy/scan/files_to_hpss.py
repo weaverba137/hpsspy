@@ -32,7 +32,7 @@ def files_to_hpss(hpss_map_cache,release):
             hpss_map = json.load(t)
             t.close()
         else:
-            logger.info("Returning empty map file!")
+            logger.warning("Returning empty map file!")
             hpss_map = {
                 "dr8":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}},
                 "dr9":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}},
