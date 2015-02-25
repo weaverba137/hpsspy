@@ -202,9 +202,9 @@
             "apogee/spectro/redux/r5/monitor/.*$":"apogee/spectro/redux/r5/r5_monitor.tar",
             "apogee/spectro/redux/r5/stars/(cal|l25|plan)/.*$":"apogee/spectro/redux/r5/stars/r5_stars_\\1.tar",
             "apogee/spectro/redux/r5/stars/(apo1m|apo25m)/([^/]+)/.*$":"apogee/spectro/redux/r5/stars/\\1/r5_stars_\\1_\\2.tar",
-            "apogee/spectro/redux/r5/stars/l25_6d/([0-9]{4}|cal|calibration|hip|l25_6d|misc|moving_groups|rrlyr)/.*$":"apogee/spectro/redux/r5/stars/l25_6d/r5_stars_l25_6d_\\1.tar",
-            "apogee/spectro/redux/r5/stars/l25_6d/v603/[^/]+$":"apogee/spectro/redux/r5/stars/l25_6d/v603/r5_stars_l25_6d_v603_files.tar",
-            "apogee/spectro/redux/r5/stars/l25_6d/v603/([0-9]{4}}|calibration|hip|html|misc|moving_groups|plan|res|rrlyr)/.*$":"apogee/spectro/redux/r5/stars/l25_6d/v603/r5_stars_l25_6d_v603_\\1.tar",
+            "apogee/spectro/redux/r5/stars/l25_6d/([0-9]{4}|cal|calibration|hip|misc|moving_groups|rrlyr)/.*$":"apogee/spectro/redux/r5/stars/l25_6d/r5_stars_l25_6d_\\1.tar",
+            "apogee/spectro/redux/r5/stars/l25_6d/(l25_6d|v603)/[^/]+$":"apogee/spectro/redux/r5/stars/l25_6d/\\1/r5_stars_l25_6d_\\1_files.tar",
+            "apogee/spectro/redux/r5/stars/l25_6d/(l25_6d|v603)/([0-9]{4}}|calibration|hip|html|misc|moving_groups|plan|res|rrlyr)/.*$":"apogee/spectro/redux/r5/stars/l25_6d/\\1/r5_stars_l25_6d_\\1_\\2.tar",
             "apogee/target/.*$":"apogee/apogee_target.tar",
             "apogee/vac/apogee-rc/.*$":"apogee/vac/apogee_vac_apogee-rc.tar"
         },
