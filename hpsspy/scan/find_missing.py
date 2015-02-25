@@ -20,6 +20,7 @@ def find_missing(hpss_map,hpss_files,disk_files_cache,report=10000):
         The number of missing files.
     """
     import logging
+    from os.path import basename, dirname
     logger = logging.getLogger(__name__)
     nfiles = 0
     nmissing = 0
@@ -32,10 +33,24 @@ def find_missing(hpss_map,hpss_files,disk_files_cache,report=10000):
             else:
                 section = f.split('/')[0]
                 for r in hpss_map[section]:
-                    if r[0].match(f) is not None:
+                    m = r[0].match(f)
+                    if m is not None:
                         reName = r[0].sub(r[1],f)
                         if reName in hpss_files:
                             message = "{0} in {1}.".format(f,reName)
+                        else:
+                            if reName.endswith('.tar'):
+                                if reName.endswith('_files.tar'):
+                                    dirname = '-L files'
+                                    chdir = dirname(reName)
+                                else:
+                                    dirname = basename(reName).split('_')[-1].split('.')[0]
+                                    chdir = dirname(reName)
+                                    while r[0].match(chdir) is not None:
+                                        chdir = dirname(chdir)
+                                    message = "cd {0}; htar -cvf {1} {2}".format(chdir, reName, dirname)
+                            else:
+                                message = "hsi put {0} : {1}".format(f,reName)
                         break
             if 'NOT' in message:
                 logger.warning(message)
