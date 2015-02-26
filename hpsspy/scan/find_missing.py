@@ -41,14 +41,14 @@ def find_missing(hpss_map,hpss_files,disk_files_cache,report=10000):
                         else:
                             if reName.endswith('.tar'):
                                 if reName.endswith('_files.tar'):
-                                    dirname = '-L files'
+                                    htar_dir = '-L files'
                                     chdir = dirname(reName)
                                 else:
-                                    dirname = basename(reName).split('_')[-1].split('.')[0]
+                                    htar_dir = basename(reName).split('_')[-1].split('.')[0]
                                     chdir = dirname(reName)
                                     while r[0].match(chdir) is not None:
                                         chdir = dirname(chdir)
-                                    message = "cd {0}; htar -cvf {1} {2}".format(chdir, reName, dirname)
+                                    message = "cd {0}; htar -cvf {1} {2}".format(chdir, reName, htar_dir)
                             else:
                                 message = "hsi put {0} : {1}".format(f,reName)
                         break
