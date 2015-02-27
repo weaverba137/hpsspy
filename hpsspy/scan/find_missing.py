@@ -52,7 +52,7 @@ def find_missing(hpss_map,hpss_files,disk_files_cache,report=10000):
                             else:
                                 message = "hsi put {0} : {1}".format(f,reName)
                         break
-            if 'NOT' in message:
+            if message.endswith('NOT FOUND!'):
                 logger.warning(message)
                 nmissing += 1
             else:
