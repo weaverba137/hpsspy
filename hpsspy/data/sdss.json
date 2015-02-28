@@ -213,6 +213,7 @@
             "apogee/spectro/redux/r5/stars/l25_6d/([0-9]{4}|cal|calibration|hip|misc|moving_groups|rrlyr)/.*$":"apogee/spectro/redux/r5/stars/l25_6d/r5_stars_l25_6d_\\1.tar",
             "apogee/spectro/redux/r5/stars/l25_6d/(l25_6d|v603)/[^/]+$":"apogee/spectro/redux/r5/stars/l25_6d/\\1/r5_stars_l25_6d_\\1_files.tar",
             "apogee/spectro/redux/r5/stars/l25_6d/(l25_6d|v603)/([0-9]{4}|calibration|hip|html|misc|moving_groups|plan|res|rrlyr)/.*$":"apogee/spectro/redux/r5/stars/l25_6d/\\1/r5_stars_l25_6d_\\1_\\2.tar",
+            "apogee/spectro/redux/speclib/asset/kurucz_filled/solarisotopes/as(F|GK)_131216_lsfcombo5v6/.*$":"apogee/spectro/redux/speclib/asset/kurucz_filled/solarisotopes/as\\1_131216_lsfcombo5v6.tar",
             "apogee/spectro/redux/speclib/linelists/.*$":"apogee/spectro/redux/speclib/linelists.tar",
             "apogee/target/.*$":"apogee/apogee_target.tar",
             "apogee/vac/apogee-rc/.*$":"apogee/vac/apogee_vac_apogee-rc.tar"
