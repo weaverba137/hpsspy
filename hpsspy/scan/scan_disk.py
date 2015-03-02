@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-def scan_disk(disk_roots,disk_files_cache):
+def scan_disk(disk_roots,disk_files_cache,clobber=False):
     """Scan a directory tree on disk and cache the files found there.
 
     Parameters
@@ -9,6 +9,8 @@ def scan_disk(disk_roots,disk_files_cache):
         Name(s) of a directory in which to start the scan.
     disk_files_cache : str
         Name of a file to hold the cache.
+    clobber : bool, optional
+        If ``True``, ignore any existing cache files.
 
     Returns
     -------
@@ -19,7 +21,7 @@ def scan_disk(disk_roots,disk_files_cache):
     import os
     from os.path import exists, islink, join
     logger = logging.getLogger(__name__)
-    if exists(disk_files_cache):
+    if exists(disk_files_cache) and not clobber:
         logger.debug("Using existing file cache: {0}".format(disk_files_cache))
         return True
     else:

@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-def scan_hpss(hpss_root,hpss_files_cache):
+def scan_hpss(hpss_root,hpss_files_cache,clobber=False):
     """Scan a directory on HPSS and return the files found there.
 
     Parameters
@@ -9,6 +9,8 @@ def scan_hpss(hpss_root,hpss_files_cache):
         Name of a directory in which to start the scan.
     hpss_files_cache : str
         Name of a file to hold the cache.
+    clobber : bool, optional
+        If ``True``, ignore any existing cache files.
 
     Returns
     -------
@@ -19,7 +21,7 @@ def scan_hpss(hpss_root,hpss_files_cache):
     from os.path import exists
     from ..os import walk
     logger = logging.getLogger(__name__)
-    if exists(hpss_files_cache):
+    if exists(hpss_files_cache) and not clobber:
         logger.info("Found cache file {0}.".format(hpss_files_cache))
         with open(hpss_files_cache) as t:
             hpss_files = [l.strip() for l in t.readlines()]

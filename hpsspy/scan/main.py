@@ -17,6 +17,10 @@ def main():
     # Options
     #
     parser = ArgumentParser(description=__doc__,prog=basename(argv[0]))
+    parser.add_argument('-c', '--clobber-disk', action='store_true', dest='clobber_disk',
+        help='Ignore any existing disk cache files.')
+    parser.add_argument('-C', '--clobber-hpss', action='store_true', dest='clobber_hpss',
+        help='Ignore any existing HPSS cache files.')
     parser.add_argument('-r', '--report', action='store', type=int, metavar='N',
         dest='report', default=10000,
         help="Print an informational message after every N files.")
@@ -47,14 +51,14 @@ def main():
     #
     hpss_files_cache = join(getenv('HOME'),'scratch','hpss_files_{0}.txt'.format(options.release))
     logger.debug('HPSS file cache = {0}'.format(hpss_files_cache))
-    hpss_files = scan_hpss(getenv('HPSS_ROOT'),hpss_files_cache)
+    hpss_files = scan_hpss(getenv('HPSS_ROOT'),hpss_files_cache,clobber=options.clobber_hpss)
     #
     # Read disk files and cache.
     #
     disk_files_cache = join(getenv('HOME'),'scratch','disk_files_{0}.txt'.format(options.release))
     logger.debug('Disk file cache = {0}'.format(disk_files_cache))
     disk_roots = [getenv('SAS_ROOT').replace('raid006',d) for d in ('raid006','raid000','raid005','raid007','raid008','raid2008','netapp')]
-    status = scan_disk(disk_roots,disk_files_cache)
+    status = scan_disk(disk_roots,disk_files_cache,clobber=options.clobber_disk)
     if not status:
         return 1
     #
