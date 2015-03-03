@@ -11,9 +11,13 @@ Python interface to the HPSS system.
 # Exceptions
 #
 class HpssError(Exception):
+    """Generic exception class for HPSS Errors.
+    """
     pass
 
 class HpssOSError(HpssError):
+    """HPSS Errors that are similar to OSError.
+    """
     pass
 #
 # Set up namespace

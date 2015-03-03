@@ -10,9 +10,37 @@ from os.path import join
 import stat
 #
 class hpss_file(object):
-    """Contains lots of information about a file."""
+    """This class is used to store and access an HPSS file's metadata.
+
+    Attributes
+    ----------
+    hpss_path : str
+        Path on the HPSS filesystem.
+    raw_type : str
+        Raw type string.
+    raw_permission : str
+        Raw permission string.
+    st_nlink : int
+        Number of hard links.
+    st_uid : str
+        Owner's name.
+    st_gid : str
+        Group name.
+    st_size : int
+        File size in bytes.
+    raw_month : str
+        Month of modification time.
+    raw_day : int
+        Day of modification time.
+    raw_year : str
+        Year of modification time.
+    raw_name : str
+        Name of file.
+    ishtar : bool
+        ``True`` if the file is an htar file.
+    """
     _file_modes = {'l':stat.S_IFLNK,'d':stat.S_IFDIR,'-':stat.S_IFREG}
-    _months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    _months = ('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec')
     #
     #
     #
@@ -31,6 +59,7 @@ class hpss_file(object):
         self.raw_name = args[10]
         self.ishtar = False
         self._contents = None # placeholder for htar file contents.
+        self._property_cache = dict()
         return
     #
     #
@@ -101,59 +130,68 @@ class hpss_file(object):
     #
     @property
     def st_mode(self):
-        try:
-            mode = self._file_modes[self.raw_type]
-        except KeyError:
-            raise
-        if self.raw_permission[0] == 'r':
-            mode |= stat.S_IRUSR
-        if self.raw_permission[1] == 'w':
-            mode |= stat.S_IWUSR
-        if self.raw_permission[2] == 'x':
-            mode |= stat.S_IXUSR
-        if self.raw_permission[2] == 'S':
-            mode |= stat.S_ISUID
-        if self.raw_permission[2] == 's':
-            mode |= (stat.S_IXUSR | stat.S_ISUID)
-        if self.raw_permission[3] == 'r':
-            mode |= stat.S_IRGRP
-        if self.raw_permission[4] == 'w':
-            mode |= stat.S_IWGRP
-        if self.raw_permission[5] == 'x':
-            mode |= stat.S_IXGRP
-        if self.raw_permission[5] == 'S':
-            mode |= stat.S_ISGID
-        if self.raw_permission[5] == 's':
-            mode |= (stat.S_IXGRP | stat.S_ISGID)
-        if self.raw_permission[6] == 'r':
-            mode |= stat.S_IROTH
-        if self.raw_permission[7] == 'w':
-            mode |= stat.S_IWOTH
-        if self.raw_permission[8] == 'x':
-            mode |= stat.S_IXOTH
-        if self.raw_permission[8] == 'T':
-            mode |= stat.S_ISVTX
-        if self.raw_permission[8] == 't':
-            mode |= (stat.S_IXOTH | stat.S_ISVTX)
-        return mode
+        if 'st_mode' in self._property_cache:
+            return self._property_cache['st_mode']
+        else:
+            try:
+                mode = self._file_modes[self.raw_type]
+            except KeyError:
+                raise
+            if self.raw_permission[0] == 'r':
+                mode |= stat.S_IRUSR
+            if self.raw_permission[1] == 'w':
+                mode |= stat.S_IWUSR
+            if self.raw_permission[2] == 'x':
+                mode |= stat.S_IXUSR
+            if self.raw_permission[2] == 'S':
+                mode |= stat.S_ISUID
+            if self.raw_permission[2] == 's':
+                mode |= (stat.S_IXUSR | stat.S_ISUID)
+            if self.raw_permission[3] == 'r':
+                mode |= stat.S_IRGRP
+            if self.raw_permission[4] == 'w':
+                mode |= stat.S_IWGRP
+            if self.raw_permission[5] == 'x':
+                mode |= stat.S_IXGRP
+            if self.raw_permission[5] == 'S':
+                mode |= stat.S_ISGID
+            if self.raw_permission[5] == 's':
+                mode |= (stat.S_IXGRP | stat.S_ISGID)
+            if self.raw_permission[6] == 'r':
+                mode |= stat.S_IROTH
+            if self.raw_permission[7] == 'w':
+                mode |= stat.S_IWOTH
+            if self.raw_permission[8] == 'x':
+                mode |= stat.S_IXOTH
+            if self.raw_permission[8] == 'T':
+                mode |= stat.S_ISVTX
+            if self.raw_permission[8] == 't':
+                mode |= (stat.S_IXOTH | stat.S_ISVTX)
+            self._property_cache['st_mode'] = mode
+            return mode
     #
     #
     #
     @property
     def st_mtime(self):
         from datetime import datetime
-        seconds = 0
-        month = self._months.index(self.raw_month) + 1
-        if self.raw_year.find(':') > 0:
-            hm = self.raw_year.split(':')
-            hours = int(hm[0])
-            minutes = int(hm[1])
-            year = datetime.now().year
+        if 'st_mtime' in self._property_cache:
+            return self._property_cache['st_mtime']
         else:
-            hours = 0
-            minutes = 0
-            year = int(self.raw_year)
-        return int(datetime(year, month, self.raw_day, hours, minutes, seconds).strftime('%s'))
+            seconds = 0
+            month = self._months.index(self.raw_month) + 1
+            if self.raw_year.find(':') > 0:
+                hm = self.raw_year.split(':')
+                hours = int(hm[0])
+                minutes = int(hm[1])
+                year = datetime.now().year
+            else:
+                hours = 0
+                minutes = 0
+                year = int(self.raw_year)
+            mtime = int(datetime(year, month, self.raw_day, hours, minutes, seconds).strftime('%s'))
+            self._property_cache['st_mtime'] = mtime
+            return mtime
     #
     #
     #
