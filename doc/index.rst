@@ -9,9 +9,19 @@ Welcome to hpsspy's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
+   changes.rst
 
+API
+===
+
+.. automodule:: hpsspy
+   :members:
+
+.. automodule:: hpsspy.os
+   :members:
+   :imported-members:
 
 Indices and tables
 ==================
@@ -19,4 +29,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
