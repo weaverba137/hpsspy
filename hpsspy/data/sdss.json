@@ -1,4 +1,9 @@
 {
+    "config":{
+        "root":"/clusterfs/riemann/raid006",
+        "hpss_root":"/nersc/projects/boss",
+        "physical_disks":["raid006","raid000","raid005","raid007","raid008","raid2008","netapp"]
+    },
     "dr8":{
         "exclude":[
             "env/index.html",

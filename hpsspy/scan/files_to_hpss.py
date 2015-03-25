@@ -12,8 +12,9 @@ def files_to_hpss(hpss_map_cache,release):
 
     Returns
     -------
-    files_to_hpss : dict
-        The mapping.
+    files_to_hpss : tuple
+        A tuple contiaining the compiled mapping and an additional configuration
+        dictionary.
     """
     import logging
     import json
@@ -34,10 +35,11 @@ def files_to_hpss(hpss_map_cache,release):
         else:
             logger.warning("Returning empty map file!")
             hpss_map = {
+                "config":{},
                 "dr8":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}},
                 "dr9":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}},
                 "dr10":{"exclude":[],"casload":{},"apogee":{},"boss":{},"sdss":{}},
                 "dr11":{"exclude":[],"casload":{},"apogee":{},"boss":{},"marvels":{},"sdss":{}},
                 "dr12":{"exclude":[],"casload":{},"apo":{},"apogee":{},"boss":{},"marvels":{},"sdss":{}},
                 }
-    return compile_map(hpss_map,release)
+    return (compile_map(hpss_map,release), hpss_map['config'])
