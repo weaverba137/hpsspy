@@ -5,7 +5,8 @@ Release Notes
 0.1.1 (unreleased)
 ------------------
 
-* Next version.
+* Moved configuration items to JSON files.
+* Started adding support for DESI.
 
 0.1.0 (2015-03-25)
 ------------------
