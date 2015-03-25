@@ -4,5 +4,4 @@ include ez_setup.py
 
 graft doc
 
-prune data
 prune doc/_build
