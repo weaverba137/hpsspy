@@ -43,7 +43,7 @@ def process_missing(missing_cache,disk_root,hpss_root,dirmode='2770'):
                 logger.debug("hsi('mkdir', '-p', '-m', '{0}', '{1}')".format(dirmode,h_dir))
                 # out = hsi('mkdir', '-p', '-m', dirmode, h_dir)
                 created_directories.add(h_dir)
-            logger.debug("htar('-cvf', '{0}', '-H', 'crc:verify=all', '{1}')".format(hpss_root,h), htar_dir)
+            logger.debug("htar('-cvf', '{0}', '-H', 'crc:verify=all', '{1}')".format(join(hpss_root,h), htar_dir))
         else:
             logger.debug("hsi('put', '{0}', ':', '{1}')".format(join(disk_root,missing[h][0]),join(hpss_root,h)))
     return
