@@ -53,7 +53,7 @@ def process_missing(missing_cache,disk_root,hpss_root,dirmode='2770'):
         else:
             if dirname(h_file) not in created_directories:
                 logger.debug("hsi('mkdir', '-p', '-m', '{0}', '{1}')".format(dirmode,dirname(h_file)))
-                out = hsi('mkdir', '-p', '-m', dirmode, h_dir)
+                out = hsi('mkdir', '-p', '-m', dirmode, dirname(h_file))
                 logger.debug(out)
                 created_directories.add(dirname(h_file))
             logger.debug("hsi('put', '{0}', ':', '{1}')".format(join(disk_root,missing[h][0]),h_file))
