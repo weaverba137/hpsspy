@@ -4,7 +4,25 @@
         "hpss_root":"/nersc/projects/desi",
         "physical_disks":["desi"]
     },
+    "datachallenge":{
+        "exclude":["dc2/README.txt"],
+        "dc2":{
+            "dc2/(batch|templates)/.*$":"dc2/\\1.tar"
+        }
+    },
     "imaging":{
+        "exclude":[]
+    },
+    "mocks":{
+        "exclude":[]
+    },
+    "release":{
+        "exclude":[]
+    },
+    "spectro":{
+        "exclude":[]
+    },
+    "target":{
         "exclude":[]
     }
 }
