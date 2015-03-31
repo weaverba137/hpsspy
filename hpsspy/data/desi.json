@@ -1,6 +1,6 @@
 {
     "config":{
-        "root":"/global/project/projectdirs",
+        "root":"/global/project/projectdirs/desi",
         "hpss_root":"/nersc/projects/desi",
         "physical_disks":["desi"]
     },

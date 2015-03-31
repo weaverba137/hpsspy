@@ -59,7 +59,7 @@ def main():
     #
     disk_files_cache = join(getenv('HOME'),'scratch','disk_files_{0}.txt'.format(options.release))
     logger.debug('Disk file cache = {0}'.format(disk_files_cache))
-    disk_roots = [release_root.replace(basename(release_root),d) for d in config['physical_disks']]
+    disk_roots = [release_root.replace(basename(config['root']),d) for d in config['physical_disks']]
     status = scan_disk(disk_roots,disk_files_cache,clobber=options.clobber_disk)
     if not status:
         return 1
