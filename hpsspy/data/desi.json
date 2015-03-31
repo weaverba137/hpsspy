@@ -5,9 +5,10 @@
         "physical_disks":["desi"]
     },
     "datachallenge":{
-        "exclude":["dc2/README.txt"],
+        "exclude":[],
         "dc2":{
-            "dc2/(batch|templates)/.*$":"dc2/\\1.tar"
+            "dc2/(batch|templates)/.*$":"dc2/\\1.tar",
+            "dc2/([^/]+\\.txt)":"dc2/\\1"
         }
     },
     "imaging":{

@@ -22,7 +22,7 @@ def hsi(*args,**kwargs):
         If the ``$HPSS_DIR`` environment variable has not been set.
     """
     from . import get_hpss_dir
-    from os import remove
+    from os import environ, remove
     from os.path import exists, join
     from subprocess import call
     try:
@@ -30,9 +30,12 @@ def hsi(*args,**kwargs):
     except:
         raise
     if 'tmpdir' in kwargs:
-        ofile = join(kwargs['tmpdir'],'hsi.txt')
+        t = kwargs['tmpdir']
+    elif 'TMPDIR' in environ:
+        t = environ['TMPDIR']
     else:
-        ofile = join('/tmp','hsi.txt')
+        t = '/tmp'
+    ofile = join(t,'hsi.txt')
     base_command = [join(path,'hsi'),'-O', ofile, '-s', 'archive']
     command = base_command + list(args)
     status = call(command)
