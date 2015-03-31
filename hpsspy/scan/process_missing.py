@@ -33,7 +33,7 @@ def process_missing(missing_cache,disk_root,hpss_root,dirmode='2770'):
         if h.endswith('.tar'):
             if h.endswith('_files.tar'):
                 disk_chdir = dirname(h)
-                Lfile = join(get_tmpdir(),h.replace('.tar','.txt'))
+                Lfile = join(get_tmpdir(),basename(h.replace('.tar','.txt')))
                 htar_dir = None
                 with open(Lfile,'w') as fp:
                     fp.write('\n'.join([basename(f) for f in missing[h]])+'\n')
