@@ -26,7 +26,7 @@ def scan_hpss(hpss_root,hpss_files_cache,clobber=False):
         with open(hpss_files_cache) as t:
             hpss_files = [l.strip() for l in t.readlines()]
     else:
-        logger.info("No HPSS cache file, starting scan.")
+        logger.info("No HPSS cache file, starting scan at {0}.".format(hpss_root))
         hpss_files = list()
         for root, dirs, files in walk(hpss_root):
             # hpss_files += [f.path.replace(hpss_root+'/','') for f in files if not f.ishtar]

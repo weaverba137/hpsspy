@@ -29,6 +29,7 @@ def scan_disk(disk_roots,disk_files_cache,clobber=False):
         with open(disk_files_cache,'w') as t:
             try:
                 for disk_root in disk_roots:
+                    logger.debug("Starting os.walk at {0}.".format(disk_root))
                     for root, dirs, files in os.walk(disk_root):
                         logger.debug("Scanning disk directory {0}.".format(root))
                         disk_files = [join(root,f).replace(disk_root+'/','')+'\n' for f in files if not islink(join(root,f))]
