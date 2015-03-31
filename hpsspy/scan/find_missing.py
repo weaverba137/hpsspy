@@ -47,18 +47,6 @@ def find_missing(hpss_map,hpss_files,disk_files_cache,missing_files,report=10000
                                 missing[reName].append(f)
                             else:
                                 missing[reName] = [f]
-                            # if reName.endswith('.tar'):
-                            #     if reName.endswith('_files.tar'):
-                            #         htar_dir = '-L files'
-                            #         chdir = dirname(reName)
-                            #     else:
-                            #         htar_dir = basename(reName).split('_')[-1].split('.')[0]
-                            #         chdir = dirname(reName)
-                            #         while r[0].match(chdir) is not None:
-                            #             chdir = dirname(chdir)
-                            #         message = "cd {0}; hsi mkdir -p {0}; htar -cvf {1} {2}".format(chdir, reName, htar_dir)
-                            # else:
-                            #     message = "hsi put {0} : {1}".format(f,reName)
                         break
             if message.endswith('NOT FOUND!'):
                 logger.warning(message)

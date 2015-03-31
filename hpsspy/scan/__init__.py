@@ -10,5 +10,6 @@ Functions for scanning directory trees to find files in need of backup.
 from .compile_map import compile_map
 from .files_to_hpss import files_to_hpss
 from .find_missing import find_missing
+from .process_missing import process_missing
 from .scan_disk import scan_disk
 from .scan_hpss import scan_hpss

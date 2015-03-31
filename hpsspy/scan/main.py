@@ -12,7 +12,7 @@ def main():
     from sys import argv
     from os import getenv
     from os.path import basename, join
-    from hpsspy.scan import compile_map, files_to_hpss, find_missing, scan_disk, scan_hpss
+    from . import compile_map, files_to_hpss, find_missing, process_missing, scan_disk, scan_hpss
     #
     # Options
     #
@@ -21,6 +21,8 @@ def main():
         help='Ignore any existing disk cache files.')
     parser.add_argument('-C', '--clobber-hpss', action='store_true', dest='clobber_hpss',
         help='Ignore any existing HPSS cache files.')
+    parser.add_argument('-p', '--process', action='store_true', dest='process',
+        help='Process the list of missing files to produce HPSS commands.')
     parser.add_argument('-r', '--report', action='store', type=int, metavar='N',
         dest='report', default=10000,
         help="Print an informational message after every N files.")
@@ -70,4 +72,9 @@ def main():
     logger.debug('Missing files list = {0}'.format(missing_files_cache))
     missing = find_missing(hpss_map,hpss_files,disk_files_cache,missing_files_cache,options.report)
     logger.debug("Found {0:d} missing files.".format(missing))
+    #
+    # Post process to generate HPSS commands
+    #
+    if missing > 0 and options.process:
+        process_missing(missing_files_cache,release_root, hpss_release_root)
     return 0
