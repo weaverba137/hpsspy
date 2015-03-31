@@ -21,7 +21,7 @@ def process_missing(missing_cache,disk_root,hpss_root,dirmode='2770'):
     import logging
     import json
     from os import chdir
-    from os.path import basename, dirname
+    from os.path import basename, dirname, join
     from ..util import hsi
     logger = logging.getLogger(__name__)
     logger.debug("Processing missing files from {0}.".format(missing_cache))
