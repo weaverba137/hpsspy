@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-def find_missing(hpss_map,hpss_files,disk_files_cache,report=10000):
+def find_missing(hpss_map,hpss_files,disk_files_cache,missing_files,report=10000):
     """Compare HPSS files to disk files.
 
     Parameters
@@ -11,6 +11,8 @@ def find_missing(hpss_map,hpss_files,disk_files_cache,report=10000):
         The list of actual HPSS files.
     disk_files_cache : str
         Name of the disk cache file.
+    missing_files : str
+        Name of the file that will contain the list of missing files.
     report : int, optional
         Print an informational message when N files have been scanned.
 
@@ -20,10 +22,12 @@ def find_missing(hpss_map,hpss_files,disk_files_cache,report=10000):
         The number of missing files.
     """
     import logging
+    import json
     from os.path import basename, dirname
     logger = logging.getLogger(__name__)
     nfiles = 0
     nmissing = 0
+    missing = dict()
     with open(disk_files_cache) as t:
         for l in t:
             f = l.strip()
@@ -39,18 +43,22 @@ def find_missing(hpss_map,hpss_files,disk_files_cache,report=10000):
                         if reName in hpss_files:
                             message = "{0} in {1}.".format(f,reName)
                         else:
-                            if reName.endswith('.tar'):
-                                if reName.endswith('_files.tar'):
-                                    htar_dir = '-L files'
-                                    chdir = dirname(reName)
-                                else:
-                                    htar_dir = basename(reName).split('_')[-1].split('.')[0]
-                                    chdir = dirname(reName)
-                                    while r[0].match(chdir) is not None:
-                                        chdir = dirname(chdir)
-                                    message = "cd {0}; hsi mkdir -p {0}; htar -cvf {1} {2}".format(chdir, reName, htar_dir)
+                            if reName in missing:
+                                missing[reName].append(f)
                             else:
-                                message = "hsi put {0} : {1}".format(f,reName)
+                                missing[reName] = [f]
+                            # if reName.endswith('.tar'):
+                            #     if reName.endswith('_files.tar'):
+                            #         htar_dir = '-L files'
+                            #         chdir = dirname(reName)
+                            #     else:
+                            #         htar_dir = basename(reName).split('_')[-1].split('.')[0]
+                            #         chdir = dirname(reName)
+                            #         while r[0].match(chdir) is not None:
+                            #             chdir = dirname(chdir)
+                            #         message = "cd {0}; hsi mkdir -p {0}; htar -cvf {1} {2}".format(chdir, reName, htar_dir)
+                            # else:
+                            #     message = "hsi put {0} : {1}".format(f,reName)
                         break
             if message.endswith('NOT FOUND!'):
                 logger.warning(message)
@@ -60,4 +68,6 @@ def find_missing(hpss_map,hpss_files,disk_files_cache,report=10000):
             nfiles += 1
             if (nfiles % report) == 0:
                 logger.info("{0:9d} files scanned.".format(nfiles))
+    with open(missing_files,'w') as fp:
+        json.dump(missing,fp,indent=2,separators=(',',': '))
     return nmissing

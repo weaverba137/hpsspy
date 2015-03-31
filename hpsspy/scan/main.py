@@ -66,5 +66,8 @@ def main():
     #
     # See if the files are on HPSS.
     #
-    missing = find_missing(hpss_map,hpss_files,disk_files_cache,options.report)
+    missing_files_cache = join(getenv('HOME'),'scratch','missing_files_{0}.json'.format(options.release))
+    logger.debug('Missing files list = {0}'.format(missing_files_cache))
+    missing = find_missing(hpss_map,hpss_files,disk_files_cache,missing_files_cache,options.report)
+    logger.debug("Found {0:d} missing files.".format(missing))
     return 0
