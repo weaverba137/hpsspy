@@ -7,8 +7,9 @@
     "datachallenge":{
         "exclude":[],
         "dc2":{
-            "dc2/(batch|templates)/.*$":"dc2/\\1.tar",
-            "dc2/([^/]+\\.txt)":"dc2/\\1"
+            "dc2/batch/.*$":"dc2/\\1.tar",
+            "dc2/([^/]+\\.txt)":"dc2/\\1",
+            "dc2/templates/[^/]+$":"dc2/templates/templates_files.tar"
         }
     },
     "imaging":{

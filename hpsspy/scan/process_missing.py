@@ -42,21 +42,21 @@ def process_missing(missing_cache,disk_root,hpss_root,dirmode='2770'):
             h_dir = join(hpss_root,disk_chdir)
             if h_dir not in created_directories:
                 logger.debug("hsi('mkdir', '-p', '-m', '{0}', '{1}')".format(dirmode,h_dir))
-                out = hsi('mkdir', '-p', '-m', dirmode, h_dir)
-                logger.debug(out)
+                # out = hsi('mkdir', '-p', '-m', dirmode, h_dir)
+                # logger.debug(out)
                 created_directories.add(h_dir)
             logger.debug("htar('-cvf', '{0}', '-H', 'crc:verify=all', '{1}')".format(h_file, htar_dir))
-            out, err = htar('-cvf', h_file, '-H', 'crc:verify=all', htar_dir)
-            logger.debug(out)
-            if err:
-                logger.warn(err)
+            # out, err = htar('-cvf', h_file, '-H', 'crc:verify=all', htar_dir)
+            # logger.debug(out)
+            # if err:
+            #     logger.warn(err)
         else:
             if dirname(h_file) not in created_directories:
                 logger.debug("hsi('mkdir', '-p', '-m', '{0}', '{1}')".format(dirmode,dirname(h_file)))
-                out = hsi('mkdir', '-p', '-m', dirmode, dirname(h_file))
-                logger.debug(out)
+                # out = hsi('mkdir', '-p', '-m', dirmode, dirname(h_file))
+                # logger.debug(out)
                 created_directories.add(dirname(h_file))
             logger.debug("hsi('put', '{0}', ':', '{1}')".format(join(disk_root,missing[h][0]),h_file))
-            out = hsi('put', join(disk_root,missing[h][0]), ':', h_file)
-            logger.debug(out)
+            # out = hsi('put', join(disk_root,missing[h][0]), ':', h_file)
+            # logger.debug(out)
     return
