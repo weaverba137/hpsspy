@@ -21,21 +21,15 @@ def hsi(*args,**kwargs):
     ValueError
         If the ``$HPSS_DIR`` environment variable has not been set.
     """
-    from . import get_hpss_dir
-    from os import environ, remove
+    from . import get_hpss_dir, get_tmpdir
+    from os import remove
     from os.path import exists, join
     from subprocess import call
     try:
         path = get_hpss_dir()
     except:
         raise
-    if 'tmpdir' in kwargs:
-        t = kwargs['tmpdir']
-    elif 'TMPDIR' in environ:
-        t = environ['TMPDIR']
-    else:
-        t = '/tmp'
-    ofile = join(t,'hsi.txt')
+    ofile = join(get_tmpdir(**kwargs),'hsi.txt')
     base_command = [join(path,'hsi'),'-O', ofile, '-s', 'archive']
     command = base_command + list(args)
     status = call(command)
