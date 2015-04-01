@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 #
-def mkdir(path,mode=None):
-    """Reproduces the behavior of os.mkdir().
+def makedirs(path,mode=None):
+    """Reproduces the behavior of os.makedirs().
 
     Parameters
     ----------
     path : str
         Directory to create.
+    mode : str
+        String representation of the octal directory mode.
 
     Returns
     -------
@@ -16,15 +18,15 @@ def mkdir(path,mode=None):
 
     Notes
     -----
-    Unlike ``os.mkdir()``, attempts to create existing directories raise no
+    Unlike ``os.makedirs()``, attempts to create existing directories raise no
     exception.
     """
     from .. import HpssOSError
     from ..util import hsi
     if mode is None:
-        out = hsi('mkdir',path)
+        out = hsi('mkdir','-p',path)
     else:
-        out = hsi('mkdir','-m',mode,path)
+        out = hsi('mkdir','-p','-m',mode,path)
     if out.startswith('**'):
         raise HpssOSError(out)
     return

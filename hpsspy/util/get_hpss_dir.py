@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
+#
 def get_hpss_dir():
     """Return the directory containing HPSS commands.
 
@@ -14,12 +16,10 @@ def get_hpss_dir():
 
     Raises
     ------
-    ValueError
+    KeyError
         If the ``$HPSS_DIR`` environment variable has not been set.
     """
-    from os import getenv
+    from os import environ
     from os.path import join
-    hpss_dir = getenv('HPSS_DIR')
-    if hpss_dir is None:
-        raise ValueError("HPSS_DIR is not set!")
+    hpss_dir = environ['HPSS_DIR']
     return join(hpss_dir,'bin')

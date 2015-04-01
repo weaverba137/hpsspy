@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
+#
 def find_missing(hpss_map,hpss_files,disk_files_cache,missing_files,report=10000):
     """Compare HPSS files to disk files.
 

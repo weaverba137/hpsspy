@@ -3,6 +3,8 @@
 """Verify the presence of files on HPSS.
 """
 #
+from __future__ import absolute_import, division, print_function, unicode_literals
+#
 def main():
     """Main program.
     """

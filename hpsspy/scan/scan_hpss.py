@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
+#
 def scan_hpss(hpss_root,hpss_files_cache,clobber=False):
     """Scan a directory on HPSS and return the files found there.
 

@@ -1,16 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
+#
 def listdir(path):
     """List the contents of an HPSS directory.
 
     Parameters
     ----------
     path : str
+        Directory to examine.
 
     Returns
     -------
     listdir : list
-
+        A list of hpss_file objects.
     """
     from . import linere
     from .. import HpssOSError

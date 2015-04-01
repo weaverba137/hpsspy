@@ -9,6 +9,9 @@ Reproduces some features of the Python built-in `os.path module`_.
 
 .. _`os module`: http://docs.python.org/2/library/os.path.html
 """
+#
+from __future__ import absolute_import, division, print_function, unicode_literals
+#
 from .isfile import isfile
 from .isdir import isdir
 from .islink import islink

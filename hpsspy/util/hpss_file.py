@@ -1,10 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 #
-from __future__ import absolute_import, print_function
-from .. import HpssOSError
-from ..os import stat as hpss_stat
-from ..os import htarre
+from __future__ import absolute_import, division, print_function, unicode_literals
+#
+from hpsspy import HpssOSError
+from hpsspy.os import stat as hpss_stat
+from hpsspy.os import htarre
 from .htar import htar
 from os.path import join
 import stat

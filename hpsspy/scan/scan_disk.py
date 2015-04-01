@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
+#
 def scan_disk(disk_roots,disk_files_cache,clobber=False):
     """Scan a directory tree on disk and cache the files found there.
 
