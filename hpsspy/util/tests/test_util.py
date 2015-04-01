@@ -23,7 +23,7 @@ class TestUtil(unittest.TestCase):
             environ['TMPDIR'] = '/Temporary/TMPDIR'
             self.assertEqual(get_tmpdir(),'/Temporary/TMPDIR')
         else:
-            self.assertEqual(get_tmpdir,self.TMPDIR)
+            self.assertEqual(get_tmpdir(),self.TMPDIR)
         del environ['TMPDIR']
         self.assertEqual(get_tmpdir(),'/tmp')
 #
