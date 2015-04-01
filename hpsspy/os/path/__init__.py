@@ -5,9 +5,7 @@
 hpsspy.os.path
 ==============
 
-Reproduces some features of the Python built-in `os.path module`_.
-
-.. _`os module`: http://docs.python.org/2/library/os.path.html
+Reproduces some features of the Python built-in :module:`os.path`.
 """
 #
 from __future__ import absolute_import, division, print_function, unicode_literals

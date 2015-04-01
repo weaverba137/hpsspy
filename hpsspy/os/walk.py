@@ -3,19 +3,23 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 #
 def walk(top,topdown=True,onerror=None,followlinks=False):
-    """Traverse a directory tree on HPSS.
+    """Traverse a directory tree on HPSS, similar to :func:`os.walk`.
 
     Parameters
     ----------
     top : str
+        Starting directory.
     topdown : bool, optional
+        Direction to traverse the directory tree.
     onerror : callable, optional
+        Call this function if an error is detected.
     followlinks : bool, optional
+        If ``True`` symlinks to directories are treated as directories.
 
     Returns
     -------
     walk : iterable
-
+        This function can be used in the same way as :func:`os.walk`.
     """
     from .. import HpssOSError
     from . import listdir

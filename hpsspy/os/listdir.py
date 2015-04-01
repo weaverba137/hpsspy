@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 #
 def listdir(path):
-    """List the contents of an HPSS directory.
+    """List the contents of an HPSS directory, similar to :func:`os.listdir`.
 
     Parameters
     ----------

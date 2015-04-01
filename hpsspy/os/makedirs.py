@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 #
 def makedirs(path,mode=None):
-    """Reproduces the behavior of os.makedirs().
+    """Reproduces the behavior of :func:`os.makedirs`.
 
     Parameters
     ----------
@@ -18,7 +18,7 @@ def makedirs(path,mode=None):
 
     Notes
     -----
-    Unlike ``os.makedirs()``, attempts to create existing directories raise no
+    Unlike :func:`os.makedirs`, attempts to create existing directories raise no
     exception.
     """
     from .. import HpssOSError

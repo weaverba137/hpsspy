@@ -3,17 +3,20 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 #
 def stat(path,lstat=False):
-    """Perform the equivalent of ``os.stat()`` on the HPSS file `path`.
+    """Perform the equivalent of :func:`os.stat` on the HPSS file `path`.
 
     Parameters
     ----------
     path : str
+        Path to file or directory.
     lstat : bool, optional
-        If ``True``, makes `stat` behave like ``os.lstat()``.
+        If ``True``, makes :func:`stat` behave like :func:`os.lstat`.
 
     Returns
     -------
-    stat : hpsspy.util.hpss_file
+    stat : :class:`hpsspy.util.hpss_file`
+        An object that contains information similar to the data returned by
+        :func:`os.stat`.
     """
     from . import linere
     from .. import HpssOSError
@@ -51,6 +54,17 @@ def stat(path,lstat=False):
 #
 #
 def lstat(path):
-    """Perform the equivalent of ``os.lstat()`` on the HPSS file `path`.
+    """Perform the equivalent of :func:`os.lstat` on the HPSS file `path`.
+
+    Parameters
+    ----------
+    path : str
+        Path to file or directory.
+
+    Returns
+    -------
+    stat : :class:`hpsspy.util.hpss_file`
+        An object that contains information similar to the data returned by
+        :func:`os.stat`.
     """
     return stat(path,lstat=True)

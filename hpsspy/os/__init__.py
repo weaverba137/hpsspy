@@ -5,9 +5,7 @@
 hpsspy.os
 =========
 
-Reproduces some features of the Python built-in `os module`_.
-
-.. _`os module`: http://docs.python.org/2/library/os.html
+Reproduces some features of the Python built-in :module:`os`.
 """
 #
 from __future__ import absolute_import, division, print_function, unicode_literals

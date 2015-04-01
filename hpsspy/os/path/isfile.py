@@ -3,7 +3,17 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 #
 def isfile(path):
-    """Reproduces the behavior of os.isfile() for HPSS files.
+    """Reproduces the behavior of :func:`os.path.isfile` for HPSS files.
+
+    Parameters
+    ----------
+    path : str
+        Path to the file.
+
+    Returns
+    -------
+    isfile : bool
+        True if the path is a file.
     """
     from .. import stat
     return not stat(path).isdir
