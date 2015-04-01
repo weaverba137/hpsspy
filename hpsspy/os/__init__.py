@@ -1,11 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 """
-=========
 hpsspy.os
-=========
+~~~~~~~~~
 
-Reproduces some features of the Python built-in :module:`os`.
+Reproduces some features of the Python built-in :mod:`os`.
 """
 #
 from __future__ import absolute_import, division, print_function, unicode_literals

@@ -17,7 +17,7 @@ def get_hpss_dir():
     Raises
     ------
     KeyError
-        If the ``$HPSS_DIR`` environment variable has not been set.
+        If the :envvar:`HPSS_DIR` environment variable has not been set.
     """
     from os import environ
     from os.path import join

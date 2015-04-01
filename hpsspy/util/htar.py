@@ -3,22 +3,22 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 #
 def htar(*args):
-    """Run htar command with arguments.
+    """Run :command:`htar` with arguments.
 
     Parameters
     ----------
     args : tuple
-        Arguments to be passed to the hsi command.
+        Arguments to be passed to :command:`htar`.
 
     Returns
     -------
     htar : tuple of str
-        The standard output and standard error from the htar command.
+        The standard output and standard error from :command:`htar`.
 
     Raises
     ------
-    ValueError
-        If the ``$HPSS_DIR`` environment variable has not been set.
+    KeyError
+        If the :envvar:`HPSS_DIR` environment variable has not been set.
     """
     from . import get_hpss_dir
     from tempfile import TemporaryFile
@@ -26,10 +26,7 @@ def htar(*args):
     from os.path import join
     outfile=TemporaryFile()
     errfile=TemporaryFile()
-    try:
-        path = get_hpss_dir()
-    except:
-        raise
+    path = get_hpss_dir()
     command=[join(path,'htar')] + list(args)
     status=call(command,stdout=outfile,stderr=errfile)
     outfile.seek(0)
