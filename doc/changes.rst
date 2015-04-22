@@ -2,10 +2,10 @@
 Release Notes
 =============
 
-0.2.1 (unreleased)
+0.2.1 (2015-04-22)
 ------------------
 
-* No changes yet.
+* Fixed some setup.py errors, no code changes.
 
 0.2.0 (2015-04-22)
 ------------------
