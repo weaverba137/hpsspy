@@ -29,11 +29,8 @@
             "redux/sjb/dogwood/.*$":"redux/sjb/dogwood.tar"
         },
         "sim":{
-            "sim/alpha-([^/])+/.*":"sim/alpha-\\1.tar"
         },
         "templates":{
-            "templates/calib/.*$":"templates/calib.tar",
-            "templates/([a-z]+)_templates/.*":"templates/\\1_templates.tar"
         }
     },
     "target":{
