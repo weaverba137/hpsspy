@@ -27,9 +27,8 @@ setup_keywords['classifiers'] = [
     'Operating System :: OS Independent',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
-    'Topic :: Scientific/Engineering :: Physics',
-    'Topic :: Scientific/Engineering :: Astronomy',
-    ],
+    'Topic :: System :: Archiving'
+    ]
 #
 # Import this module to get __doc__ and __version__.
 #
