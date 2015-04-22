@@ -22,7 +22,10 @@
         "exclude":[]
     },
     "spectro":{
-        "exclude":[]
+        "exclude":[],
+        "redux":{
+            "redux/sjb/dogwood/.*$":"redux/sjb/dogwood.tar"
+        }
     },
     "target":{
         "exclude":[]
