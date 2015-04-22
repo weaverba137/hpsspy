@@ -18,6 +18,7 @@ setup_keywords['author'] = 'Benjamin Alan Weaver'
 setup_keywords['author_email'] = 'benjamin.weaver@nyu.edu'
 setup_keywords['license'] = 'BSD'
 setup_keywords['url'] = 'https://github.com/weaverba137/hpsspy'
+setup_keywords['keywords'] = ['backup']
 setup_keywords['classifiers'] = [
     'Development Status :: 3 - Alpha',
     'Environment :: Console',
@@ -35,18 +36,19 @@ setup_keywords['classifiers'] = [
 try:
     from importlib import import_module
     product = import_module(setup_keywords['name'])
-    setup_keywords['long_description'] = product.__doc__
+    # setup_keywords['long_description'] = product.__doc__
     setup_keywords['version'] = product.__version__
 except ImportError:
-    #
-    # Try to get the long description from the README.rst file.
-    #
-    if exists('README.rst'):
-        with open('README.rst') as readme:
-            setup_keywords['long_description'] = readme.read()
-    else:
-        setup_keywords['long_description'] = ''
     setup_keywords['version'] = '0.0.1.dev'
+#
+# Try to get the long description from the README.rst file.
+#
+if exists('README.rst'):
+    with open('README.rst') as readme:
+        setup_keywords['long_description'] = readme.read()
+else:
+    setup_keywords['long_description'] = ''
+setup_keywords['download_url'] = 'https://github.com/weaverba137/hpsspy/tarball/' + setup_keywords['version']
 #
 # Set other keywords for the setup function.  These are automated, & should
 # be left alone unless you are an expert.
