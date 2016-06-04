@@ -7,38 +7,25 @@
 Welcome to hpsspy's documentation!
 ==================================
 
+Introduction
+++++++++++++
+
+Hpsspy is a Python_ package for interacting with the HPSS_ tape storage
+system at NERSC_.  It is currently being developed on GitHub_.
+
+.. _Python: http://python.org
+.. _HPSS: http://www.nersc.gov/systems/hpss-data-archive/
+.. _NERSC: http://www.nersc.gov
+.. _GitHub: https://github.com/weaverba137/hpsspy
+
 Contents
 ++++++++
 
 .. toctree::
    :maxdepth: 1
 
-   changes.rst
-
-API
-+++
-
-.. automodule:: hpsspy
-   :members:
-
-.. automodule:: hpsspy.data
-   :members:
-
-.. automodule:: hpsspy.os
-   :members:
-   :imported-members:
-
-.. automodule:: hpsspy.os.path
-   :members:
-   :imported-members:
-
-.. automodule:: hpsspy.scan
-   :members:
-   :imported-members:
-
-.. automodule:: hpsspy.util
-   :members:
-   :imported-members:
+   changes
+   api
 
 Indices and tables
 ++++++++++++++++++

@@ -7,5 +7,5 @@ hpsspy.data
 Contains data files for use with hpsspy.
 """
 #
-from __future__ import absolute_import, division, print_function, unicode_literals
-#
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)

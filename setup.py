@@ -5,8 +5,12 @@
 #
 import sys
 from os.path import exists
-from ez_setup import use_setuptools
-use_setuptools()
+#
+# setuptools' sdist command ignores MANIFEST.in
+#
+from distutils.command.sdist import sdist as DistutilsSdist
+# from ez_setup import use_setuptools
+# use_setuptools()
 from setuptools import setup, find_packages
 setup_keywords = dict()
 #
@@ -58,6 +62,7 @@ setup_keywords['requires'] = ['Python (>2.7.0)']
 setup_keywords['zip_safe'] = False # Sphinx extensions may do some introspection.
 setup_keywords['use_2to3'] = True
 setup_keywords['packages'] = find_packages()
+setup_keywords['cmdclass'] = {'sdist': DistutilsSdist}
 setup_keywords['package_data'] = {'':['*.json']}
 #
 # Autogenerate command-line scripts.
