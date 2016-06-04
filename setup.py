@@ -63,7 +63,7 @@ setup_keywords['zip_safe'] = False # Sphinx extensions may do some introspection
 setup_keywords['use_2to3'] = True
 setup_keywords['packages'] = find_packages()
 setup_keywords['cmdclass'] = {'sdist': DistutilsSdist}
-setup_keywords['package_data'] = {'':['*.json']}
+setup_keywords['package_data'] = {'hpsspy':['data/*.json']}
 #
 # Autogenerate command-line scripts.
 #
@@ -75,7 +75,7 @@ setup_keywords['entry_points'] = {
 #
 # Test suite
 #
-setup_keywords['test_suite'] = 'hpsspy.tests.test_hpsspy.hpsspy_test_suite'
+setup_keywords['test_suite'] = 'hpsspy.test.hpsspy_test_suite.hpsspy_test_suite'
 #
 # Run setup command.
 #
