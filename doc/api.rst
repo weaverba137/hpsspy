@@ -5,9 +5,6 @@ hpsspy API
 .. automodule:: hpsspy
    :members:
 
-.. automodule:: hpsspy.data
-   :members:
-
 .. automodule:: hpsspy.os
    :members:
    :imported-members:
