@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 """
-hpsspy.test.test_data
+hpsspy.test.test_util
 ~~~~~~~~~~~~~~~~~~~~~
 
-Check the associated data files.
+Test the functions in the util subpackage.
 """
 #
 from __future__ import (absolute_import, division, print_function,
@@ -18,6 +18,8 @@ from ..util import get_tmpdir
 
 
 class TestUtil(unittest.TestCase):
+    """Test the functions in the util subpackage.
+    """
 
     def setUp(self):
         # Store the original value of TMPDIR, if present.
