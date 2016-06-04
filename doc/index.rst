@@ -18,6 +18,15 @@ system at NERSC_.  It is currently being developed on GitHub_.
 .. _NERSC: http://www.nersc.gov
 .. _GitHub: https://github.com/weaverba137/hpsspy
 
+Requirements
+++++++++++++
+
+Hpsspy assumes that the HPSS utilities `hsi and htar`_ are installed.  You may
+need a NERSC account to download and install these utilities.
+
+.. _`hsi and htar`: https://www.nersc.gov/users/data-and-file-systems/hpss/storing-and-retrieving-data/software-downloads/
+
+
 Contents
 ++++++++
 
