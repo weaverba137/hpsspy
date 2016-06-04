@@ -15,6 +15,7 @@ from ..util import HpssFile, hsi
 
 __all__ = ['chmod', 'listdir', 'makedirs', 'mkdir', 'stat', 'lstat', 'walk']
 
+
 def chmod(path, mode):
     """Reproduces the behavior of :func:`os.chmod` for HPSS files.
 
@@ -184,7 +185,7 @@ def stat(path, lstat=False):
                 raise HpssOSError("Could not match line!\n{0}".format(f))
         else:
             g = m.groups()
-            files.append(HpssFile(lspath,*g))
+            files.append(HpssFile(lspath, *g))
     if len(files) != 1:
         raise HpssOSError("Non-unique response for {0}!".format(path))
     if files[0].islink and not lstat:

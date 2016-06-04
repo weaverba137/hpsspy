@@ -52,8 +52,8 @@ def files_to_hpss(hpss_map_cache, release):
     Returns
     -------
     :func:`tuple`
-        A tuple contiaining the compiled mapping and an additional configuration
-        dictionary.
+        A tuple contiaining the compiled mapping and an additional
+        configuration dictionary.
     """
     import logging
     import json
@@ -74,16 +74,17 @@ def files_to_hpss(hpss_map_cache, release):
         else:
             logger.warning("Returning empty map file!")
             hpss_map = {"config": {},
-                "dr8": {"exclude": [], "casload": {}, "apogee": {},
-                        "boss": {}, "sdss": {}},
-                "dr9": {"exclude": [], "casload": {}, "apogee": {},
-                        "boss": {}, "sdss": {}},
-                "dr10": {"exclude": [], "casload": {}, "apogee": {},
-                         "boss": {}, "sdss": {}},
-                "dr11": {"exclude": [], "casload": {}, "apogee": {},
-                         "boss": {}, "marvels": {}, "sdss": {}},
-                "dr12": {"exclude": [], "casload": {}, "apo": {}, "apogee": {},
-                         "boss": {}, "marvels": {}, "sdss": {}},}
+                        "dr8": {"exclude": [], "casload": {}, "apogee": {},
+                                "boss": {}, "sdss": {}},
+                        "dr9": {"exclude": [], "casload": {}, "apogee": {},
+                                "boss": {}, "sdss": {}},
+                        "dr10": {"exclude": [], "casload": {}, "apogee": {},
+                                 "boss": {}, "sdss": {}},
+                        "dr11": {"exclude": [], "casload": {}, "apogee": {},
+                                 "boss": {}, "marvels": {}, "sdss": {}},
+                        "dr12": {"exclude": [], "casload": {}, "apo": {},
+                                 "apogee": {}, "boss": {}, "marvels": {},
+                                 "sdss": {}}}
     return (compile_map(hpss_map, release), hpss_map['config'])
 
 
@@ -181,7 +182,7 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770'):
                 disk_chdir = dirname(h)
                 Lfile = join(get_tmpdir(), basename(h.replace('.tar', '.txt')))
                 htar_dir = None
-                with open(Lfile,'w') as fp:
+                with open(Lfile, 'w') as fp:
                     fp.write('\n'.join([basename(f) for f in missing[h]])+'\n')
             else:
                 disk_chdir = dirname(h)
@@ -211,7 +212,7 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770'):
                 logger.debug("makedirs('{0}', mode='{1}')".format(dirname(h_file), dirmode))
                 makedirs(dirname(h_file), mode=dirmode)
                 created_directories.add(dirname(h_file))
-            logger.debug("hsi('put', '{0}', ':', '{1}')".format(join(disk_root,missing[h][0]), h_file))
+            logger.debug("hsi('put', '{0}', ':', '{1}')".format(join(disk_root, missing[h][0]), h_file))
             out = hsi('put', join(disk_root, missing[h][0]), ':', h_file)
             logger.debug(out)
     return
@@ -317,22 +318,29 @@ def main():
     #
     # Options
     #
-    parser = ArgumentParser(description='Verify the presence of files on HPSS.',prog=basename(argv[0]))
-    parser.add_argument('-c', '--clobber-disk', action='store_true', dest='clobber_disk',
-        help='Ignore any existing disk cache files.')
-    parser.add_argument('-C', '--clobber-hpss', action='store_true', dest='clobber_hpss',
-        help='Ignore any existing HPSS cache files.')
-    parser.add_argument('-p', '--process', action='store_true', dest='process',
-        help='Process the list of missing files to produce HPSS commands.')
-    parser.add_argument('-r', '--report', action='store', type=int, metavar='N',
-        dest='report', default=10000,
-        help="Print an informational message after every N files.")
-    parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
-        help="Increase verbosity.")
-    parser.add_argument('config',metavar='FILE',
-        help="Read configuration from FILE.")
-    parser.add_argument('release',metavar='SECTION',
-        help="Read SECTION from the configuration file.")
+    desc = 'Verify the presence of files on HPSS.'
+    parser = ArgumentParser(prog=basename(argv[0]), description=desc)
+    parser.add_argument('-c', '--clobber-disk', action='store_true',
+                        dest='clobber_disk',
+                        help='Ignore any existing disk cache files.')
+    parser.add_argument('-C', '--clobber-hpss', action='store_true',
+                        dest='clobber_hpss',
+                        help='Ignore any existing HPSS cache files.')
+    parser.add_argument('-p', '--process', action='store_true',
+                        dest='process',
+                        help=('Process the list of missing files to produce ' +
+                              'HPSS commands.'))
+    parser.add_argument('-r', '--report', action='store', type=int,
+                        dest='report', metavar='N', default=10000,
+                        help=("Print an informational message after " +
+                              "every N files."))
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        dest='verbose',
+                        help="Increase verbosity.")
+    parser.add_argument('config', metavar='FILE',
+                        help="Read configuration from FILE.")
+    parser.add_argument('release', metavar='SECTION',
+                        help="Read SECTION from the configuration file.")
     options = parser.parse_args()
     #
     # Logging
@@ -345,33 +353,33 @@ def main():
     #
     # Config file
     #
-    if options.config not in ('sdss','desi'):
+    if options.config not in ('sdss', 'desi'):
         logger.error('Unsupported configuration: {0}'.format(options.config))
         return 1
-    hpss_map, config = files_to_hpss(options.config+'.json',options.release)
-    release_root = join(config['root'],options.release)
-    hpss_release_root = join(config['hpss_root'],options.release)
+    hpss_map, config = files_to_hpss(options.config+'.json', options.release)
+    release_root = join(config['root'], options.release)
+    hpss_release_root = join(config['hpss_root'], options.release)
     #
     # Read HPSS files and cache.
     #
-    hpss_files_cache = join(getenv('HOME'),'scratch','hpss_files_{0}.txt'.format(options.release))
+    hpss_files_cache = join(getenv('HOME'), 'scratch', 'hpss_files_{0}.txt'.format(options.release))
     logger.debug('HPSS file cache = {0}'.format(hpss_files_cache))
-    hpss_files = scan_hpss(hpss_release_root,hpss_files_cache,clobber=options.clobber_hpss)
+    hpss_files = scan_hpss(hpss_release_root, hpss_files_cache, clobber=options.clobber_hpss)
     #
     # Read disk files and cache.
     #
-    disk_files_cache = join(getenv('HOME'),'scratch','disk_files_{0}.txt'.format(options.release))
+    disk_files_cache = join(getenv('HOME'), 'scratch', 'disk_files_{0}.txt'.format(options.release))
     logger.debug('Disk file cache = {0}'.format(disk_files_cache))
-    disk_roots = [release_root.replace(basename(config['root']),d) for d in config['physical_disks']]
-    status = scan_disk(disk_roots,disk_files_cache,clobber=options.clobber_disk)
+    disk_roots = [release_root.replace(basename(config['root']), d) for d in config['physical_disks']]
+    status = scan_disk(disk_roots, disk_files_cache, clobber=options.clobber_disk)
     if not status:
         return 1
     #
     # See if the files are on HPSS.
     #
-    missing_files_cache = join(getenv('HOME'),'scratch','missing_files_{0}.json'.format(options.release))
+    missing_files_cache = join(getenv('HOME'), 'scratch', 'missing_files_{0}.json'.format(options.release))
     logger.debug('Missing files list = {0}'.format(missing_files_cache))
-    missing = find_missing(hpss_map,hpss_files,disk_files_cache,missing_files_cache,options.report)
+    missing = find_missing(hpss_map, hpss_files, disk_files_cache, missing_files_cache, options.report)
     logger.debug("Found {0:d} missing files.".format(missing))
     #
     # Post process to generate HPSS commands
