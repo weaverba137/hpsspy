@@ -22,26 +22,34 @@ class TestData(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_sdss(self):
-        self.assertTrue(resource_exists('hpsspy', 'data/sdss.json'),
-                        "Could not find sdss.json!")
-        t = resource_stream('hpsspy', 'data/sdss.json')
-        hpss_map = json.load(t)
-        for release in ['dr{0:d}'.format(k) for k in range(8, 13)]:
-            self.assertIn(release, hpss_map,
-                          "Release {0} is not in sdss.json!".format(release))
+    def check_json(self, filename, sections):
+        """Check a generic JSON file.
+        """
+        res_filename = 'data/{0}'.format(filename)
+        self.assertTrue(resource_exists('hpsspy', res_filename),
+                        "Could not find {0}!".format(filename))
+        t = resource_stream('hpsspy', res_filename)
+        try:
+            hpss_map = json.load(t)
+        except TypeError:
+            hpss_map = json.loads(t.read().decode('utf8'))
         t.close()
+        for s in sections:
+            self.assertIn(s, hpss_map,
+                          "Release {0} is not in {1}!".format(s, filename))
+
+    def test_sdss(self):
+        """Test SDSS data file.
+        """
+        releases = ['dr{0:d}'.format(k) for k in range(8, 13)]
+        self.check_json('sdss.json', releases)
 
     def test_desi(self):
-        self.assertTrue(resource_exists('hpsspy', 'data/desi.json'),
-                        "Could not find desi.json!")
-        t = resource_stream('hpsspy', 'data/desi.json')
-        hpss_map = json.load(t)
-        for release in ('datachallenge', 'imaging', 'mocks', 'release',
-                        'spectro', 'target'):
-            self.assertIn(release, hpss_map,
-                          "Release {0} is not in sdss.json!".format(release))
-        t.close()
+        """Test DESI data file.
+        """
+        releases = ('datachallenge', 'imaging', 'mocks', 'release',
+                    'spectro', 'target'):
+        self.check_json('desi.json', releases)
 
 
 if __name__ == '__main__':
