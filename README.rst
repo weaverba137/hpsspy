@@ -2,6 +2,10 @@
 hpsspy
 ======
 
+.. image:: https://img.shields.io/travis/weaverba137/hpsspy.svg
+    :target: https://travis-ci.org/weaverba137/hpsspy
+    :alt: Travis Build Status
+
 Overview
 --------
 
