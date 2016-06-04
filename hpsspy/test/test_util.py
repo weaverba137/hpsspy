@@ -14,7 +14,7 @@ import unittest
 # import json
 # from pkg_resources import resource_exists, resource_stream
 from os import environ
-from ..util import get_tmpdir
+from ..util.get_tmpdir import get_tmpdir
 
 
 class TestUtil(unittest.TestCase):

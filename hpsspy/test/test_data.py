@@ -25,7 +25,7 @@ class TestData(unittest.TestCase):
     def test_sdss(self):
         self.assertTrue(resource_exists('hpsspy', 'data/sdss.json'),
                         "Could not find sdss.json!")
-        t = resource_stream('hpsspy.data', 'sdss.json')
+        t = resource_stream('hpsspy', 'data/sdss.json')
         hpss_map = json.load(t)
         for release in ['dr{0:d}'.format(k) for k in range(8, 13)]:
             self.assertIn(release, hpss_map,
@@ -35,7 +35,7 @@ class TestData(unittest.TestCase):
     def test_desi(self):
         self.assertTrue(resource_exists('hpsspy', 'data/desi.json'),
                         "Could not find desi.json!")
-        t = resource_stream('hpsspy.data', 'desi.json')
+        t = resource_stream('hpsspy', 'data/desi.json')
         hpss_map = json.load(t)
         for release in ('datachallenge', 'imaging', 'mocks', 'release',
                         'spectro','target'):
