@@ -7,11 +7,13 @@ hpsspy.util
 Low-level utilities.
 """
 #
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 #
 from . import HpssOSError
 from os.path import exists, join
 import stat
+import re
 
 
 class HpssFile(object):
@@ -44,6 +46,7 @@ class HpssFile(object):
     ishtar : :class:`bool`
         ``True`` if the file is an htar file.
     """
+    _htarre = re.compile(r'HTAR: ([dl-])([rwxsStT-]+)\s+([^/]+)/(\S+)\s+(\d+)\s+(\d+)-(\d+)-(\d+)\s+([0-9:]+)\s+(\S.*)$')
     _file_modes = {'l': stat.S_IFLNK, 'd': stat.S_IFDIR, '-': stat.S_IFREG}
     _months = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
@@ -63,7 +66,7 @@ class HpssFile(object):
         self.raw_year = args[9]
         self.raw_name = args[10]
         self.ishtar = False
-        self._contents = None # placeholder for htar file contents.
+        self._contents = None  # placeholder for htar file contents.
         self._property_cache = dict()
         return
 
@@ -94,7 +97,7 @@ class HpssFile(object):
             if new_path.startswith('/'):
                 return hpss_stat(new_path).isdir
             else:
-                return hpss_stat(join(self.hpss_path,new_path)).isdir
+                return hpss_stat(join(self.hpss_path, new_path)).isdir
         else:
             return self.raw_type == 'd'
 
@@ -198,13 +201,12 @@ class HpssFile(object):
         :class:`list`
             List containing the contents.
         """
-        from .os import htarre
         if self.ishtar:
             if self._contents is None:
                 out, err = htar('-t', '-f', self.path)
                 self._contents = list()
                 for line in out.split('\n'):
-                    m = htarre.match(line)
+                    m = self._htarre.match(line)
                     if m is not None:
                         self._contents.append(m.groups())
             return self._contents
@@ -260,7 +262,7 @@ def get_tmpdir(**kwargs):
     return t
 
 
-def hsi(*args,**kwargs):
+def hsi(*args, **kwargs):
     """Run :command:`hsi` with arguments.
 
     Parameters

@@ -16,7 +16,10 @@ def hpsspy_test_suite():
     This is factored out separately from runtests() so that it can be used by
     ``python setup.py test``.
     """
-    return unittest.defaultTestLoader.discover('hpsspy')
+    from os.path import dirname
+    py_dir = dirname(dirname(__file__))
+    return unittest.defaultTestLoader.discover(py_dir,
+                                               top_level_dir=dirname(py_dir))
 
 
 def runtests():

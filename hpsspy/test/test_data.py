@@ -38,7 +38,7 @@ class TestData(unittest.TestCase):
         t = resource_stream('hpsspy', 'data/desi.json')
         hpss_map = json.load(t)
         for release in ('datachallenge', 'imaging', 'mocks', 'release',
-                        'spectro','target'):
+                        'spectro', 'target'):
             self.assertIn(release, hpss_map,
                           "Release {0} is not in sdss.json!".format(release))
         t.close()
