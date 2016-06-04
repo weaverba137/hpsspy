@@ -29,11 +29,12 @@ class TestData(unittest.TestCase):
         self.assertTrue(resource_exists('hpsspy', res_filename),
                         "Could not find {0}!".format(filename))
         t = resource_stream('hpsspy', res_filename)
-        try:
-            hpss_map = json.load(t)
-        except TypeError:
-            hpss_map = json.loads(t.read().decode('utf8'))
+        j = t.read()
         t.close()
+        try:
+            hpss_map = json.loads(j)
+        except TypeError:
+            hpss_map = json.loads(j.decode('utf8'))
         for s in sections:
             self.assertIn(s, hpss_map,
                           "Release {0} is not in {1}!".format(s, filename))
