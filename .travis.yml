@@ -61,23 +61,23 @@ matrix:
           env: SETUP_CMD='bdist_egg'
 
         # Coverage test, pass the results to coveralls.
-        # - os: linux
-        #   python: 2.7
-        #   env: MAIN_CMD='coverage' SETUP_CMD='run hpsspy/test/hpsspy_test_suite.py'
+        - os: linux
+          python: 2.7
+          env: MAIN_CMD='coverage' SETUP_CMD='run hpsspy/test/hpsspy_test_suite.py'
 
         # PEP 8 compliance.
         # - os: linux
         #   python: 2.7
         #   env: MAIN_CMD='pep8' SETUP_CMD='--count hpsspy'
 
-before_install:
-    - curl ipinfo.io
+# before_install:
+#     - curl ipinfo.io
 
 install:
     - if [[ $MAIN_CMD == 'pep8' ]]; then pip install pep8; fi
     - if [[ $SETUP_CMD == 'build_sphinx' ]]; then pip install Sphinx; fi
     - if [[ $MAIN_CMD == 'coverage' ]]; then pip install coverage coveralls; fi
-    - pip install -r requirements.txt
+    # - pip install -r requirements.txt
 
 script:
     - $MAIN_CMD $SETUP_CMD
