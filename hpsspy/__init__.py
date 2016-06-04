@@ -23,7 +23,4 @@ class HpssOSError(HpssError):
     pass
 
 
-__version__ = '0.3.0.dev'
-
-
-# __all__ = ['HpssError', 'HpssOSError']
+__version__ = '0.3.0.dev5'

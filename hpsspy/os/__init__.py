@@ -11,13 +11,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 #
 from . import path
-from .chmod import chmod
-from .listdir import listdir
-from .makedirs import makedirs
-from .mkdir import mkdir
-from .stat import lstat, stat
-from .walk import walk
-#
+from ._os import *
 from re import compile
 
 

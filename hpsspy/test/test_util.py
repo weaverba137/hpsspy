@@ -14,7 +14,7 @@ import unittest
 # import json
 # from pkg_resources import resource_exists, resource_stream
 from os import environ
-from ..util import get_tmpdir
+from ..util import get_hpss_dir, get_tmpdir
 
 
 class TestUtil(unittest.TestCase):
@@ -22,26 +22,37 @@ class TestUtil(unittest.TestCase):
     """
 
     def setUp(self):
-        # Store the original value of TMPDIR, if present.
-        self.TMPDIR = None
-        if 'TMPDIR' in environ:
-            self.TMPDIR = environ['TMPDIR']
+        # Store the original value of env variables, if present.
+        self.env = {'TMPDIR': None, 'HPSS_DIR': None}
+        for e in self.env:
+            if e in environ:
+                self.env[e] = environ['TMPDIR']
 
     def tearDown(self):
-        # Restore the original value of TMPDIR, if it was present.
-        if self.TMPDIR is not None:
-            environ['TMPDIR'] = self.TMPDIR
+        # Restore the original value of env variables, if they were present.
+        for e in self.env:
+            if self.env[e] is None:
+                if e in environ:
+                    del environ[e]
+            else:
+                environ[e] = self.env[e]
+
+    def test_get_hpss_dir(self):
+        """Test searching for the HPSS_DIR variable.
+        """
+        environ['HPSS_DIR'] = '/path/to/hpss'
+        self.assertEqual(get_hpss_dir(), '/path/to/hpss/bin')
 
     def test_get_tmpdir(self):
         """Test the TMPDIR search function.
         """
         myTmpDir = '/my/own/personal/temporary/directory'
         self.assertEqual(get_tmpdir(tmpdir=myTmpDir), myTmpDir)
-        if self.TMPDIR is None:
+        if self.env['TMPDIR'] is None:
             environ['TMPDIR'] = '/Temporary/TMPDIR'
             self.assertEqual(get_tmpdir(), '/Temporary/TMPDIR')
         else:
-            self.assertEqual(get_tmpdir(), self.TMPDIR)
+            self.assertEqual(get_tmpdir(), self.env['TMPDIR'])
         del environ['TMPDIR']
         self.assertEqual(get_tmpdir(), '/tmp')
 
