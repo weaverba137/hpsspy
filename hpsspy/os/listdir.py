@@ -17,7 +17,7 @@ def listdir(path):
     """
     from . import linere
     from .. import HpssOSError
-    from ..util import hpss_file, hsi
+    from ..util import HpssFile, hsi
     out = hsi('ls','-la',path)
     if out.startswith('**'):
         raise HpssOSError(out)
@@ -35,7 +35,7 @@ def listdir(path):
                 raise HpssOSError("Could not match line!\n{0}".format(f))
         else:
             g = m.groups()
-            files.append(hpss_file(lspath,*g))
+            files.append(HpssFile(lspath,*g))
     #
     # Create a unique set of filenames for use below.
     #

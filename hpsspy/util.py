@@ -68,19 +68,11 @@ class HpssFile(object):
         return
 
     def __repr__(self):
-        return "HpssFile('{0}','{1}','{2}','{3:d}','{4}','{5}','{6:d}','{7}','{8:d}','{9}','{10}')".format(
-            self.hpss_path,
-            self.raw_type,
-            self.raw_permission,
-            self.st_nlink,
-            self.st_uid,
-            self.st_gid,
-            self.st_size,
-            self.raw_month,
-            self.raw_day,
-            self.raw_year,
-            self.raw_name)
-
+        return ("HpssFile('{0.hpss_path}', '{0.raw_type}', " +
+                "'{0.raw_permission}', '{0.st_nlink:d}', '{0.st_uid}', " +
+                "'{0.st_gid}', '{0.st_size:d}', '{0.raw_month}', " +
+                "'{0.raw_day:d}', '{0.raw_year}', " +
+                "'{0.raw_name}')").format(self)
 
     def __str__(self):
         return self.name

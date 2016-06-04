@@ -20,7 +20,7 @@ def stat(path,lstat=False):
     """
     from . import linere
     from .. import HpssOSError
-    from ..util import hpss_file, hsi
+    from ..util import HpssFile, hsi
     from os.path import join
     out = hsi('ls','-ld',path)
     if out.startswith('**'):
@@ -39,7 +39,7 @@ def stat(path,lstat=False):
                 raise HpssOSError("Could not match line!\n{0}".format(f))
         else:
             g = m.groups()
-            files.append(hpss_file(lspath,*g))
+            files.append(HpssFile(lspath,*g))
     if len(files) != 1:
         raise HpssOSError("Non-unique response for {0}!".format(path))
     if files[0].islink and not lstat:
