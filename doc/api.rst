@@ -19,4 +19,3 @@ hpsspy API
 
 .. automodule:: hpsspy.util
    :members:
-   :imported-members:
