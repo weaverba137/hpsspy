@@ -6,6 +6,10 @@ hpsspy
     :target: https://travis-ci.org/weaverba137/hpsspy
     :alt: Travis Build Status
 
+.. image:: https://coveralls.io/repos/github/weaverba137/hpsspy/badge.svg?branch=pre-0.3
+    :target: https://coveralls.io/github/weaverba137/hpsspy?branch=pre-0.3
+    :alt: Test Coverage Status
+
 Overview
 --------
 

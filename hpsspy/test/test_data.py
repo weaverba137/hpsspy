@@ -48,7 +48,7 @@ class TestData(unittest.TestCase):
         """Test DESI data file.
         """
         releases = ('datachallenge', 'imaging', 'mocks', 'release',
-                    'spectro', 'target'):
+                    'spectro', 'target')
         self.check_json('desi.json', releases)
 
 
