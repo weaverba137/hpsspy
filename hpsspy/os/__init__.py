@@ -12,9 +12,19 @@ from __future__ import (absolute_import, division, print_function,
 #
 from . import path
 from ._os import *
-from re import compile
 
+import re
 
-linere = compile('([dl-])([rwxsStT-]+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\d+)\s+([A-Za-z]+)\s+(\d+)\s+([0-9:]+) (.*)$')
+linere = re.compile(r"""([dl-])           # file type
+                        ([rwxsStT-]+)\s+  # file permissions
+                        (\d+)\s+          # number of links
+                        (\S+)\s+          # user
+                        (\S+)\s+          # group
+                        (\d+)\s+          # size
+                        ([A-Za-z]+)\s+    # month
+                        (\d+)\s+          # day
+                        ([0-9:]+)\s       # year
+                        (.*)$             # filename
+                        """, re.VERBOSE)
 
-del compile
+del re

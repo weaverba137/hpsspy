@@ -66,9 +66,9 @@ matrix:
           env: MAIN_CMD='coverage' SETUP_CMD='run hpsspy/test/hpsspy_test_suite.py'
 
         # PEP 8 compliance.
-        # - os: linux
-        #   python: 2.7
-        #   env: MAIN_CMD='pep8' SETUP_CMD='--count hpsspy'
+        - os: linux
+          python: 2.7
+          env: MAIN_CMD='pep8' SETUP_CMD='--count hpsspy'
 
 # before_install:
 #     - curl ipinfo.io

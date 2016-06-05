@@ -28,7 +28,7 @@ def chmod(path, mode):
 
     Raises
     ------
-    HpssOSError
+    :class:`~hpsspy.HpssOSError`
         If the underlying :command:`hsi` reports an error.
     """
     out = hsi('chmod', str(mode), path)
@@ -52,7 +52,7 @@ def listdir(path):
 
     Raises
     ------
-    HpssOSError
+    :class:`~hpsspy.HpssOSError`
         If the underlying :command:`hsi` reports an error.
     """
     from . import linere
@@ -99,7 +99,7 @@ def makedirs(path, mode=None):
 
     Raises
     ------
-    HpssOSError
+    :class:`~hpsspy.HpssOSError`
         If the underlying :command:`hsi` reports an error.
 
     Notes
@@ -128,7 +128,7 @@ def mkdir(path, mode=None):
 
     Raises
     ------
-    HpssOSError
+    :class:`~hpsspy.HpssOSError`
         If the underlying :command:`hsi` reports an error.
 
     Notes
@@ -163,7 +163,7 @@ def stat(path, lstat=False):
 
     Raises
     ------
-    HpssOSError
+    :class:`~hpsspy.HpssOSError`
         If the underlying :command:`hsi` reports an error.
     """
     from . import linere
@@ -214,7 +214,7 @@ def lstat(path):
 
     Raises
     ------
-    HpssOSError
+    :class:`~hpsspy.HpssOSError`
         If the underlying :command:`hsi` reports an error.
     """
     return stat(path, lstat=True)

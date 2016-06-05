@@ -19,6 +19,12 @@ import re
 class HpssFile(object):
     """This class is used to store and access an HPSS file's metadata.
 
+    Parameters
+    ----------
+    args : iterable
+        This object this will normally be initialized by a tuple produced by
+        :func:`hpsspy.os.listdir`.
+
     Attributes
     ----------
     hpss_path : :class:`str`
@@ -46,14 +52,19 @@ class HpssFile(object):
     ishtar : :class:`bool`
         ``True`` if the file is an htar file.
     """
-    _htarre = re.compile(r'HTAR: ([dl-])([rwxsStT-]+)\s+([^/]+)/(\S+)\s+(\d+)\s+(\d+)-(\d+)-(\d+)\s+([0-9:]+)\s+(\S.*)$')
+    _htarre = re.compile(r"""HTAR:\s([dl-])        # file type
+                             ([rwxsStT-]+)\s+      # file permissions
+                             ([^/]+)/(\S+)\s+      # user/group
+                             (\d+)\s+              # size
+                             (\d+)-(\d+)-(\d+)\s+  # Year-month-day
+                             ([0-9:]+)\s+          # HH:MM
+                             (\S.*)$               # filename
+                             """, re.VERBOSE)
     _file_modes = {'l': stat.S_IFLNK, 'd': stat.S_IFDIR, '-': stat.S_IFREG}
     _months = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 
     def __init__(self, *args):
-        """Usually this will be initialized by a tuple produced by listdir.
-        """
         self.hpss_path = args[0]
         self.raw_type = args[1]
         self.raw_permission = args[2]
@@ -245,7 +256,8 @@ def get_tmpdir(**kwargs):
     ----------
     kwargs : :class:`dict`
         Keyword arguments from another function may be passed to this
-        function.  If ``tmpdir`` is present as a key, its value will be returned.
+        function.  If ``tmpdir`` is present as a key, its value will be
+        returned.
 
     Returns
     -------
