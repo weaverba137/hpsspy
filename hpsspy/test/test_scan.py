@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 """
-hpsspy.test.test_os
+hpsspy.test.test_scan
 ~~~~~~~~~~~~~~~~~~~~~
 
-Test the functions in the os subpackage.
+Test the functions in the scan subpackage.
 """
 #
 from __future__ import (absolute_import, division, print_function,
@@ -14,12 +14,11 @@ import unittest
 # import json
 # from pkg_resources import resource_filename
 import os
-from ..os import chmod
-from ..os.path import isdir, isfile, islink
+from ..scan import main
 
 
-class TestOs(unittest.TestCase):
-    """Test the functions in the os subpackage.
+class TestScan(unittest.TestCase):
+    """Test the functions in the scan subpackage.
     """
 
     def setUp(self):
