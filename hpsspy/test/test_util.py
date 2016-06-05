@@ -61,7 +61,7 @@ class TestUtil(unittest.TestCase):
         names = ('boss', 'cosmo', 'desi', 'test')
         links = ('/nersc/projects/boss', '/nersc/projects/cosmo',
                  '/nersc/projects/desi', None)
-        modes = (0777, 0777, 0777, 02755)
+        modes = (511, 511, 511, 1517)
         mtimes = (datetime.datetime(2008, 4, 3, 0, 0, 0),
                   datetime.datetime(2014, 8, 22, 0, 0, 0),
                   datetime.datetime(2013, 12, 16, 0, 0, 0),

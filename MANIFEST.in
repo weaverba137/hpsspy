@@ -1,7 +1,4 @@
 include LICENSE.rst
 include README.rst
-include ez_setup.py
 
 graft doc
-
-prune doc/_build
