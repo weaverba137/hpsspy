@@ -14,6 +14,7 @@ import unittest
 # import json
 from pkg_resources import resource_filename
 import os
+import sys
 from ..util import get_hpss_dir, get_tmpdir, hsi, htar
 
 
@@ -22,6 +23,7 @@ class TestUtil(unittest.TestCase):
     """
 
     def setUp(self):
+        self.PY3 = sys.version_info[0] > 2
         # Store the original value of env variables, if present.
         self.env = {'TMPDIR': None, 'HPSS_DIR': None}
         for e in self.env:
@@ -86,8 +88,12 @@ class TestUtil(unittest.TestCase):
         self.setup_bin('htar')
         command = ['-cvf', 'foo/bar.tar', '-H', 'crc:verify=all', 'bar']
         out, err = htar(*command)
-        # self.assertEqual(out.strip(), ' '.join(command))
-        # self.assertEqual(err.strip(), '')
+        if self.PY3:
+            self.assertEqual(out.decode('utf8').strip(), ' '.join(command))
+            self.assertEqual(err.decode('utf8').strip(), '')
+        else:
+            self.assertEqual(out.strip(), ' '.join(command))
+            self.assertEqual(err.strip(), '')
         self.remove_bin('htar')
 
 if __name__ == '__main__':
