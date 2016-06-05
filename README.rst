@@ -2,6 +2,18 @@
 hpsspy
 ======
 
+.. image:: https://img.shields.io/pypi/l/hpsspy.svg
+    :target: https://pypi.python.org/pypi/hpsspy
+    :alt: License
+
+.. image:: https://img.shields.io/pypi/v/hpsspy.svg
+    :target: https://pypi.python.org/pypi/hpsspy
+    :alt: PyPI Badge
+
+.. image:: https://img.shields.io/pypi/dm/hpsspy.svg
+    :target: https://pypi.python.org/pypi/hpsspy
+    :alt: PyPI Downloads
+
 .. image:: https://img.shields.io/travis/weaverba137/hpsspy.svg
     :target: https://travis-ci.org/weaverba137/hpsspy
     :alt: Travis Build Status
