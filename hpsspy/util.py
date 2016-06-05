@@ -102,7 +102,7 @@ class HpssFile(object):
         """``True`` if the file is a directory or a symbolic link that
         points to a directory.
         """
-        from .os import hpss_stat
+        from .os import stat as hpss_stat
         if self.islink:
             new_path = self.readlink
             if new_path.startswith('/'):

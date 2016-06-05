@@ -10,8 +10,8 @@ hpsspy
     :target: https://coveralls.io/github/weaverba137/hpsspy?branch=pre-0.3
     :alt: Test Coverage Status
 
-.. image:: https://readthedocs.org/projects/hpsspy/badge/?version=latest
-    :target: http://hpsspy.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/hpsspy/badge/?version=pre-0.3
+    :target: http://hpsspy.readthedocs.io/en/latest/?badge=pre-0.3
     :alt: Documentation Status
 
 Overview

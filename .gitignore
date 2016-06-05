@@ -1,3 +1,4 @@
+# Compiled files
 *.py[cod]
 
 # C extensions
@@ -19,10 +20,6 @@ lib
 lib64
 __pycache__
 
-# Other generated files
-*/version.py
-hpsspy/hpsspy.cfg
-
 # Sphinx
 _build
 _static
@@ -32,6 +29,7 @@ _generated
 pip-log.txt
 
 # Unit test / coverage reports
+htmlcov/
 .coverage
 .tox
 nosetests.xml

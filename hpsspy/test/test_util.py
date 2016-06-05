@@ -15,7 +15,10 @@ import unittest
 from pkg_resources import resource_filename
 import os
 import sys
-from ..util import get_hpss_dir, get_tmpdir, hsi, htar
+import stat
+import datetime
+from .. import HpssOSError
+from ..util import HpssFile, get_hpss_dir, get_tmpdir, hsi, htar
 
 
 class TestUtil(unittest.TestCase):
@@ -50,6 +53,51 @@ class TestUtil(unittest.TestCase):
         hpss_dir = os.environ['HPSS_DIR']
         os.remove(os.path.join(hpss_dir, 'bin', command))
         os.rmdir(os.path.join(hpss_dir, 'bin'))
+
+    def test_HpssFile(self):
+        """Test the HpssFile object.
+        """
+        lspath = '/home/b/bweaver'
+        names = ('boss', 'cosmo', 'desi', 'test')
+        links = ('/nersc/projects/boss', '/nersc/projects/cosmo',
+                 '/nersc/projects/desi', None)
+        modes = (0777, 0777, 0777, 02755)
+        mtimes = (datetime.datetime(2008, 4, 3, 0, 0, 0),
+                  datetime.datetime(2014, 8, 22, 0, 0, 0),
+                  datetime.datetime(2013, 12, 16, 0, 0, 0),
+                  datetime.datetime(2016, 4, 4, 13, 14, 0))
+        data = (('l', 'rwxrwxrwx', '1', 'bweaver', 'bweaver',
+                 '20', 'Apr', '3', '2008', 'boss@ -> /nersc/projects/boss'),
+                ('l', 'rwxrwxrwx', '1', 'bweaver', 'bweaver',
+                 '21', 'Aug', '22', '2014', 'cosmo@ -> /nersc/projects/cosmo'),
+                ('l', 'rwxrwxrwx', '1', 'bweaver', 'bweaver',
+                 '20', 'Dec', '16', '2013', 'desi@ -> /nersc/projects/desi'),
+                ('d', 'rwxr-sr-x', '3', 'bweaver', 'bweaver',
+                 '512', 'Apr', '4', '13:14', 'test'))
+        repr_template = ("HpssFile('{0}', '{1}', '{2}', '{3}', '{4}', " +
+                         "'{5}', '{6}', '{7}', '{8}', '{9}', '{10}')")
+
+        files = list()
+        for d in data:
+            files.append(HpssFile(lspath, *d))
+        for i, f in enumerate(files):
+            r_data = [lspath] + list(data[i])
+            self.assertEqual(repr(f), repr_template.format(*r_data))
+            self.assertEqual(str(f), f.name)
+            self.assertEqual(f.name, names[i])
+            self.assertEqual(f.path, os.path.join(lspath, f.name))
+            # self.assertTrue(f.isdir)
+            m = f.st_mode
+            mt = f.st_mtime
+            if f.islink:
+                self.assertEqual(f.st_mode, modes[i] | stat.S_IFLNK)
+                self.assertEqual(f.readlink, links[i])
+            else:
+                self.assertTrue(f.isdir)
+                self.assertEqual(f.st_mode, modes[i] | stat.S_IFDIR)
+                with self.assertRaises(HpssOSError):
+                    r = f.readlink
+            self.assertEqual(f.st_mtime, int(mtimes[i].strftime('%s')))
 
     def test_get_hpss_dir(self):
         """Test searching for the HPSS_DIR variable.
