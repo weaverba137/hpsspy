@@ -1,5 +1,5 @@
 ==========
-hpsspy API
+HPSSPy API
 ==========
 
 .. automodule:: hpsspy

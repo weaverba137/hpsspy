@@ -1,5 +1,5 @@
 ======
-hpsspy
+HPSSPy
 ======
 
 .. image:: https://img.shields.io/pypi/l/hpsspy.svg
@@ -29,7 +29,7 @@ hpsspy
 Overview
 --------
 
-Hpsspy is a Python_ package for interacting with the HPSS_ tape storage
+HPSSPy is a Python_ package for interacting with the HPSS_ tape storage
 system at NERSC_.  It is currently being developed on GitHub_.
 
 .. _Python: http://python.org
@@ -40,7 +40,7 @@ system at NERSC_.  It is currently being developed on GitHub_.
 Requirements
 ------------
 
-Hpsspy assumes that the HPSS utilities `hsi and htar`_ are installed.  You may
+HPSSPy assumes that the HPSS utilities `hsi and htar`_ are installed.  You may
 need a NERSC account to download and install these utilities.
 
 .. _`hsi and htar`: https://www.nersc.gov/users/data-and-file-systems/hpss/storing-and-retrieving-data/software-downloads/
@@ -48,5 +48,5 @@ need a NERSC account to download and install these utilities.
 License
 -------
 
-Hpsspy is free software licensed under a 3-clause BSD-style license. For details see
+HPSSPy is free software licensed under a 3-clause BSD-style license. For details see
 the ``LICENSE.rst`` file.

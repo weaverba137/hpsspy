@@ -36,6 +36,7 @@ env:
         - MAIN_CMD='python setup.py'
     matrix:
         - SETUP_CMD='egg_info'
+        - SETUP_CMD='bdist_egg'
         - SETUP_CMD='test'
 
 matrix:
@@ -50,24 +51,18 @@ matrix:
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time
         - os: linux
-          python: 2.7
+          python: 3.5
           env: SETUP_CMD='build_sphinx'
           # -w is an astropy extension
 
-        # Do a bdist_egg compile.  This will catch things like errors in the
-        # overall package structure.
-        - os: linux
-          python: 2.7
-          env: SETUP_CMD='bdist_egg'
-
         # Coverage test, pass the results to coveralls.
         - os: linux
-          python: 2.7
+          python: 3.5
           env: MAIN_CMD='coverage' SETUP_CMD='run hpsspy/test/hpsspy_test_suite.py'
 
         # PEP 8 compliance.
         - os: linux
-          python: 2.7
+          python: 3.5
           env: MAIN_CMD='pep8' SETUP_CMD='--count hpsspy'
 
 # before_install:

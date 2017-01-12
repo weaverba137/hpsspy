@@ -1,4 +1,4 @@
-Copyright (c) 2014, Benjamin Alan Weaver <benjamin.weaver@nyu.edu>
+Copyright (c) 2014-2017, Benjamin Alan Weaver <baweaver@lbl.gov>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
