@@ -6,6 +6,7 @@ Release Notes
 ------------------
 
 * General refresh of Python code, documentation, test suite.
+* Command-line inputs are no longer rigidly restricted to SDSS or DESI.
 
 0.2.1 (2015-04-22)
 ------------------
