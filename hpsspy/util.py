@@ -182,7 +182,7 @@ class HpssFile(object):
 
     @property
     def st_mtime(self):
-        """Fild modification time.
+        """File modification time.
         """
         from datetime import datetime
         if 'st_mtime' in self._property_cache:

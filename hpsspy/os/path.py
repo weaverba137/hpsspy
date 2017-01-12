@@ -24,7 +24,7 @@ def isdir(path):
     :class:`bool`
         ``True`` if `path` is a directory.
     """
-    from .stat import stat
+    from ._os import stat
     return stat(path).isdir
 
 
@@ -41,7 +41,7 @@ def isfile(path):
     :class:`bool`
         ``True`` if `path` is a file.
     """
-    from .stat import stat
+    from ._os import stat
     return not stat(path).isdir
 
 
@@ -58,5 +58,5 @@ def islink(path):
     :class:`bool`
         ``True`` if `path` is a symlink.
     """
-    from .stat import lstat
+    from ._os import lstat
     return lstat(path).islink

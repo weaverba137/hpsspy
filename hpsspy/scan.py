@@ -331,17 +331,21 @@ def main():
     import logging
     from argparse import ArgumentParser
     from sys import argv
-    from os import getenv
-    from os.path import basename, join
+    from os import environ
+    from os.path import basename, join, splitext
     #
     # Options
     #
     desc = 'Verify the presence of files on HPSS.'
     parser = ArgumentParser(prog=basename(argv[0]), description=desc)
-    parser.add_argument('-c', '--clobber-disk', action='store_true',
+    parser.add_argument('-c', '--cache-dir', action='store', dest='cache',
+                        metavar='DIR',
+                        default=join(environ['HOME'], 'scratch'),
+                        help='Write cache files to DIR.')
+    parser.add_argument('-D', '--clobber-disk', action='store_true',
                         dest='clobber_disk',
                         help='Ignore any existing disk cache files.')
-    parser.add_argument('-C', '--clobber-hpss', action='store_true',
+    parser.add_argument('-H', '--clobber-hpss', action='store_true',
                         dest='clobber_hpss',
                         help='Ignore any existing HPSS cache files.')
     parser.add_argument('-p', '--process', action='store_true',
@@ -373,16 +377,17 @@ def main():
     #
     # Config file
     #
-    if options.config not in ('sdss', 'desi'):
-        logger.error('Unsupported configuration: {0}'.format(options.config))
-        return 1
-    hpss_map, config = files_to_hpss(options.config+'.json', options.release)
+    foo, xtn = splitext(basename(options.config))
+    if xtn != '.json':
+        logger.warn("{0} might not be a JSON file!".format(optoins.config))
+    hpss_map, config = files_to_hpss(options.config, options.release)
     release_root = join(config['root'], options.release)
     hpss_release_root = join(config['hpss_root'], options.release)
     #
     # Read HPSS files and cache.
     #
-    hpss_files_cache = join(getenv('HOME'), 'scratch',
+    logger.debug("Cache files will be written to {0}.".format(options.cache))
+    hpss_files_cache = join(options.cache,
                             'hpss_files_{0}.txt'.format(options.release))
     logger.debug('HPSS file cache = {0}'.format(hpss_files_cache))
     hpss_files = scan_hpss(hpss_release_root, hpss_files_cache,
@@ -390,7 +395,7 @@ def main():
     #
     # Read disk files and cache.
     #
-    disk_files_cache = join(getenv('HOME'), 'scratch',
+    disk_files_cache = join(options.cache,
                             'disk_files_{0}.txt'.format(options.release))
     logger.debug('Disk file cache = {0}'.format(disk_files_cache))
     disk_roots = [release_root.replace(basename(config['root']), d)
@@ -402,7 +407,7 @@ def main():
     #
     # See if the files are on HPSS.
     #
-    missing_files_cache = join(getenv('HOME'), 'scratch',
+    missing_files_cache = join(options.cache,
                                ('missing_files_' +
                                 '{0}.json').format(options.release))
     logger.debug('Missing files list = {0}'.format(missing_files_cache))
