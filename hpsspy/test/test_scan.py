@@ -21,6 +21,14 @@ class TestScan(unittest.TestCase):
     """Test the functions in the scan subpackage.
     """
 
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
     def setUp(self):
         # Store the original value of env variables, if present.
         # self.env = {'TMPDIR': None, 'HPSS_DIR': None}
@@ -40,5 +48,8 @@ class TestScan(unittest.TestCase):
         pass
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_suite():
+    """Allows testing of only this module with the command::
+        python setup.py test -m <modulename>
+    """
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)

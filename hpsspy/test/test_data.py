@@ -15,6 +15,16 @@ from pkg_resources import resource_exists, resource_stream
 
 
 class TestData(unittest.TestCase):
+    """Check integrity of data files.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
 
     def setUp(self):
         pass
@@ -53,5 +63,8 @@ class TestData(unittest.TestCase):
         self.check_json('desi.json', releases)
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_suite():
+    """Allows testing of only this module with the command::
+        python setup.py test -m <modulename>
+    """
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)

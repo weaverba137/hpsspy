@@ -25,6 +25,14 @@ class TestUtil(unittest.TestCase):
     """Test the functions in the util subpackage.
     """
 
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
     def setUp(self):
         self.PY3 = sys.version_info[0] > 2
         # Store the original value of env variables, if present.
@@ -62,10 +70,11 @@ class TestUtil(unittest.TestCase):
         links = ('/nersc/projects/boss', '/nersc/projects/cosmo',
                  '/nersc/projects/desi', None)
         modes = (511, 511, 511, 1517)
+        this_year = datetime.datetime.now().year
         mtimes = (datetime.datetime(2008, 4, 3, 0, 0, 0),
                   datetime.datetime(2014, 8, 22, 0, 0, 0),
                   datetime.datetime(2013, 12, 16, 0, 0, 0),
-                  datetime.datetime(2016, 4, 4, 13, 14, 0))
+                  datetime.datetime(this_year, 4, 4, 13, 14, 0))
         data = (('l', 'rwxrwxrwx', '1', 'bweaver', 'bweaver',
                  '20', 'Apr', '3', '2008', 'boss@ -> /nersc/projects/boss'),
                 ('l', 'rwxrwxrwx', '1', 'bweaver', 'bweaver',
@@ -144,5 +153,9 @@ class TestUtil(unittest.TestCase):
             self.assertEqual(err.strip(), '')
         self.remove_bin('htar')
 
-if __name__ == '__main__':
-    unittest.main()
+
+def test_suite():
+    """Allows testing of only this module with the command::
+        python setup.py test -m <modulename>
+    """
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)
