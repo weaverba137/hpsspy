@@ -341,7 +341,8 @@ def main():
     parser.add_argument('-c', '--cache-dir', action='store', dest='cache',
                         metavar='DIR',
                         default=join(environ['HOME'], 'scratch'),
-                        help='Write cache files to DIR.')
+                        help=('Write cache files to DIR (Default: '+
+                              '%(default)s).'))
     parser.add_argument('-D', '--clobber-disk', action='store_true',
                         dest='clobber_disk',
                         help='Ignore any existing disk cache files.')
@@ -355,7 +356,7 @@ def main():
     parser.add_argument('-r', '--report', action='store', type=int,
                         dest='report', metavar='N', default=10000,
                         help=("Print an informational message after " +
-                              "every N files."))
+                              "every N files (Default: %(default)s)."))
     parser.add_argument('-v', '--verbose', action='store_true',
                         dest='verbose',
                         help="Increase verbosity.")
