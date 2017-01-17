@@ -341,7 +341,7 @@ def main():
     parser.add_argument('-c', '--cache-dir', action='store', dest='cache',
                         metavar='DIR',
                         default=join(environ['HOME'], 'scratch'),
-                        help=('Write cache files to DIR (Default: '+
+                        help=('Write cache files to DIR (Default: ' +
                               '%(default)s).'))
     parser.add_argument('-D', '--clobber-disk', action='store_true',
                         dest='clobber_disk',
