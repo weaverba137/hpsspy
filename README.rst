@@ -18,12 +18,12 @@ HPSSPy
     :target: https://travis-ci.org/weaverba137/hpsspy
     :alt: Travis Build Status
 
-.. image:: https://coveralls.io/repos/github/weaverba137/hpsspy/badge.svg?branch=pre-0.3
-    :target: https://coveralls.io/github/weaverba137/hpsspy?branch=pre-0.3
+.. image:: https://coveralls.io/repos/github/weaverba137/hpsspy/badge.svg
+    :target: https://coveralls.io/github/weaverba137/hpsspy?branch=master
     :alt: Test Coverage Status
 
-.. image:: https://readthedocs.org/projects/hpsspy/badge/?version=pre-0.3
-    :target: http://hpsspy.readthedocs.io/en/latest/?badge=pre-0.3
+.. image:: https://readthedocs.org/projects/hpsspy/badge/
+    :target: http://hpsspy.readthedocs.io/en/latest/
     :alt: Documentation Status
 
 Overview
