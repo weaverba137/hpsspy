@@ -1,0 +1,81 @@
+#
+# IMPORTANT.  OS X support is so experimental that you have to specifically
+# request to have it enabled, on a per-repository basis.  See
+# http://docs.travis-ci.com/user/multi-os/#Manual-intervention-required
+#
+# This file will still work, without OS X enabled, it just won't run those
+# tests.
+#
+language: python
+
+os:
+    - linux
+    # - osx
+
+# Setting sudo to false opts in to Travis-CI container-based builds.
+sudo: false
+
+# The apt packages below are needed for sphinx builds, which can no longer
+# be installed with sudo apt-get.
+addons:
+    apt:
+        packages:
+            - graphviz
+            - texlive-latex-extra
+            - dvipng
+python:
+    - 2.7
+    - 3.3
+    - 3.4
+    - 3.5
+env:
+    global:
+        # The following versions are the 'default' for tests, unless
+        # overidden underneath. They are defined here in order to save having
+        # to repeat them for all configurations.
+        - MAIN_CMD='python setup.py'
+    matrix:
+        - SETUP_CMD='egg_info'
+        - SETUP_CMD='bdist_egg'
+        - SETUP_CMD='test'
+
+matrix:
+    # Don't wait for allowed failures.
+    fast_finish: true
+
+    # OS X support is still experimental, so don't penalize failuures.
+    allow_failures:
+        - os: osx
+
+    include:
+        # Check for sphinx doc build warnings - we do this first because it
+        # runs for a long time
+        - os: linux
+          python: 3.5
+          env: SETUP_CMD='build_sphinx'
+          # -w is an astropy extension
+
+        # Coverage test, pass the results to coveralls.
+        - os: linux
+          python: 3.5
+          env: MAIN_CMD='coverage' SETUP_CMD='run hpsspy/test/hpsspy_test_suite.py'
+
+        # PEP 8 compliance.
+        - os: linux
+          python: 3.5
+          env: MAIN_CMD='pep8' SETUP_CMD='--count hpsspy'
+
+# before_install:
+#     - curl ipinfo.io
+
+install:
+    - if [[ $MAIN_CMD == 'pep8' ]]; then pip install pep8; fi
+    - if [[ $SETUP_CMD == 'build_sphinx' ]]; then pip install Sphinx; fi
+    - if [[ $MAIN_CMD == 'coverage' ]]; then pip install coverage coveralls; fi
+    # - pip install -r requirements.txt
+
+script:
+    - $MAIN_CMD $SETUP_CMD
+
+after_success:
+    - if [[ $MAIN_CMD == 'coverage' ]]; then coveralls; fi

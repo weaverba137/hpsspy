@@ -1,3 +1,4 @@
+# Compiled files
 *.py[cod]
 
 # C extensions
@@ -13,15 +14,12 @@ parts
 bin
 var
 sdist
+MANIFEST
 develop-eggs
 .installed.cfg
 lib
 lib64
 __pycache__
-
-# Other generated files
-*/version.py
-hpsspy/hpsspy.cfg
 
 # Sphinx
 _build
@@ -32,6 +30,7 @@ _generated
 pip-log.txt
 
 # Unit test / coverage reports
+htmlcov/
 .coverage
 .tox
 nosetests.xml

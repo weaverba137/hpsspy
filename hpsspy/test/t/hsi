@@ -1,0 +1,12 @@
+#!/bin/sh
+ofile=''
+archive=''
+while getopts O:s: argname; do
+    case ${argname} in
+        O) ofile=${OPTARG} ;;
+        s) archive=${OPTARG} ;;
+        *) ;;
+    esac
+done
+shift $((OPTIND-1))
+echo "$@" > ${ofile}

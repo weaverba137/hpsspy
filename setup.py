@@ -5,8 +5,12 @@
 #
 import sys
 from os.path import exists
-from ez_setup import use_setuptools
-use_setuptools()
+#
+# setuptools' sdist command ignores MANIFEST.in
+#
+from distutils.command.sdist import sdist as DistutilsSdist
+# from ez_setup import use_setuptools
+# use_setuptools()
 from setuptools import setup, find_packages
 setup_keywords = dict()
 #
@@ -15,7 +19,7 @@ setup_keywords = dict()
 setup_keywords['name'] = 'hpsspy'
 setup_keywords['description'] = 'Package for interacting with HPSS.'
 setup_keywords['author'] = 'Benjamin Alan Weaver'
-setup_keywords['author_email'] = 'benjamin.weaver@nyu.edu'
+setup_keywords['author_email'] = 'baweaver@lbl.gov'
 setup_keywords['license'] = 'BSD'
 setup_keywords['url'] = 'https://github.com/weaverba137/hpsspy'
 setup_keywords['keywords'] = ['backup']
@@ -55,22 +59,23 @@ setup_keywords['download_url'] = 'https://github.com/weaverba137/hpsspy/tarball/
 setup_keywords['provides'] = [setup_keywords['name']]
 setup_keywords['requires'] = ['Python (>2.7.0)']
 # setup_keywords['install_requires'] = ['Python (>2.6.0)']
-setup_keywords['zip_safe'] = False # Sphinx extensions may do some introspection.
+setup_keywords['zip_safe'] = True
 setup_keywords['use_2to3'] = True
 setup_keywords['packages'] = find_packages()
-setup_keywords['package_data'] = {'':['*.json']}
+setup_keywords['cmdclass'] = {'sdist': DistutilsSdist}
+setup_keywords['package_data'] = {'hpsspy': ['data/*.json'], 'hpsspy.test': ['t/*']}
 #
 # Autogenerate command-line scripts.
 #
 setup_keywords['entry_points'] = {
     'console_scripts': [
-        'missing_from_hpss = hpsspy.scan.main:main',
+        'missing_from_hpss = hpsspy.scan:main',
         ]
     }
 #
 # Test suite
 #
-setup_keywords['test_suite'] = 'hpsspy.tests.test_hpsspy.hpsspy_test_suite'
+setup_keywords['test_suite'] = 'hpsspy.test.hpsspy_test_suite.hpsspy_test_suite'
 #
 # Run setup command.
 #
