@@ -2,10 +2,11 @@
 Release Notes
 =============
 
-0.3.0 (unreleased)
+0.3.0 (2017-01-18)
 ------------------
 
-* General refresh of Python code, documentation, test suite.
+* General refresh of Python code, documentation, test suite.  However,
+  no major changes to the API.
 * Command-line inputs are no longer rigidly restricted to SDSS or DESI.
 
 0.2.1 (2015-04-22)
