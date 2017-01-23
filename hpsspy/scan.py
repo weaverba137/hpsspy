@@ -333,6 +333,7 @@ def main():
     from sys import argv
     from os import environ
     from os.path import basename, join, splitext
+    from . import __version__ as hpsspyVersion
     #
     # Options
     #
@@ -360,6 +361,8 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true',
                         dest='verbose',
                         help="Increase verbosity.")
+    parser.add_argument('-V', '--version', action='version',
+                        version="%(prog)s " + hpsspyVersion)
     parser.add_argument('config', metavar='FILE',
                         help="Read configuration from FILE.")
     parser.add_argument('release', metavar='SECTION',

@@ -5,7 +5,7 @@ Release Notes
 0.3.1 (unreleased)
 ------------------
 
-* No changes yet.
+* Add ``--version`` option.
 
 0.3.0 (2017-01-18)
 ------------------
