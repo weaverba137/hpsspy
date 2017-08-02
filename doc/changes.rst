@@ -6,6 +6,7 @@ Release Notes
 ------------------
 
 * Add ``--version`` option.
+* Add Python 3.6, remove 3.3.
 
 0.3.0 (2017-01-18)
 ------------------
