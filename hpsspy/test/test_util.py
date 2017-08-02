@@ -79,28 +79,28 @@ class TestUtil(unittest.TestCase):
                   datetime.datetime(this_year, 7, 3, 12, 34, 0),
                   datetime.datetime(2016, 2, 2, 0, 0, 0),
                   datetime.datetime(2016, 2, 2, 0, 0, 0))
-        data = (('l', 'rwxrwxrwx', '1', 'bweaver', 'bweaver',
-                 '20', 'Apr', '3', '2008', 'boss@ -> /nersc/projects/boss'),
-                ('l', 'rwxrwxrwx', '1', 'bweaver', 'bweaver',
-                 '21', 'Aug', '22', '2014', 'cosmo@ -> /nersc/projects/cosmo'),
-                ('l', 'rwxrwxrwx', '1', 'bweaver', 'bweaver',
-                 '20', 'Dec', '16', '2013', 'desi@ -> /nersc/projects/desi'),
-                ('d', 'rwxr-sr-x', '3', 'bweaver', 'bweaver',
-                 '512', 'Apr', '4', '13:14', 'test'),
-                ('-', 'rw-rw----', '1', 'bweaver', 'bweaver',
-                 '100', 'Jul', '3', '12:34', 'README.rst'),
-                ('-', 'rw-rw----', '1', 'bweaver', 'bweaver',
-                 '100000', 'Feb', '2', '2016', 'backup.tar'),
-                ('-', 'rw-rw----', '1', 'bweaver', 'bweaver',
-                 '1000', 'Feb', '2', '2016', 'backup.tar.idx'))
+        data = (('l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver',
+                 20, 'Apr', 3, '2008', 'boss@ -> /nersc/projects/boss'),
+                ('l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver',
+                 21, 'Aug', 22, '2014', 'cosmo@ -> /nersc/projects/cosmo'),
+                ('l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver',
+                 20, 'Dec', 16, '2013', 'desi@ -> /nersc/projects/desi'),
+                ('d', 'rwxr-sr-x', 3, 'bweaver', 'bweaver',
+                 512, 'Apr', 4, '13:14', 'test'),
+                ('-', 'rw-rw----', 1, 'bweaver', 'bweaver',
+                 100, 'Jul', 3, '12:34', 'README.rst'),
+                ('-', 'rw-rw----', 1, 'bweaver', 'bweaver',
+                 100000, 'Feb', 2, '2016', 'backup.tar'),
+                ('-', 'rw-rw----', 1, 'bweaver', 'bweaver',
+                 1000, 'Feb', 2, '2016', 'backup.tar.idx'))
         htar_data = [('-', 'rw-rw----', 'bweaver/bweaver', '50', '2016-02-02',
                      '12:34', 'a.txt'),
                      ('-', 'rw-rw----', 'bweaver/bweaver', '50', '2016-02-02',
                       '12:34', 'b.txt'),
                      ('-', 'rw-rw----', 'bweaver/bweaver', '50', '2016-02-02',
                       '12:34', 'c.txt')]
-        repr_template = ("HpssFile('{0}', '{1}', '{2}', '{3}', '{4}', " +
-                         "'{5}', '{6}', '{7}', '{8}', '{9}', '{10}')")
+        repr_template = ("HpssFile('{0}', '{1}', '{2}', {3:d}, '{4}', " +
+                         "'{5}', {6:d}, '{7}', {8:d}, '{9}', '{10}')")
 
         files = list()
         for d in data:
