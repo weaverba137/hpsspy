@@ -61,13 +61,13 @@ def files_to_hpss(hpss_map_cache, release):
     from pkg_resources import resource_exists, resource_stream
     logger = logging.getLogger(__name__ + '.files_to_hpss')
     if exists(hpss_map_cache):
-        logger.info("Found map file {0}.".format(hpss_map_cache))
+        logger.info("Found map file %s.", hpss_map_cache)
         with open(hpss_map_cache) as t:
             hpss_map = json.load(t)
     else:
         if resource_exists('hpsspy.data', hpss_map_cache):
-            logger.info(("Reading from file {0} in the hpsspy " +
-                         "distribution.").format(hpss_map_cache))
+            logger.info("Reading from file %s in the hpsspy distribution.",
+                        hpss_map_cache)
             t = resource_stream('hpsspy.data', hpss_map_cache)
             hpss_map = json.load(t)
             t.close()
@@ -120,9 +120,9 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
     with open(disk_files_cache) as t:
         for l in t:
             f = l.strip()
-            message = "{0} NOT FOUND!".format(f)
+            message = "%s NOT FOUND!"
             if f in hpss_map["exclude"]:
-                message = "{0} skipped.".format(f)
+                message = "%s skipped."
             else:
                 section = f.split('/')[0]
                 for r in hpss_map[section]:
@@ -130,7 +130,7 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                     if m is not None:
                         reName = r[0].sub(r[1], f)
                         if reName in hpss_files:
-                            message = "{0} in {1}.".format(f, reName)
+                            message = "%s in {0}.".format(reName)
                         else:
                             if reName in missing:
                                 missing[reName].append(f)
@@ -138,13 +138,13 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                                 missing[reName] = [f]
                         break
             if message.endswith('NOT FOUND!'):
-                logger.warning(message)
+                logger.warning(message, f)
                 nmissing += 1
             else:
-                logger.debug(message)
+                logger.debug(message, f)
             nfiles += 1
             if (nfiles % report) == 0:
-                logger.info("{0:9d} files scanned.".format(nfiles))
+                logger.info("%9d files scanned.", nfiles)
     with open(missing_files, 'w') as fp:
         json.dump(missing, fp, indent=2, separators=(',', ': '))
     return nmissing
@@ -171,7 +171,7 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770'):
     from .os import makedirs
     from .util import get_tmpdir, hsi, htar
     logger = logging.getLogger(__name__ + '.process_missing')
-    logger.debug("Processing missing files from {0}.".format(missing_cache))
+    logger.debug("Processing missing files from %s.", missing_cache)
     with open(missing_cache) as fp:
         missing = json.load(fp)
     created_directories = set()
@@ -188,40 +188,37 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770'):
                 disk_chdir = dirname(h)
                 Lfile = None
                 htar_dir = basename(h).split('_')[-1].split('.')[0]
-            logger.debug("chdir('{0}')".format(join(disk_root, disk_chdir)))
+            logger.debug("chdir('%s')", join(disk_root, disk_chdir))
             chdir(join(disk_root, disk_chdir))
             h_dir = join(hpss_root, disk_chdir)
             if h_dir not in created_directories:
-                logger.debug(("makedirs('{0}', " +
-                              "mode='{1}')").format(h_dir, dirmode))
+                logger.debug("makedirs('%s', mode='%s')", h_dir, dirmode)
                 makedirs(h_dir, mode=dirmode)
                 created_directories.add(h_dir)
             if Lfile is None:
-                logger.debug(("htar('-cvf', '{0}', '-H', " +
-                              "'crc:verify=all', '{1}')").format(h_file,
-                                                                 htar_dir))
+                logger.debug("htar('-cvf', '%s', '-H', " +
+                             "'crc:verify=all', '%s')", h_file, htar_dir)
                 out, err = htar('-cvf', h_file, '-H', 'crc:verify=all',
                                 htar_dir)
             else:
-                logger.debug(("htar('-cvf', '{0}', '-H', 'crc:verify=all', " +
-                              "'-L', '{1}')").format(h_file, Lfile))
+                logger.debug("htar('-cvf', '%s', '-H', 'crc:verify=all', " +
+                             "'-L', '%s')", h_file, Lfile)
                 out, err = htar('-cvf', h_file, '-H', 'crc:verify=all', '-L',
                                 Lfile)
             logger.debug(out)
             if err:
                 logger.warn(err)
             if Lfile is not None:
-                logger.debug("remove('{0}')".format(Lfile))
+                logger.debug("remove('%s')", Lfile)
                 remove(Lfile)
         else:
             if dirname(h_file) not in created_directories:
-                logger.debug(("makedirs('{0}', " +
-                              "mode='{1}')").format(dirname(h_file), dirmode))
+                logger.debug("makedirs('%s', mode='%s')", dirname(h_file),
+                             dirmode)
                 makedirs(dirname(h_file), mode=dirmode)
                 created_directories.add(dirname(h_file))
-            logger.debug(("hsi('put', '{0}', ':', " +
-                          "'{1}')").format(join(disk_root, missing[h][0]),
-                                           h_file))
+            logger.debug("hsi('put', '%s', ':', '%s')",
+                         join(disk_root, missing[h][0]), h_file)
             out = hsi('put', join(disk_root, missing[h][0]), ':', h_file)
             logger.debug(out)
     return
@@ -249,25 +246,24 @@ def scan_disk(disk_roots, disk_files_cache, clobber=False):
     from os.path import exists, islink, join
     logger = logging.getLogger(__name__ + '.scan_disk')
     if exists(disk_files_cache) and not clobber:
-        logger.debug("Using existing file cache: {0}".format(disk_files_cache))
+        logger.debug("Using existing file cache: %s", disk_files_cache)
         return True
     else:
         logger.info("No disk cache file, starting scan.")
         with open(disk_files_cache, 'w') as t:
             try:
                 for disk_root in disk_roots:
-                    logger.debug("Starting os.walk at {0}.".format(disk_root))
+                    logger.debug("Starting os.walk at %s.", disk_root)
                     for root, dirs, files in os.walk(disk_root):
-                        logger.debug(("Scanning disk directory " +
-                                      "{0}.").format(root))
+                        logger.debug("Scanning disk directory %s.", root)
                         disk_files = [join(root, f).replace(disk_root+'/',
                                                             '')+'\n'
                                       for f in files
                                       if not islink(join(root, f))]
                         t.writelines(disk_files)
-            except:
-                logger.error(('Exception encountered while creating ' +
-                              'disk cache file!'))
+            except OSError:
+                logger.error('Exception encountered while creating ' +
+                             'disk cache file!')
                 return False
     return True
 
@@ -294,17 +290,16 @@ def scan_hpss(hpss_root, hpss_files_cache, clobber=False):
     from .os import walk
     logger = logging.getLogger(__name__ + '.scan_hpss')
     if exists(hpss_files_cache) and not clobber:
-        logger.info("Found cache file {0}.".format(hpss_files_cache))
+        logger.info("Found cache file %s.", hpss_files_cache)
         with open(hpss_files_cache) as t:
             hpss_files = [l.strip() for l in t.readlines()]
     else:
-        logger.info(("No HPSS cache file, starting scan " +
-                     "at {0}.").format(hpss_root))
+        logger.info("No HPSS cache file, starting scan at %s.", hpss_root)
         hpss_files = list()
         for root, dirs, files in walk(hpss_root):
             # hpss_files += [f.path.replace(hpss_root+'/','')
             #                for f in files if not f.ishtar]
-            logger.debug("Scanning HPSS directory {0}.".format(root))
+            logger.debug("Scanning HPSS directory %s.", root)
             hpss_files += [f.path.replace(hpss_root+'/', '')
                            for f in files if not f.path.endswith('.idx')]
             # htar_files = [f for f in files if f.ishtar]
@@ -383,17 +378,17 @@ def main():
     #
     foo, xtn = splitext(basename(options.config))
     if xtn != '.json':
-        logger.warn("{0} might not be a JSON file!".format(optoins.config))
+        logger.warn("%s might not be a JSON file!", options.config)
     hpss_map, config = files_to_hpss(options.config, options.release)
     release_root = join(config['root'], options.release)
     hpss_release_root = join(config['hpss_root'], options.release)
     #
     # Read HPSS files and cache.
     #
-    logger.debug("Cache files will be written to {0}.".format(options.cache))
+    logger.debug("Cache files will be written to %s.", options.cache)
     hpss_files_cache = join(options.cache,
                             'hpss_files_{0}.txt'.format(options.release))
-    logger.debug('HPSS file cache = {0}'.format(hpss_files_cache))
+    logger.debug("hpss_files_cache = '%s'", hpss_files_cache)
     hpss_files = scan_hpss(hpss_release_root, hpss_files_cache,
                            clobber=options.clobber_hpss)
     #
@@ -401,7 +396,7 @@ def main():
     #
     disk_files_cache = join(options.cache,
                             'disk_files_{0}.txt'.format(options.release))
-    logger.debug('Disk file cache = {0}'.format(disk_files_cache))
+    logger.debug("disk_files_cache = '%s'", disk_files_cache)
     disk_roots = [release_root.replace(basename(config['root']), d)
                   for d in config['physical_disks']]
     status = scan_disk(disk_roots, disk_files_cache,
@@ -414,10 +409,10 @@ def main():
     missing_files_cache = join(options.cache,
                                ('missing_files_' +
                                 '{0}.json').format(options.release))
-    logger.debug('Missing files list = {0}'.format(missing_files_cache))
+    logger.debug("missing_files_cache = '%s'", missing_files_cache)
     missing = find_missing(hpss_map, hpss_files, disk_files_cache,
                            missing_files_cache, options.report)
-    logger.debug("Found {0:d} missing files.".format(missing))
+    logger.debug("Found %d missing files.", missing)
     #
     # Post process to generate HPSS commands
     #

@@ -55,7 +55,7 @@ matrix:
         # runs for a long time
         - os: linux
           python: 3.5
-          env: SETUP_CMD='build_sphinx'
+          env: SETUP_CMD='build_sphinx --warning-is-error'
           # -w is an astropy extension
 
         # Coverage test, pass the results to coveralls.
