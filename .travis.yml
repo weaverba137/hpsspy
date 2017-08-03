@@ -73,7 +73,7 @@ matrix:
 
 install:
     - if [[ $MAIN_CMD == 'pycodestyle' ]]; then pip install pycodestyle; fi
-    - if [[ $SETUP_CMD == 'build_sphinx' ]]; then pip install Sphinx; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then pip install Sphinx; fi
     - if [[ $MAIN_CMD == 'coverage' ]]; then pip install coverage coveralls; fi
     # - pip install -r requirements.txt
 

@@ -150,7 +150,8 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
     return nmissing
 
 
-def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770'):
+def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
+                    test=False):
     """Convert missing files into HPSS commands.
 
     Parameters
@@ -161,12 +162,14 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770'):
         Missing files are relative to this root on disk.
     hpss_root : :class:`str`
         Missing files are relative to this root on HPSS.
-    dirmode : :class:`str`
-        Create directories on HPSS with this mode.
+    dirmode : :class:`str`, optional
+        Create directories on HPSS with this mode (default ``drwxrws---``).
+    test : :class:`bool`, optional
+        Test mode.  Try not to make any changes.
     """
     import logging
     import json
-    from os import chdir, remove
+    from os import chdir, getcwd, remove
     from os.path import basename, dirname, join
     from .os import makedirs
     from .util import get_tmpdir, hsi, htar
@@ -175,6 +178,7 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770'):
     with open(missing_cache) as fp:
         missing = json.load(fp)
     created_directories = set()
+    start_directory = getcwd()
     for h in missing:
         h_file = join(hpss_root, h)
         if h.endswith('.tar'):
@@ -182,8 +186,12 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770'):
                 disk_chdir = dirname(h)
                 Lfile = join(get_tmpdir(), basename(h.replace('.tar', '.txt')))
                 htar_dir = None
-                with open(Lfile, 'w') as fp:
-                    fp.write('\n'.join([basename(f) for f in missing[h]])+'\n')
+                Lfile_lines = '\n'.join([basename(f) for f in missing[h]])+'\n'
+                if test:
+                    log.debug(Lfile_lines)
+                else:
+                    with open(Lfile, 'w') as fp:
+                        fp.write(Lfile_lines)
             else:
                 disk_chdir = dirname(h)
                 Lfile = None
@@ -198,13 +206,19 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770'):
             if Lfile is None:
                 logger.debug("htar('-cvf', '%s', '-H', " +
                              "'crc:verify=all', '%s')", h_file, htar_dir)
-                out, err = htar('-cvf', h_file, '-H', 'crc:verify=all',
-                                htar_dir)
+                if test:
+                    out, err = ('Test mode, skipping htar command.', '')
+                else:
+                    out, err = htar('-cvf', h_file, '-H', 'crc:verify=all',
+                                    htar_dir)
             else:
                 logger.debug("htar('-cvf', '%s', '-H', 'crc:verify=all', " +
                              "'-L', '%s')", h_file, Lfile)
-                out, err = htar('-cvf', h_file, '-H', 'crc:verify=all', '-L',
-                                Lfile)
+                if test:
+                    out, err = ('Test mode, skipping htar command.', '')
+                else:
+                    out, err = htar('-cvf', h_file, '-H', 'crc:verify=all', '-L',
+                                    Lfile)
             logger.debug(out)
             if err:
                 logger.warn(err)
@@ -215,12 +229,17 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770'):
             if dirname(h_file) not in created_directories:
                 logger.debug("makedirs('%s', mode='%s')", dirname(h_file),
                              dirmode)
-                makedirs(dirname(h_file), mode=dirmode)
+                if not test:
+                    makedirs(dirname(h_file), mode=dirmode)
                 created_directories.add(dirname(h_file))
             logger.debug("hsi('put', '%s', ':', '%s')",
                          join(disk_root, missing[h][0]), h_file)
-            out = hsi('put', join(disk_root, missing[h][0]), ':', h_file)
+            if test:
+                out = "Test mode, skipping hsi command."
+            else:
+                out = hsi('put', join(disk_root, missing[h][0]), ':', h_file)
             logger.debug(out)
+    chdir(start_directory)
     return
 
 
@@ -353,6 +372,9 @@ def main():
                         dest='report', metavar='N', default=10000,
                         help=("Print an informational message after " +
                               "every N files (Default: %(default)s)."))
+    parser.add_argument('-t', '--test', action='store_true',
+                        dest='test',
+                        help="Test mode. Try not to make any changes.")
     parser.add_argument('-v', '--verbose', action='store_true',
                         dest='verbose',
                         help="Increase verbosity.")
@@ -367,7 +389,7 @@ def main():
     # Logging
     #
     ll = logging.INFO
-    if options.verbose:
+    if options.test or options.verbose:
         ll = logging.DEBUG
     log_format = '%(asctime)s %(name)s %(levelname)s: %(message)s'
     logging.basicConfig(level=ll, format=log_format,
@@ -417,5 +439,6 @@ def main():
     # Post process to generate HPSS commands
     #
     if missing > 0 and options.process:
-        process_missing(missing_files_cache, release_root, hpss_release_root)
+        process_missing(missing_files_cache, release_root, hpss_release_root,
+                        test=options.test)
     return 0
