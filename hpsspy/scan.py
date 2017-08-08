@@ -188,7 +188,7 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                 htar_dir = None
                 Lfile_lines = '\n'.join([basename(f) for f in missing[h]])+'\n'
                 if test:
-                    log.debug(Lfile_lines)
+                    logger.debug(Lfile_lines)
                 else:
                     with open(Lfile, 'w') as fp:
                         fp.write(Lfile_lines)
