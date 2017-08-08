@@ -23,7 +23,7 @@ def main():
     import logging
     import re
     import json
-    from os import environ
+    from os import environ, stat
     from os.path import basename, exists, isdir, join, splitext
     from sys import argv
     from argparse import ArgumentParser
@@ -170,7 +170,7 @@ def main():
                         # Now check if it is mapped.
                         #
                         mapped = 0
-                        f_size = os.stat(f).st_size
+                        f_size = stat(f).st_size
                         for r in s:
                             m = r[0].match(f)
                             if m is not None:
