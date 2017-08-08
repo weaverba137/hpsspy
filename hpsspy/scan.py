@@ -292,7 +292,9 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                 disk_chdir = dirname(h)
                 Lfile = join(get_tmpdir(), basename(h.replace('.tar', '.txt')))
                 htar_dir = None
-                Lfile_lines = '\n'.join([basename(f) for f in missing[h]['files']])+'\n'
+                Lfile_lines = ('\n'.join([basename(f)
+                                          for f in missing[h]['files']]) +
+                               '\n')
                 if test:
                     logger.debug(Lfile_lines)
                 else:
@@ -345,7 +347,8 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
             if test:
                 out = "Test mode, skipping hsi command."
             else:
-                out = hsi('put', join(disk_root, missing[h]['files'][0]), ':', h_file)
+                out = hsi('put', join(disk_root, missing[h]['files'][0]),
+                          ':', h_file)
             logger.debug(out)
     chdir(start_directory)
     return

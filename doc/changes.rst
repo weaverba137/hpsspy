@@ -7,6 +7,9 @@ Release Notes
 
 * Add ``--version`` option.
 * Add Python 3.6, remove 3.3.
+* Add many quality-assurance checks and additional documentation (PR `#2`_).
+
+.. _`#2`: https://github.com/weaverba137/hpsspy/pull/2
 
 0.3.0 (2017-01-18)
 ------------------
