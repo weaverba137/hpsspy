@@ -209,9 +209,10 @@ def main():
                                 "once with this configuration!")
                 return 1
             for k in hpss_size:
-                logger.info('%k is %d bytes.', k, hpss_size[k])
+                logger.info('%s is %d bytes.', k, hpss_size[k])
                 if hpss_size[k]/1024/1024/1024 > options.limit:
                     logger.critical("HPSS file %s would be too large!", k)
+                    return 1
             #
             # All files map to a file on HPSS, so print out the commands
             # that would do a full backup.
