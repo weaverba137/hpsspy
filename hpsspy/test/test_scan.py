@@ -63,7 +63,8 @@ class TestScan(unittest.TestCase):
             if k != 'exclude':
                 for l in new_map[k]:
                     self.assertIn(l[0].pattern, self.config['data'][k])
-                    self.assertEqual(l[1], self.config['data'][k][l[0].pattern])
+                    self.assertEqual(l[1],
+                                     self.config['data'][k][l[0].pattern])
         #
         # Catch bad compiles
         #
@@ -75,6 +76,7 @@ class TestScan(unittest.TestCase):
 
 def test_suite():
     """Allows testing of only this module with the command::
+
         python setup.py test -m <modulename>
     """
     return unittest.defaultTestLoader.loadTestsFromName(__name__)

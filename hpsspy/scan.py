@@ -201,7 +201,8 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
             h_dir = join(hpss_root, disk_chdir)
             if h_dir not in created_directories:
                 logger.debug("makedirs('%s', mode='%s')", h_dir, dirmode)
-                makedirs(h_dir, mode=dirmode)
+                if not test:
+                    makedirs(h_dir, mode=dirmode)
                 created_directories.add(h_dir)
             if Lfile is None:
                 logger.debug("htar('-cvf', '%s', '-H', " +
@@ -224,7 +225,8 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                 logger.warn(err)
             if Lfile is not None:
                 logger.debug("remove('%s')", Lfile)
-                remove(Lfile)
+                if not test:
+                    remove(Lfile)
         else:
             if dirname(h_file) not in created_directories:
                 logger.debug("makedirs('%s', mode='%s')", dirname(h_file),
