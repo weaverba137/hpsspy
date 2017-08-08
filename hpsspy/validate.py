@@ -39,6 +39,10 @@ def main():
     parser.add_argument('-D', '--clobber-disk', action='store_true',
                         dest='clobber_disk',
                         help='Ignore any existing disk cache files.')
+    parser.add_argument('-l', '--size-limit', action='store', type=int,
+                        dest='limit', metavar='N', default=1024,
+                        help=("Do not allow archive files larger than " +
+                              "N GB (Default: %(default)s GB)."))
     parser.add_argument('-r', '--report', action='store', type=int,
                         dest='report', metavar='N', default=10000,
                         help=("Print an informational message after " +
@@ -133,7 +137,9 @@ def main():
             #
             nfiles = 0
             nmissing = 0
+            nmultiple = 0
             mapped_to_hpss = dict()
+            hpss_size = dict()
             with open(disk_files_cache) as t:
                 for l in t:
                     f = l.strip()
@@ -163,22 +169,28 @@ def main():
                         #
                         # Now check if it is mapped.
                         #
-                        mapped = False
+                        mapped = 0
+                        f_size = os.stat(f).st_size
                         for r in s:
                             m = r[0].match(f)
                             if m is not None:
                                 reName = r[0].sub(r[1], f)
                                 if reName in mapped_to_hpss:
                                     mapped_to_hpss[reName].append(f)
+                                    hpss_size[reName] += f_size
                                 else:
                                     mapped_to_hpss[reName] = [f]
-                                mapped = True
+                                    hpss_size[reName] = f_size
+                                mapped +=1
                                 logger.debug("%s in %s.", f, reName)
-                                break
-                        if not mapped:
+                        if mapped == 0:
                             logger.error("%s is not mapped to any file on " +
                                          "HPSS!", f)
                             nmissing += 1
+                        if mapped > 1:
+                            logger.error("%s is mapped to multiple files on " +
+                                         "HPSS!", f)
+                            nmultiple += 1
                     nfiles += 1
                     if (nfiles % options.report) == 0:
                         logger.info("%9d files scanned.", nfiles)
@@ -192,6 +204,13 @@ def main():
                 logger.critical("Not all files would be backed up with " +
                                 "this configuration!")
                 return 1
+            if nmultiple > 0:
+                logger.critical("Some files would be backed up more than " +
+                                "once with this configuration!")
+                return 1
+            for k in hpss_size:
+                if hpss_size[k]/1024/1024/1024 > options.limit:
+                    logger.critical("HPSS file %s would be too large!", k)
             #
             # All files map to a file on HPSS, so print out the commands
             # that would do a full backup.
