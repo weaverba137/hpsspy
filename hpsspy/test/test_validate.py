@@ -14,6 +14,7 @@ import json
 from pkg_resources import resource_exists, resource_stream
 from ..validate import main
 
+
 class TestValidate(unittest.TestCase):
     """Test the configuration validator.
     """

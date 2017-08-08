@@ -168,7 +168,7 @@ def main():
                             m = r[0].match(f)
                             if m is not None:
                                 reName = r[0].sub(r[1], f)
-                                if reName in missing:
+                                if reName in mapped_to_hpss:
                                     mapped_to_hpss[reName].append(f)
                                 else:
                                     mapped_to_hpss[reName] = [f]
