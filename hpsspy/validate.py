@@ -28,7 +28,7 @@ def main():
     from sys import argv
     from argparse import ArgumentParser
     from . import __version__ as hpsspyVersion
-    from .scan import compile_map, scan_disk
+    from .scan import compile_map, process_missing, scan_disk
     desc = 'Validate HPSS backup configuration.'
     parser = ArgumentParser(prog=basename(argv[0]), description=desc)
     parser.add_argument('-c', '--cache-dir', action='store', dest='cache',
