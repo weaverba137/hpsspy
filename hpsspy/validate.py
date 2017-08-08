@@ -162,7 +162,7 @@ def main():
                         # If the section is blank, that's OK.
                         #
                         if not s:
-                            logger.info("%s is in a directory not yet" +
+                            logger.info("%s is in a directory not yet " +
                                         "configured.",
                                         f)
                             continue
