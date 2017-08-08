@@ -216,7 +216,7 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                         logger.debug("%s in %s.", f, reName)
                         mapped += 1
                     else:
-                        if reName in mapped_to_hpss:
+                        if reName in missing:
                             missing[reName]['files'].append(f)
                             missing[reName]['size'] += int(row['Size'])
                         else:
