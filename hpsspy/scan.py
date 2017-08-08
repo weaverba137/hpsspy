@@ -174,6 +174,8 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
     from .os import makedirs
     from .util import get_tmpdir, hsi, htar
     logger = logging.getLogger(__name__ + '.process_missing')
+    if test:
+        logger.setLevel(logging.DEBUG)
     logger.debug("Processing missing files from %s.", missing_cache)
     with open(missing_cache) as fp:
         missing = json.load(fp)
