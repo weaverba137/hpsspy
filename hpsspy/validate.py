@@ -181,7 +181,7 @@ def main():
                                 else:
                                     mapped_to_hpss[reName] = [f]
                                     hpss_size[reName] = f_size
-                                mapped +=1
+                                mapped += 1
                                 logger.debug("%s in %s.", f, reName)
                         if mapped == 0:
                             logger.error("%s is not mapped to any file on " +
@@ -209,6 +209,7 @@ def main():
                                 "once with this configuration!")
                 return 1
             for k in hpss_size:
+                logger.info('%k is %d bytes.', k, hpss_size[k])
                 if hpss_size[k]/1024/1024/1024 > options.limit:
                     logger.critical("HPSS file %s would be too large!", k)
             #
