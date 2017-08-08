@@ -28,7 +28,7 @@ def validate_configuration(config):
     import json
     from os.path import basename, splitext
     logger = logging.getLogger(__name__ + '.files_to_hpss')
-    foo, xtn = splitext(basename(options.config))
+    foo, xtn = splitext(basename(config))
     if xtn != '.json':
         logger.warning("%s might not be a JSON file!", config)
     try:
