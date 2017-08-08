@@ -188,7 +188,7 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                 disk_chdir = dirname(h)
                 Lfile = join(get_tmpdir(), basename(h.replace('.tar', '.txt')))
                 htar_dir = None
-                Lfile_lines = '\n'.join([basename(f) for f in missing[h]])+'\n'
+                Lfile_lines = '\n'.join([basename(f) for f in missing[h]['files']])+'\n'
                 if test:
                     logger.debug(Lfile_lines)
                 else:
@@ -237,11 +237,11 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                     makedirs(dirname(h_file), mode=dirmode)
                 created_directories.add(dirname(h_file))
             logger.debug("hsi('put', '%s', ':', '%s')",
-                         join(disk_root, missing[h][0]), h_file)
+                         join(disk_root, missing[h]['files'][0]), h_file)
             if test:
                 out = "Test mode, skipping hsi command."
             else:
-                out = hsi('put', join(disk_root, missing[h][0]), ':', h_file)
+                out = hsi('put', join(disk_root, missing[h]['files'][0]), ':', h_file)
             logger.debug(out)
     chdir(start_directory)
     return
@@ -274,16 +274,18 @@ def scan_disk(disk_roots, disk_files_cache, clobber=False):
     else:
         logger.info("No disk cache file, starting scan.")
         with open(disk_files_cache, 'w') as t:
+            t.write('Name,Size\n')
             try:
                 for disk_root in disk_roots:
                     logger.debug("Starting os.walk at %s.", disk_root)
                     for root, dirs, files in os.walk(disk_root):
                         logger.debug("Scanning disk directory %s.", root)
-                        disk_files = [join(root, f).replace(disk_root+'/',
-                                                            '')+'\n'
-                                      for f in files
-                                      if not islink(join(root, f))]
-                        t.writelines(disk_files)
+                        for f in files:
+                            fullname = join(root, f)
+                            if not islink(fullname):
+                                cachename = fullname.replace(disk_root+'/', '')
+                                size = os.stat(fullname).st_size
+                                t.write("{0},{1:d}\n".format(cachename, size))
             except OSError:
                 logger.error('Exception encountered while creating ' +
                              'disk cache file!')
@@ -421,7 +423,7 @@ def main():
     # Read disk files and cache.
     #
     disk_files_cache = join(options.cache,
-                            'disk_files_{0}.txt'.format(options.release))
+                            'disk_files_{0}.csv'.format(options.release))
     logger.debug("disk_files_cache = '%s'", disk_files_cache)
     disk_roots = [release_root.replace(basename(config['root']), d)
                   for d in config['physical_disks']]

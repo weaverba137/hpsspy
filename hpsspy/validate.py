@@ -23,6 +23,7 @@ def main():
     import logging
     import re
     import json
+    import csv
     from os import environ, stat
     from os.path import basename, exists, isdir, join, splitext
     from sys import argv
@@ -117,110 +118,117 @@ def main():
         config = json_data['config']
         release_root = join(config['root'], options.release)
         hpss_release_root = join(config['hpss_root'], options.release)
-        if isdir(release_root):
-            #
-            # Read disk files and cache.
-            #
-            disk_files_cache = join(options.cache,
-                                    ('disk_files_' +
-                                     '{0}.txt').format(options.release))
-            logger.debug("disk_files_cache = '%s'", disk_files_cache)
-            disk_roots = [release_root.replace(basename(config['root']), d)
-                          for d in config['physical_disks']]
-            status = scan_disk(disk_roots, disk_files_cache,
-                               clobber=options.clobber_disk)
-            if not status:
-                return 1
-            #
-            # Now that we've got the disk cache, assume HPSS is empty, and
-            # make sure all files get backed up.
-            #
-            nfiles = 0
-            nmissing = 0
-            nmultiple = 0
-            mapped_to_hpss = dict()
-            hpss_size = dict()
-            with open(disk_files_cache) as t:
-                for l in t:
-                    f = l.strip()
-                    if f in hpss_map["exclude"]:
-                        logger.info("%s skipped.", f)
-                    else:
-                        section = f.split('/')[0]
-                        try:
-                            s = hpss_map[section]
-                        except KeyError:
-                            #
-                            # If the section is not described, that's not
-                            # good, but continue.
-                            #
-                            logger.error("%s is in a directory not " +
-                                         "described in the configuration!",
-                                         f)
-                            continue
-                        #
-                        # If the section is blank, that's OK.
-                        #
-                        if not s:
-                            logger.info("%s is in a directory not yet " +
-                                        "configured.",
-                                        f)
-                            continue
-                        #
-                        # Now check if it is mapped.
-                        #
-                        mapped = 0
-                        f_size = stat(join(release_root, f)).st_size
-                        for r in s:
-                            m = r[0].match(f)
-                            if m is not None:
-                                reName = r[0].sub(r[1], f)
-                                if reName in mapped_to_hpss:
-                                    mapped_to_hpss[reName].append(f)
-                                    hpss_size[reName] += f_size
-                                else:
-                                    mapped_to_hpss[reName] = [f]
-                                    hpss_size[reName] = f_size
-                                mapped += 1
-                                logger.debug("%s in %s.", f, reName)
-                        if mapped == 0:
-                            logger.error("%s is not mapped to any file on " +
-                                         "HPSS!", f)
-                            nmissing += 1
-                        if mapped > 1:
-                            logger.error("%s is mapped to multiple files on " +
-                                         "HPSS!", f)
-                            nmultiple += 1
-                    nfiles += 1
-                    if (nfiles % options.report) == 0:
-                        logger.info("%9d files scanned.", nfiles)
-            missing_files_cache = join(options.cache,
-                                       ('missing_files_{0}' +
-                                        '.json').format(options.release))
-            logger.debug("missing_files_cache = '%s'", missing_files_cache)
-            with open(missing_files_cache, 'w') as fp:
-                json.dump(mapped_to_hpss, fp, indent=2, separators=(',', ': '))
-            if nmissing > 0:
-                logger.critical("Not all files would be backed up with " +
-                                "this configuration!")
-                return 1
-            if nmultiple > 0:
-                logger.critical("Some files would be backed up more than " +
-                                "once with this configuration!")
-                return 1
-            for k in hpss_size:
-                logger.info('%s is %d bytes.', k, hpss_size[k])
-                if hpss_size[k]/1024/1024/1024 > options.limit:
-                    logger.critical("HPSS file %s would be too large!", k)
-                    return 1
-            #
-            # All files map to a file on HPSS, so print out the commands
-            # that would do a full backup.
-            #
-            logger.setLevel(logging.DEBUG)
-            process_missing(missing_files_cache, release_root,
-                            hpss_release_root, test=True)
-        else:
+        if not isdir(release_root):
             logger.critical("%s does not exist!", release_root)
             return 1
+        #
+        # Read disk files and cache.
+        #
+        disk_files_cache = join(options.cache,
+                                ('disk_files_' +
+                                 '{0}.csv').format(options.release))
+        logger.debug("disk_files_cache = '%s'", disk_files_cache)
+        disk_roots = [release_root.replace(basename(config['root']), d)
+                      for d in config['physical_disks']]
+        status = scan_disk(disk_roots, disk_files_cache,
+                           clobber=options.clobber_disk)
+        if not status:
+            return 1
+        #
+        # Now that we've got the disk cache, assume HPSS is empty, and
+        # make sure all files get backed up.
+        #
+        nfiles = 0
+        nmissing = 0
+        nmultiple = 0
+        mapped_to_hpss = dict()
+        hpss_size = dict()
+        pattern_used = dict()
+        with open(disk_files_cache) as t:
+            reader = csv.DictReader(t)
+            for row in reader:
+                f = row['Name']
+                if f in hpss_map["exclude"]:
+                    logger.info("%s skipped.", f)
+                else:
+                    section = f.split('/')[0]
+                    try:
+                        s = hpss_map[section]
+                    except KeyError:
+                        #
+                        # If the section is not described, that's not
+                        # good, but continue.
+                        #
+                        logger.error("%s is in a directory not " +
+                                     "described in the configuration!",
+                                     f)
+                        continue
+                    #
+                    # If the section is blank, that's OK.
+                    #
+                    if not s:
+                        logger.info("%s is in a directory not yet " +
+                                    "configured.",
+                                    f)
+                        continue
+                    #
+                    # Now check if it is mapped.
+                    #
+                    mapped = 0
+                    for r in s:
+                        if r[0].pattern not in pattern_used:
+                            pattern_used[r[0].pattern] = 0
+                        m = r[0].match(f)
+                        if m is not None:
+                            pattern_used[r[0].pattern] += 1
+                            reName = r[0].sub(r[1], f)
+                            if reName in mapped_to_hpss:
+                                mapped_to_hpss[reName]['files'].append(f)
+                                mapped_to_hpss[reName]['size'] += int(row['Size'])
+                            else:
+                                mapped_to_hpss[reName] = {'files': [f],
+                                                          'size': int(row['Size'])}
+                            mapped += 1
+                            logger.debug("%s in %s.", f, reName)
+                    if mapped == 0:
+                        logger.error("%s is not mapped to any file on " +
+                                     "HPSS!", f)
+                        nmissing += 1
+                    if mapped > 1:
+                        logger.error("%s is mapped to multiple files on " +
+                                     "HPSS!", f)
+                        nmultiple += 1
+                nfiles += 1
+                if (nfiles % options.report) == 0:
+                    logger.info("%9d files scanned.", nfiles)
+        missing_files_cache = join(options.cache,
+                                   ('missing_files_{0}' +
+                                    '.json').format(options.release))
+        logger.debug("missing_files_cache = '%s'", missing_files_cache)
+        with open(missing_files_cache, 'w') as fp:
+            json.dump(mapped_to_hpss, fp, indent=2, separators=(',', ': '))
+        if nmissing > 0:
+            logger.critical("Not all files would be backed up with " +
+                            "this configuration!")
+            return 1
+        if nmultiple > 0:
+            logger.critical("Some files would be backed up more than " +
+                            "once with this configuration!")
+            return 1
+        for p in pattern_used:
+            if pattern_used[p] == 0:
+                logger.critical("Pattern '%s' was never used!", p)
+                return 1
+        for k in mapped_to_hpss:
+            logger.info('%s is %d bytes.', k, mapped_to_hpss[k]['size'])
+            if mapped_to_hpss[k]['size']/1024/1024/1024 > options.limit:
+                logger.critical("HPSS file %s would be too large!", k)
+                return 1
+        #
+        # All files map to a file on HPSS, so print out the commands
+        # that would do a full backup.
+        #
+        logger.setLevel(logging.DEBUG)
+        process_missing(missing_files_cache, release_root,
+                        hpss_release_root, test=True)
     return 0
