@@ -27,14 +27,13 @@ class TestUtil(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        pass
+        cls.PY3 = sys.version_info[0] > 2
 
     @classmethod
     def tearDownClass(cls):
         pass
 
     def setUp(self):
-        self.PY3 = sys.version_info[0] > 2
         # Store the original value of env variables, if present.
         self.env = {'TMPDIR': None, 'HPSS_DIR': None}
         for e in self.env:

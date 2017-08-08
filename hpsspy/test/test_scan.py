@@ -11,10 +11,12 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 #
 import unittest
-# import json
-# from pkg_resources import resource_filename
+import json
+from pkg_resources import resource_stream
 import os
-from ..scan import main
+import sys
+import re
+from ..scan import compile_map
 
 
 class TestScan(unittest.TestCase):
@@ -23,7 +25,7 @@ class TestScan(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        pass
+        cls.PY3 = sys.version_info[0] > 2
 
     @classmethod
     def tearDownClass(cls):
@@ -35,7 +37,12 @@ class TestScan(unittest.TestCase):
         # for e in self.env:
         #     if e in os.environ:
         #         self.env[e] = os.environ['TMPDIR']
-        pass
+        #
+        # Reload the configuration file, since we might need to manipulate it.
+        #
+        config_file = resource_stream('hpsspy.test', 't/test_scan.json')
+        self.config = json.loads(config_file.read().decode())
+        config_file.close()
 
     def tearDown(self):
         # Restore the original value of env variables, if they were present.
@@ -46,6 +53,24 @@ class TestScan(unittest.TestCase):
         #     else:
         #         os.environ[e] = self.env[e]
         pass
+
+    def test_compile_map(self):
+        """Test compiling regular expressions in the JSON configuration file.
+        """
+        new_map = compile_map(self.config, 'data')
+        self.assertEqual(new_map['exclude'], frozenset(['README.html']))
+        for k in self.config['data']:
+            if k != 'exclude':
+                for l in new_map[k]:
+                    self.assertIn(l[0].pattern, self.config['data'][k])
+                    self.assertEqual(l[1], self.config['data'][k][l[0].pattern])
+        #
+        # Catch bad compiles
+        #
+        self.config['redux']['d1'] = {'d1/(r\\d{5,4})/.*$': 'd1/d1_\\1.tar'}
+        with self.assertRaises(re.error) as err:
+            new_map = compile_map(self.config, 'redux')
+            self.assertEqual(err.colno, 8)
 
 
 def test_suite():
