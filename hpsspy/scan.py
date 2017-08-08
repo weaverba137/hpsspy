@@ -562,7 +562,7 @@ def main():
     #
     # Post process to generate HPSS commands
     #
-    if (missing > 0 and options.process) or options.test:
+    if options.process or options.test:
         process_missing(missing_files_cache, release_root, hpss_release_root,
                         test=options.test)
     return 0
