@@ -70,7 +70,6 @@ setup_keywords['package_data'] = {'hpsspy': ['data/*.json'], 'hpsspy.test': ['t/
 setup_keywords['entry_points'] = {
     'console_scripts': [
         'missing_from_hpss = hpsspy.scan:main',
-        'validate_hpss_backup_configuration = hpsspy.validate:main',
         ]
     }
 #

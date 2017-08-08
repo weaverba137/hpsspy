@@ -29,7 +29,8 @@ def main():
     from sys import argv
     from argparse import ArgumentParser
     from . import __version__ as hpsspyVersion
-    from .scan import compile_map, process_missing, scan_disk
+    from .scan import (compile_map, process_missing, scan_disk,
+                       validate_configuration)
     desc = 'Validate HPSS backup configuration.'
     parser = ArgumentParser(prog=basename(argv[0]), description=desc)
     parser.add_argument('-c', '--cache-dir', action='store', dest='cache',
@@ -48,11 +49,6 @@ def main():
                         dest='report', metavar='N', default=10000,
                         help=("Print an informational message after " +
                               "every N files (Default: %(default)s)."))
-    parser.add_argument('-s', '--scan-files', action='store',
-                        metavar='RELEASE',
-                        dest='release',
-                        help=('Validate the configuration file against ' +
-                              'files on disk (might be slow!).'))
     parser.add_argument('-v', '--verbose', action='store_true',
                         dest='verbose',
                         help="Increase verbosity.")
@@ -60,6 +56,8 @@ def main():
                         version="%(prog)s " + hpsspyVersion)
     parser.add_argument('config', metavar='FILE',
                         help="Read configuration from FILE.")
+    parser.add_argument('release', metavar='SECTION',
+                        help="Read SECTION from the configuration file.")
     options = parser.parse_args()
     #
     # Logging
@@ -75,38 +73,9 @@ def main():
     #
     # Test validity of JSON file.
     #
-    foo, xtn = splitext(basename(options.config))
-    if xtn != '.json':
-        logger.warn("%s might not be a JSON file!", options.config)
-    try:
-        with open(options.config) as fp:
-            try:
-                json_data = json.load(fp)
-            except json.JSONDecodeError:
-                logger.critical("%s is not valid JSON.", options.config)
-                return 1
-    except FileNotFoundError:
-        logger.critical("%s does not exist. Try again.", options.config)
-        return 1
-    if 'config' in json_data:
-        for k in ('root', 'hpss_root', 'physical_disks'):
-            if k not in json_data['config']:
-                logger.warning("%s 'config' section does not contain an " +
-                               "entry for '%s'.", options.config, k)
-    else:
-        logger.error("%s does not contain a 'config' section.", options.config)
-    for k in json_data:
-        if k == 'config':
-            continue
-        if 'exclude' not in json_data[k]:
-            logger.warning("Section '%s' should at least have an " +
-                           "'exclude' entry.", k)
-        try:
-            new_map = compile_map(json_data, k)
-        except re.error:
-            logger.critical("Regular Expression error detected in " +
-                            "section '%s'!", k)
-            return 1
+    status = validate_configuration(options.config)
+    if status > 0:
+        return status
     #
     # Now check the JSON file against files on disk.
     #
@@ -163,10 +132,10 @@ def main():
                                      "described in the configuration!",
                                      f)
                         continue
-                    #
-                    # If the section is blank, that's OK.
-                    #
                     if not s:
+                        #
+                        # If the section is blank, that's OK.
+                        #
                         logger.info("%s is in a directory not yet " +
                                     "configured.",
                                     f)
