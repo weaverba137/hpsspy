@@ -142,7 +142,7 @@ def files_to_hpss(hpss_map_cache, release):
 
 
 def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
-                 report=10000):
+                 report=10000, limit=1024.0):
     """Compare HPSS files to disk files.
 
     Parameters
@@ -157,6 +157,8 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
         Name of the file that will contain the list of missing files.
     report : :class:`int`, optional
         Print an informational message when N files have been scanned.
+    limit : :class:`float`, optional
+        HPSS archive files should be smaller than this size (in GB).
 
     Returns
     -------
@@ -248,7 +250,7 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
             return False
     for k in missing:
         logger.info('%s is %d bytes.', k, missing[k]['size'])
-        if missing[k]['size']/1024/1024/1024 > options.limit:
+        if missing[k]['size']/1024/1024/1024 > limit:
             logger.critical("HPSS file %s would be too large!", k)
             return False
     return (nmissing == 0) and (nmultiple == 0)
@@ -554,7 +556,7 @@ def main():
                                 '{0}.json').format(options.release))
     logger.debug("missing_files_cache = '%s'", missing_files_cache)
     status = find_missing(hpss_map, hpss_files, disk_files_cache,
-                          missing_files_cache, options.report)
+                          missing_files_cache, options.report, options.limit)
     if not status:
         return 1
     #
