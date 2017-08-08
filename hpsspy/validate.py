@@ -170,7 +170,7 @@ def main():
                         # Now check if it is mapped.
                         #
                         mapped = 0
-                        f_size = stat(f).st_size
+                        f_size = stat(join(release_root, f)).st_size
                         for r in s:
                             m = r[0].match(f)
                             if m is not None:
