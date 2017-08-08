@@ -521,7 +521,7 @@ def main():
     #
     # Read HPSS files and cache.
     #
-    if test:
+    if options.test:
         logger.info("Test mode. Pretending no files exist on HPSS.")
         hpss_files = frozenset([])
     else:
