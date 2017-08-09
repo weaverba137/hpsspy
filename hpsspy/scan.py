@@ -36,7 +36,8 @@ def validate_configuration(config):
         with open(config) as fp:
             try:
                 json_data = json.load(fp)
-            except json.JSONDecodeError:
+            # except json.JSONDecodeError:
+            except ValueError:
                 logger.critical("%s is not valid JSON.", config)
                 return 1
     except FileNotFoundError:
