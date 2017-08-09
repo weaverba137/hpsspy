@@ -78,7 +78,7 @@ has configuration items that describe its structure::
             "exclude": [],
             "d1": {
                 "d1/batch/.*$": "d1/batch.tar",
-                "d1/([^/]+\\.txt)": "d1/\\1",
+                "d1/([^/]+\\.txt)$": "d1/\\1",
                 "d1/templates/[^/]+$": "d1/templates/templates_files.tar"
             }
         }
@@ -145,8 +145,7 @@ imposes some additional requirements, conventions and idioms:
 
   - Backslashes must be escaped in JSON files.  For example the
     metacharacter (match a single decimal digit) ``\d`` becomes ``\\d``.
-    "Double-escaping" is not required (if you don't know what this is,
-    don't worry about it).
+  - Regular expressions should end with the end-of-line marker ``$``.
 
 * Conventions
 
@@ -167,7 +166,6 @@ imposes some additional requirements, conventions and idioms:
     the archive file in a certain way, not by decending into a directory,
     but by constructing an explicit list of files and building an archive
     file out of that.
-  - Regular expressions should end with the end-of-line marker ``$``.
 
 * Idioms
 
@@ -182,8 +180,8 @@ imposes some additional requirements, conventions and idioms:
     subdirectory: ``"foo/[^/]+$" : "foo_files.tar"``.  See also the
     ``_files.tar`` convention mentioned above.
   - Do not create an archive file, just copy the file, as is, to HPSS:
-    ``"d1/README\\.txt" : "d1/README.txt"``.  Similarly, for a set of TXT files:
-    ``"d1/([^/]+\\.txt)" : "d1/\\1"``.
+    ``"d1/README\\.txt$" : "d1/README.txt"``.  Similarly, for a set of TXT files:
+    ``"d1/([^/]+\\.txt)$" : "d1/\\1"``.
   - An example with lots of substitutions::
 
         "d1/foo/([0-9a-zA-Z_-]+)/sub-([0-9]+)/([0-9]+)/.*$" : "d1/foo/\\1/spectra-\\2/\\1_spectra-\\2_\\3.tar"

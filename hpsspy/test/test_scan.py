@@ -12,11 +12,11 @@ from __future__ import (absolute_import, division, print_function,
 #
 import unittest
 import json
-from pkg_resources import resource_stream
+from pkg_resources import resource_filename, resource_stream
 import os
 import sys
 import re
-from ..scan import compile_map, physical_disks
+from ..scan import compile_map, physical_disks, validate_configuration
 
 
 class TestScan(unittest.TestCase):
@@ -40,6 +40,7 @@ class TestScan(unittest.TestCase):
         #
         # Reload the configuration file, since we might need to manipulate it.
         #
+        self.config_name = resource_filename('hpsspy.test', 't/test_scan.json')
         config_file = resource_stream('hpsspy.test', 't/test_scan.json')
         self.config = json.loads(config_file.read().decode())
         config_file.close()
@@ -104,6 +105,12 @@ class TestScan(unittest.TestCase):
         self.assertEqual(pd, ('/foo/bar0/baz/data',
                               '/foo/bar1/baz/data',
                               '/foo/bar2/baz/data'))
+
+    def test_validate_configuration(self):
+        """Test the configuration file validator.
+        """
+        status = validate_configuration(self.config_name)
+        self.assertEqual(status, 0)
 
 
 def test_suite():

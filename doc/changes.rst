@@ -2,13 +2,12 @@
 Release Notes
 =============
 
-0.3.1 (unreleased)
+0.4.0 (unreleased)
 ------------------
 
 * Add ``--version`` option.
 * Add Python 3.6, remove 3.3.
 * Add many quality-assurance checks and additional documentation (PR `#2`_).
-* Todo: document command-line use, unit tests.
 
 .. _`#2`: https://github.com/weaverba137/hpsspy/pull/2
 
