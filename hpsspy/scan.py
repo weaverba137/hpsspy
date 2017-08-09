@@ -325,7 +325,7 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
             if Lfile is None:
                 logger.info("htar('-cvf', '%s', '-H', " +
                             "'crc:verify=all', %s)", h_file,
-                            ', '.join(['{0}'.format(h) for h in htar_dir]))
+                            ', '.join(["'{0}'".format(h) for h in htar_dir]))
                 if test:
                     out, err = ('Test mode, skipping htar command.', '')
                 else:
