@@ -35,6 +35,7 @@ Contents
 .. toctree::
    :maxdepth: 1
 
+   configuration
    changes
    api
 
