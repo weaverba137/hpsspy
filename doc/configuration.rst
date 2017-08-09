@@ -49,9 +49,16 @@ hpss\_root/
     The path on the HPSS tape system that will contain the backups.
 
 physical\_disks/
-    If the data is spread across several physical disks and linked into
+    If the data are spread across several physical disks and linked into
     the root path via symlinks, the various physical disks need to be listed
-    here.
+    here.  If the value is equivalent to ``False``, *e.g.*,
+    [``null``, ``false``, ``[]``] this is means that the
+    ``"root"`` disk contains all the physical data.  If the value of
+    is equivalent to a one-item list containing ``os.path.basename(root)``,
+    then this *also* means that the ``"root"`` disk contains all the physical
+    data.  A list of simple names generates the physical disks by
+    substitution on the basename of the ``"root"`` value.  More complicated
+    configurations are possible, see :func:`hpsspy.scan.physical_disks`.
 
 Sections
 ++++++++
@@ -181,19 +188,10 @@ imposes some additional requirements, conventions and idioms:
 
         "d1/foo/([0-9a-zA-Z_-]+)/sub-([0-9]+)/([0-9]+)/.*$" : "d1/foo/\\1/spectra-\\2/\\1_spectra-\\2_\\3.tar"
 
-Quality Assurance
-+++++++++++++++++
+Finally, for truly monumentally-complicated directory trees, there is a
+`JSON file`_ included with this distribution describing the SDSS_ data tree
+that can be used for examples.  To view the equivalent files and directories
+for section ``"dr12"``, for example, visit https://data.sdss.org/sas/dr12.
 
-In addition to validating JSON files and regular expressions,
-:command:`missing_from_hpss` will:
-
-1. Make sure all regular expressions are actually used.
-2. Make sure all files actually match *one and only one* regular expression.
-3. Create a manifest file containing the actual files on disk matched and
-   the archive file the map to.  In addition the size of the resulting files
-   (modulo small overheads from the archive file creation process) will
-   be saved to this file.  The manifest file will by default be written
-   to ``$HOME/scratch/missing_files_<section>.json``, where ``<section>`` is
-   the section (as defined above) specified on the command-line.
-4. Make sure that all archive file sizes are less than a user-defined limit
-   (default 1 TB), configurable on the command-line.
+.. _SDSS: https://www.sdss.org
+.. _`JSON file`: https://github.com/weaverba137/hpsspy/blob/master/hpsspy/data/sdss.json

@@ -36,8 +36,9 @@ Contents
    :maxdepth: 1
 
    configuration
-   changes
+   using
    api
+   changes
 
 Indices and tables
 ++++++++++++++++++

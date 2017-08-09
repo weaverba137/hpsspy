@@ -175,13 +175,14 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
     nmultiple = 0
     missing = dict()
     pattern_used = dict()
+    section_warning = set()
     with open(disk_files_cache) as t:
         reader = csv.DictReader(t)
         for row in reader:
             f = row['Name']
             nfiles += 1
             if f in hpss_map["exclude"]:
-                logger.info("%s skipped.", f)
+                logger.info("%s is excluded.", f)
                 continue
             section = f.split('/')[0]
             try:
@@ -191,17 +192,19 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                 # If the section is not described, that's not
                 # good, but continue.
                 #
-                logger.error("%s is in a directory not " +
-                             "described in the configuration!",
-                             f)
+                if section not in section_warning:
+                    section_warning.add(section)
+                    logger.warning("Directory %s is not " +
+                                   "described in the configuration!",
+                                   section)
                 continue
             if not s:
                 #
                 # If the section is blank, that's OK.
                 #
-                logger.info("%s is in a directory not yet " +
-                            "configured.",
-                            f)
+                if section not in section_warning:
+                    section_warning.add(section)
+                    logger.warning("Directory %s is not configured!", section)
                 continue
             #
             # Now check if it is mapped.
@@ -214,18 +217,15 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                 if m is not None:
                     pattern_used[r[0].pattern] += 1
                     reName = r[0].sub(r[1], f)
-                    if reName in hpss_files:
-                        logger.debug("%s in %s.", f, reName)
-                        mapped += 1
-                    else:
+                    if reName not in hpss_files:
                         if reName in missing:
                             missing[reName]['files'].append(f)
                             missing[reName]['size'] += int(row['Size'])
                         else:
                             missing[reName] = {'files': [f],
                                                'size': int(row['Size'])}
-                        logger.debug("%s in %s.", f, reName)
-                        mapped += 1
+                    logger.debug("%s in %s.", f, reName)
+                    mapped += 1
             if mapped == 0:
                 logger.error("%s is not mapped to any file on HPSS!", f)
                 nmissing += 1
@@ -248,11 +248,15 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
         if pattern_used[p] == 0:
             logger.critical("Pattern '%s' was never used!", p)
             return False
+    nbackups = 0
     for k in missing:
         logger.info('%s is %d bytes.', k, missing[k]['size'])
+        nbackups += len(missing[k]['files'])
         if missing[k]['size']/1024/1024/1024 > limit:
             logger.critical("HPSS file %s would be too large!", k)
             return False
+    if nbackups > 0:
+        logger.info('%d files selected for backup.', nbackups)
     return (nmissing == 0) and (nmultiple == 0)
 
 
@@ -280,8 +284,6 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
     from .os import makedirs
     from .util import get_tmpdir, hsi, htar
     logger = logging.getLogger(__name__ + '.process_missing')
-    if test:
-        logger.setLevel(logging.DEBUG)
     logger.debug("Processing missing files from %s.", missing_cache)
     with open(missing_cache) as fp:
         missing = json.load(fp)
@@ -448,6 +450,36 @@ def scan_hpss(hpss_root, hpss_files_cache, clobber=False):
     return hpss_files
 
 
+def physical_disks(release_root, config):
+    """Convert a root path into a list of physical disks containing data.
+
+    Parameters
+    ----------
+    release_root : :class:`str`
+        The "official" path to the data.
+    config : :class:`dict`
+        A dictionary containing path information.
+
+    Returns
+    -------
+    :func:`tuple`
+        A tuple containing the physical disk paths.
+    """
+    from os.path import basename, join
+    try:
+        pd = config['physical_disks']
+    except KeyError:
+        return (release_root,)
+    if not pd:
+        return (release_root,)
+    broot = basename(config['root'])
+    if ((len(pd) == 1) and (pd[0] == broot)):
+        return (release_root,)
+    if pd[0].startswith('/'):
+        return tuple([join(d, basename(release_root)) for d in pd])
+    return tuple([release_root.replace(broot, d) for d in pd])
+
+
 def main():
     """Entry-point for command-line scripts.
 
@@ -496,7 +528,7 @@ def main():
                         help="Test mode. Try not to make any changes.")
     parser.add_argument('-v', '--verbose', action='store_true',
                         dest='verbose',
-                        help="Increase verbosity.")
+                        help="Increase verbosity. Increase it a lot.")
     parser.add_argument('-V', '--version', action='version',
                         version="%(prog)s " + hpsspyVersion)
     parser.add_argument('config', metavar='FILE',
@@ -507,8 +539,10 @@ def main():
     #
     # Logging
     #
-    ll = logging.INFO
-    if options.test or options.verbose:
+    ll = logging.WARNING
+    if options.test:
+        ll = logging.INFO
+    if options.verbose:
         ll = logging.DEBUG
     log_format = '%(asctime)s %(name)s %(levelname)s: %(message)s'
     logging.basicConfig(level=ll, format=log_format,
@@ -542,8 +576,7 @@ def main():
     disk_files_cache = join(options.cache,
                             'disk_files_{0}.csv'.format(options.release))
     logger.debug("disk_files_cache = '%s'", disk_files_cache)
-    disk_roots = [release_root.replace(basename(config['root']), d)
-                  for d in config['physical_disks']]
+    disk_roots = physical_disks(release_root, config)
     status = scan_disk(disk_roots, disk_files_cache,
                        clobber=options.clobber_disk)
     if not status:

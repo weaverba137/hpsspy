@@ -16,7 +16,7 @@ from pkg_resources import resource_stream
 import os
 import sys
 import re
-from ..scan import compile_map
+from ..scan import compile_map, physical_disks
 
 
 class TestScan(unittest.TestCase):
@@ -72,6 +72,38 @@ class TestScan(unittest.TestCase):
         with self.assertRaises(re.error) as err:
             new_map = compile_map(self.config, 'redux')
             self.assertEqual(err.colno, 8)
+
+    def test_physical_disks(self):
+        """Test physical disk path setup.
+        """
+        release_root = '/foo/bar/baz/data'
+        config = {'root': '/foo/bar/baz'}
+        pd = physical_disks(release_root, config)
+        self.assertEqual(pd, (release_root,))
+        config['physical_disks'] = None
+        pd = physical_disks(release_root, config)
+        self.assertEqual(pd, (release_root,))
+        config['physical_disks'] = False
+        pd = physical_disks(release_root, config)
+        self.assertEqual(pd, (release_root,))
+        config['physical_disks'] = []
+        pd = physical_disks(release_root, config)
+        self.assertEqual(pd, (release_root,))
+        config['physical_disks'] = ['baz']
+        pd = physical_disks(release_root, config)
+        self.assertEqual(pd, (release_root,))
+        config['physical_disks'] = ['baz0', 'baz1', 'baz2']
+        pd = physical_disks(release_root, config)
+        self.assertEqual(pd, ('/foo/bar/baz0/data',
+                              '/foo/bar/baz1/data',
+                              '/foo/bar/baz2/data'))
+        config['physical_disks'] = ['/foo/bar0/baz',
+                                    '/foo/bar1/baz',
+                                    '/foo/bar2/baz']
+        pd = physical_disks(release_root, config)
+        self.assertEqual(pd, ('/foo/bar0/baz/data',
+                              '/foo/bar1/baz/data',
+                              '/foo/bar2/baz/data'))
 
 
 def test_suite():
