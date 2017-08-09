@@ -179,6 +179,11 @@ imposes some additional requirements, conventions and idioms:
   - Match files in a directory, but not any files in any
     subdirectory: ``"foo/[^/]+$" : "foo_files.tar"``.  See also the
     ``_files.tar`` convention mentioned above.
+  - Group some but not all subdirectories in a directory into a single
+    archive file for efficiency: ``"foo/([0-9])([0-9][0-9])/.*$" : "foo/foo_\\1XX.tar"``.
+    Note the ending of the archive file, and that the directories have to
+    have a very uniform naming convention (three and only three digits
+    in this example).
   - Do not create an archive file, just copy the file, as is, to HPSS:
     ``"d1/README\\.txt$" : "d1/README.txt"``.  Similarly, for a set of TXT files:
     ``"d1/([^/]+\\.txt)$" : "d1/\\1"``.

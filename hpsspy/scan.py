@@ -279,8 +279,9 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
     """
     import logging
     import json
-    from os import chdir, getcwd, remove
-    from os.path import basename, dirname, join
+    import re
+    from os import chdir, getcwd, listdir, remove
+    from os.path import basename, dirname, isdir, join
     from .os import makedirs
     from .util import get_tmpdir, hsi, htar
     logger = logging.getLogger(__name__ + '.process_missing')
@@ -292,8 +293,9 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
     for h in missing:
         h_file = join(hpss_root, h)
         if h.endswith('.tar'):
+            disk_chdir = dirname(h)
+            full_chdir = join(disk_root, disk_chdir)
             if h.endswith('_files.tar'):
-                disk_chdir = dirname(h)
                 Lfile = join(get_tmpdir(), basename(h.replace('.tar', '.txt')))
                 htar_dir = None
                 Lfile_lines = ('\n'.join([basename(f)
@@ -305,11 +307,15 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                     with open(Lfile, 'w') as fp:
                         fp.write(Lfile_lines)
             else:
-                disk_chdir = dirname(h)
                 Lfile = None
-                htar_dir = basename(h).split('_')[-1].split('.')[0]
-            logger.debug("chdir('%s')", join(disk_root, disk_chdir))
-            chdir(join(disk_root, disk_chdir))
+                htar_dir = [basename(h).split('_')[-1].split('.')[0]]
+                if 'X' in htar_dir[0]:
+                    htar_re = re.compile(htar_dir.replace('X', '?') + '$')
+                    htar_dir = [d for d in os.listdir(full_chdir)
+                                if isdir(join(full_chdir, d)) and
+                                htar_re.match(d) is not None]
+            logger.debug("chdir('%s')", full_chdir)
+            chdir(full_chdir)
             h_dir = join(hpss_root, disk_chdir)
             if h_dir not in created_directories:
                 logger.debug("makedirs('%s', mode='%s')", h_dir, dirmode)
@@ -317,16 +323,17 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                     makedirs(h_dir, mode=dirmode)
                 created_directories.add(h_dir)
             if Lfile is None:
-                logger.debug("htar('-cvf', '%s', '-H', " +
-                             "'crc:verify=all', '%s')", h_file, htar_dir)
+                logger.info("htar('-cvf', '%s', '-H', " +
+                            "'crc:verify=all', %s)", h_file,
+                            ', '.join(['{0}'.format(h) for h in htar_dir]))
                 if test:
                     out, err = ('Test mode, skipping htar command.', '')
                 else:
                     out, err = htar('-cvf', h_file, '-H', 'crc:verify=all',
-                                    htar_dir)
+                                    *htar_dir)
             else:
-                logger.debug("htar('-cvf', '%s', '-H', 'crc:verify=all', " +
-                             "'-L', '%s')", h_file, Lfile)
+                logger.info("htar('-cvf', '%s', '-H', 'crc:verify=all', " +
+                            "'-L', '%s')", h_file, Lfile)
                 if test:
                     out, err = ('Test mode, skipping htar command.', '')
                 else:
@@ -334,7 +341,7 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                                     '-L', Lfile)
             logger.debug(out)
             if err:
-                logger.warn(err)
+                logger.warning(err)
             if Lfile is not None:
                 logger.debug("remove('%s')", Lfile)
                 if not test:
@@ -346,7 +353,7 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                 if not test:
                     makedirs(dirname(h_file), mode=dirmode)
                 created_directories.add(dirname(h_file))
-            logger.debug("hsi('put', '%s', ':', '%s')",
+            logger.info("hsi('put', '%s', ':', '%s')",
                          join(disk_root, missing[h]['files'][0]), h_file)
             if test:
                 out = "Test mode, skipping hsi command."
