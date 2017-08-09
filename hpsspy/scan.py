@@ -26,6 +26,7 @@ def validate_configuration(config):
     """
     import logging
     import json
+    import re
     from os.path import basename, splitext
     logger = logging.getLogger(__name__ + '.files_to_hpss')
     foo, xtn = splitext(basename(config))

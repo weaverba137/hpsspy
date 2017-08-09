@@ -12,11 +12,28 @@ from __future__ import (absolute_import, division, print_function,
 #
 import unittest
 import json
-from pkg_resources import resource_filename, resource_stream
 import os
 import sys
 import re
+import tempfile
+import logging
+from logging.handlers import MemoryHandler
+from pkg_resources import resource_filename, resource_stream
 from ..scan import compile_map, physical_disks, validate_configuration
+
+
+class TestHandler(MemoryHandler):
+    """Capture log messages in memory.
+    """
+    def __init__(self, capacity=1000000, flushLevel=logging.CRITICAL):
+        nh = logging.NullHandler()
+        MemoryHandler.__init__(self, capacity,
+                               flushLevel=flushLevel, target=nh)
+
+    def shouldFlush(self, record):
+        """Never flush, except manually.
+        """
+        return False
 
 
 class TestScan(unittest.TestCase):
@@ -26,6 +43,11 @@ class TestScan(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.PY3 = sys.version_info[0] > 2
+        logging.getLogger('hpsspy.scan').addHandler(TestHandler())
+        # cls.logger.setLevel(logging.DEBUG)
+        # log_format = '%(asctime)s %(name)s %(levelname)s: %(message)s'
+        # logging.basicConfig(level=ll, format=log_format,
+        #                     datefmt='%Y-%m-%dT%H:%M:%S')
 
     @classmethod
     def tearDownClass(cls):
@@ -53,7 +75,14 @@ class TestScan(unittest.TestCase):
         #             del os.environ[e]
         #     else:
         #         os.environ[e] = self.env[e]
-        pass
+        logging.getLogger('hpsspy.scan').handlers[0].flush()
+
+    def assertLog(self, index=-1, message=''):
+        """Examine the log messages.
+        """
+        logger = logging.getLogger('hpsspy.scan')
+        self.assertEqual(logger.handlers[0].buffer[index].getMessage(),
+                         message)
 
     def test_compile_map(self):
         """Test compiling regular expressions in the JSON configuration file.
@@ -109,8 +138,65 @@ class TestScan(unittest.TestCase):
     def test_validate_configuration(self):
         """Test the configuration file validator.
         """
+        # Non-existant file
+        status = validate_configuration('foo.bar')
+        self.assertEqual(status, 1)
+        self.assertLog(-2, "foo.bar might not be a JSON file!")
+        self.assertLog(-1, "foo.bar does not exist. Try again.")
+        # invalid file
+        invalid = resource_filename('hpsspy.test', 't/hsi')
+        status = validate_configuration(invalid)
+        self.assertEqual(status, 1)
+        self.assertLog(-2, "{0} might not be a JSON file!".format(invalid))
+        self.assertLog(-1, "{0} is not valid JSON.".format(invalid))
+        # Valid file
         status = validate_configuration(self.config_name)
         self.assertEqual(status, 0)
+        # Valid file but missing some pieces
+        c = self.config.copy()
+        del c['config']
+        fn, tmp = tempfile.mkstemp(suffix='.json')
+        with open(tmp, 'w') as fd:
+            json.dump(c, fd)
+        status = validate_configuration(tmp)
+        self.assertEqual(status, 1)
+        self.assertLog(-1,
+                       "{0} does not contain a 'config' section.".format(tmp))
+        os.close(fn)
+        os.remove(tmp)
+        c = self.config.copy()
+        del c['config']['physical_disks']
+        fn, tmp = tempfile.mkstemp(suffix='.json')
+        with open(tmp, 'w') as fd:
+            json.dump(c, fd)
+        status = validate_configuration(tmp)
+        self.assertEqual(status, 0)
+        self.assertLog(-1, ("{0} 'config' section does not contain an " +
+                            "entry for '{1}'.").format(tmp, 'physical_disks'))
+        os.close(fn)
+        os.remove(tmp)
+        c = self.config.copy()
+        del c['redux']['exclude']
+        fn, tmp = tempfile.mkstemp(suffix='.json')
+        with open(tmp, 'w') as fd:
+            json.dump(c, fd)
+        status = validate_configuration(tmp)
+        self.assertEqual(status, 0)
+        self.assertLog(-1, ("Section '{0}' should at least have an " +
+                            "'exclude' entry.").format('redux'))
+        os.close(fn)
+        os.remove(tmp)
+        c = self.config.copy()
+        c['redux']['d1'] = {'d1/(r\\d{5,4})/.*$': 'd1/d1_\\1.tar'}
+        fn, tmp = tempfile.mkstemp(suffix='.json')
+        with open(tmp, 'w') as fd:
+            json.dump(c, fd)
+        status = validate_configuration(tmp)
+        self.assertEqual(status, 1)
+        self.assertLog(-1, ("Regular Expression error detected in " +
+                            "section '{0}'!").format('redux'))
+        os.close(fn)
+        os.remove(tmp)
 
 
 def test_suite():
