@@ -310,7 +310,7 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                 Lfile = None
                 htar_dir = [basename(h).split('_')[-1].split('.')[0]]
                 if 'X' in htar_dir[0]:
-                    htar_re = re.compile(htar_dir[0].replace('X', '?') + '$')
+                    htar_re = re.compile(htar_dir[0].replace('X', '.') + '$')
                     htar_dir = [d for d in listdir(full_chdir)
                                 if isdir(join(full_chdir, d)) and
                                 htar_re.match(d) is not None]
