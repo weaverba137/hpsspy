@@ -63,7 +63,8 @@ setup_keywords['zip_safe'] = True
 setup_keywords['use_2to3'] = True
 setup_keywords['packages'] = find_packages()
 setup_keywords['cmdclass'] = {'sdist': DistutilsSdist}
-setup_keywords['package_data'] = {'hpsspy': ['data/*.json'], 'hpsspy.test': ['t/*']}
+setup_keywords['package_data'] = {'hpsspy': ['data/*.json',],
+                                  'hpsspy.test': ['t/*', 'bin/*']}
 #
 # Autogenerate command-line scripts.
 #

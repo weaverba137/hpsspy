@@ -8,7 +8,7 @@
         "exclude":[],
         "dc2":{
             "dc2/batch/.*$":"dc2/batch.tar",
-            "dc2/([^/]+\\.txt)":"dc2/\\1",
+            "dc2/([^/]+\\.txt)$":"dc2/\\1",
             "dc2/templates/[^/]+$":"dc2/templates/templates_files.tar"
         }
     },

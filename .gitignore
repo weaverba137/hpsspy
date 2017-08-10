@@ -7,18 +7,18 @@
 # Packages
 *.egg
 *.egg-info
-dist
-build
+dist/
+build/
 eggs
 parts
-bin
+bin/
 var
 sdist
 MANIFEST
 develop-eggs
 .installed.cfg
-lib
-lib64
+lib/
+lib64/
 __pycache__
 
 # Sphinx
@@ -50,3 +50,6 @@ nosetests.xml
 
 # Mac OSX
 .DS_Store
+
+# don't ignore test/bin
+!hpsspy/test/bin/*

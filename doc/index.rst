@@ -35,8 +35,10 @@ Contents
 .. toctree::
    :maxdepth: 1
 
-   changes
+   configuration
+   using
    api
+   changes
 
 Indices and tables
 ++++++++++++++++++

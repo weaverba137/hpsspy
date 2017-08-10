@@ -14,43 +14,49 @@ import unittest
 # import json
 # from pkg_resources import resource_filename
 import os
-from ..os import chmod
+from ..os import chmod, lstat, stat
 from ..os.path import isdir, isfile, islink
+from .test_util import MockHpss
 
 
-class TestOs(unittest.TestCase):
+class TestOs(MockHpss):
     """Test the functions in the os subpackage.
     """
 
-    @classmethod
-    def setUpClass(cls):
-        pass
+    def test_stat(self):
+        """Test the stat() function.
+        """
+        s = stat("desi/cosmos_nvo.tar")
+        self.assertEqual(s.st_size, 29956061184)
+        self.assertEqual(s.st_mode, 33200)
 
-    @classmethod
-    def tearDownClass(cls):
-        pass
+    def test_lstat(self):
+        """Test the lstat() function.
+        """
+        s = lstat("cosmo")
+        self.assertTrue(s.islink)
+        s = lstat("test")
+        self.assertFalse(s.islink)
 
-    def setUp(self):
-        # Store the original value of env variables, if present.
-        # self.env = {'TMPDIR': None, 'HPSS_DIR': None}
-        # for e in self.env:
-        #     if e in os.environ:
-        #         self.env[e] = os.environ['TMPDIR']
-        pass
+    def test_isdir(self):
+        """Test the isdir() function.
+        """
+        self.assertTrue(isdir('test'))
 
-    def tearDown(self):
-        # Restore the original value of env variables, if they were present.
-        # for e in self.env:
-        #     if self.env[e] is None:
-        #         if e in os.environ:
-        #             del os.environ[e]
-        #     else:
-        #         os.environ[e] = self.env[e]
-        pass
+    def test_isfile(self):
+        """Test the isfile() function.
+        """
+        self.assertTrue(isfile('desi/cosmos_nvo.tar'))
+
+    def test_islink(self):
+        """Test the islink() function.
+        """
+        self.assertTrue(islink('cosmo'))
 
 
 def test_suite():
     """Allows testing of only this module with the command::
+
         python setup.py test -m <modulename>
     """
     return unittest.defaultTestLoader.loadTestsFromName(__name__)

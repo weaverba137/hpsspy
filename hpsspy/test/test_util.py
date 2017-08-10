@@ -21,25 +21,26 @@ from .. import HpssOSError
 from ..util import HpssFile, get_hpss_dir, get_tmpdir, hsi, htar
 
 
-class TestUtil(unittest.TestCase):
-    """Test the functions in the util subpackage.
+class MockHpss(unittest.TestCase):
+    """Provide access to mock HPSS commands.
     """
 
     @classmethod
     def setUpClass(cls):
-        pass
+        cls.PY3 = sys.version_info[0] > 2
 
     @classmethod
     def tearDownClass(cls):
         pass
 
     def setUp(self):
-        self.PY3 = sys.version_info[0] > 2
         # Store the original value of env variables, if present.
         self.env = {'TMPDIR': None, 'HPSS_DIR': None}
         for e in self.env:
             if e in os.environ:
-                self.env[e] = os.environ['TMPDIR']
+                self.env[e] = os.environ[e]
+        hsi = resource_filename('hpsspy.test', 'bin/hsi')
+        os.environ['HPSS_DIR'] = os.path.dirname(os.path.dirname(hsi))
 
     def tearDown(self):
         # Restore the original value of env variables, if they were present.
@@ -50,17 +51,10 @@ class TestUtil(unittest.TestCase):
             else:
                 os.environ[e] = self.env[e]
 
-    def setup_bin(self, command):
-        real_command = resource_filename('hpsspy.test', 't/'+command)
-        hpss_dir = os.path.dirname(real_command)
-        os.environ['HPSS_DIR'] = hpss_dir
-        os.mkdir(os.path.join(hpss_dir, 'bin'))
-        os.symlink(real_command, os.path.join(hpss_dir, 'bin', command))
 
-    def remove_bin(self, command):
-        hpss_dir = os.environ['HPSS_DIR']
-        os.remove(os.path.join(hpss_dir, 'bin', command))
-        os.rmdir(os.path.join(hpss_dir, 'bin'))
+class TestUtil(MockHpss):
+    """Test the functions in the util subpackage.
+    """
 
     def test_HpssFile(self):
         """Test the HpssFile object.
@@ -79,28 +73,28 @@ class TestUtil(unittest.TestCase):
                   datetime.datetime(this_year, 7, 3, 12, 34, 0),
                   datetime.datetime(2016, 2, 2, 0, 0, 0),
                   datetime.datetime(2016, 2, 2, 0, 0, 0))
-        data = (('l', 'rwxrwxrwx', '1', 'bweaver', 'bweaver',
-                 '20', 'Apr', '3', '2008', 'boss@ -> /nersc/projects/boss'),
-                ('l', 'rwxrwxrwx', '1', 'bweaver', 'bweaver',
-                 '21', 'Aug', '22', '2014', 'cosmo@ -> /nersc/projects/cosmo'),
-                ('l', 'rwxrwxrwx', '1', 'bweaver', 'bweaver',
-                 '20', 'Dec', '16', '2013', 'desi@ -> /nersc/projects/desi'),
-                ('d', 'rwxr-sr-x', '3', 'bweaver', 'bweaver',
-                 '512', 'Apr', '4', '13:14', 'test'),
-                ('-', 'rw-rw----', '1', 'bweaver', 'bweaver',
-                 '100', 'Jul', '3', '12:34', 'README.rst'),
-                ('-', 'rw-rw----', '1', 'bweaver', 'bweaver',
-                 '100000', 'Feb', '2', '2016', 'backup.tar'),
-                ('-', 'rw-rw----', '1', 'bweaver', 'bweaver',
-                 '1000', 'Feb', '2', '2016', 'backup.tar.idx'))
+        data = (('l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver',
+                 20, 'Apr', 3, '2008', 'boss@ -> /nersc/projects/boss'),
+                ('l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver',
+                 21, 'Aug', 22, '2014', 'cosmo@ -> /nersc/projects/cosmo'),
+                ('l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver',
+                 20, 'Dec', 16, '2013', 'desi@ -> /nersc/projects/desi'),
+                ('d', 'rwxr-sr-x', 3, 'bweaver', 'bweaver',
+                 512, 'Apr', 4, '13:14', 'test'),
+                ('-', 'rw-rw----', 1, 'bweaver', 'bweaver',
+                 100, 'Jul', 3, '12:34', 'README.rst'),
+                ('-', 'rw-rw----', 1, 'bweaver', 'bweaver',
+                 100000, 'Feb', 2, '2016', 'backup.tar'),
+                ('-', 'rw-rw----', 1, 'bweaver', 'bweaver',
+                 1000, 'Feb', 2, '2016', 'backup.tar.idx'))
         htar_data = [('-', 'rw-rw----', 'bweaver/bweaver', '50', '2016-02-02',
                      '12:34', 'a.txt'),
                      ('-', 'rw-rw----', 'bweaver/bweaver', '50', '2016-02-02',
                       '12:34', 'b.txt'),
                      ('-', 'rw-rw----', 'bweaver/bweaver', '50', '2016-02-02',
                       '12:34', 'c.txt')]
-        repr_template = ("HpssFile('{0}', '{1}', '{2}', '{3}', '{4}', " +
-                         "'{5}', '{6}', '{7}', '{8}', '{9}', '{10}')")
+        repr_template = ("HpssFile('{0}', '{1}', '{2}', {3:d}, '{4}', " +
+                         "'{5}', {6:d}, '{7}', {8:d}, '{9}', '{10}')")
 
         files = list()
         for d in data:
@@ -156,19 +150,16 @@ class TestUtil(unittest.TestCase):
     def test_hsi(self):
         """Test passing arguments to the hsi command.
         """
-        self.setup_bin('hsi')
         os.environ['TMPDIR'] = os.environ['HPSS_DIR']
         pre_command = ['-O', os.path.join(os.environ['TMPDIR'], 'hsi.txt'),
                        '-s', 'archive']
         command = ['ls', '-l', 'foo']
         out = hsi(*command)
         self.assertEqual(out.strip(), ' '.join(command))
-        self.remove_bin('hsi')
 
     def test_htar(self):
         """Test passing arguments to the htar command.
         """
-        self.setup_bin('htar')
         command = ['-cvf', 'foo/bar.tar', '-H', 'crc:verify=all', 'bar']
         out, err = htar(*command)
         if self.PY3:
@@ -177,11 +168,11 @@ class TestUtil(unittest.TestCase):
         else:
             self.assertEqual(out.strip(), ' '.join(command))
             self.assertEqual(err.strip(), '')
-        self.remove_bin('htar')
 
 
 def test_suite():
     """Allows testing of only this module with the command::
+
         python setup.py test -m <modulename>
     """
     return unittest.defaultTestLoader.loadTestsFromName(__name__)
