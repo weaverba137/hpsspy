@@ -8,7 +8,7 @@
         "exclude":["README.html"],
         "d1":{
             "d1/batch/.*$":"d1/batch.tar",
-            "d1/([^/]+\\.txt)":"d1/\\1",
+            "d1/([^/]+\\.txt)$":"d1/\\1",
             "d1/templates/[^/]+$":"d1/templates/templates_files.tar"
         },
         "d2":{

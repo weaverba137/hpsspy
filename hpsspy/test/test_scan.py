@@ -19,7 +19,8 @@ import tempfile
 import logging
 from logging.handlers import MemoryHandler
 from pkg_resources import resource_filename, resource_stream
-from ..scan import compile_map, physical_disks, validate_configuration
+from ..scan import (compile_map, files_to_hpss, physical_disks,
+                    validate_configuration)
 
 
 class TestHandler(MemoryHandler):
@@ -102,6 +103,25 @@ class TestScan(unittest.TestCase):
         with self.assertRaises(re.error) as err:
             new_map = compile_map(self.config, 'redux')
             self.assertEqual(err.colno, 8)
+
+    def test_files_to_hpss(self):
+        """Test conversion of JSON files to directory dictionary.
+        """
+        hpss_map, config = files_to_hpss(self.config_name, 'data')
+        self.assertEqual(config['root'], '/temporary')
+        for key in hpss_map['d2']:
+            self.assertIn(key[0].pattern, self.config['data']['d2'])
+            self.assertEqual(key[1], self.config['data']['d2'][key[0].pattern])
+        hpss_map, config = files_to_hpss('desi.json', 'datachallenge')
+        desi_map = {"dc2/batch/.*$": "dc2/batch.tar",
+                    "dc2/([^/]+\\.txt)$": "dc2/\\1",
+                    "dc2/templates/[^/]+$": "dc2/templates/templates_files.tar"
+                   }
+        for key in hpss_map['dc2']:
+            self.assertIn(key[0].pattern, desi_map)
+            self.assertEqual(key[1], desi_map[key[0].pattern])
+        hpss_map, config = files_to_hpss('foo.json', 'dr8')
+        self.assertIn('casload', hpss_map)
 
     def test_physical_disks(self):
         """Test physical disk path setup.

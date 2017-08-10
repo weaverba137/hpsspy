@@ -40,7 +40,8 @@ def validate_configuration(config):
             except ValueError:
                 logger.critical("%s is not valid JSON.", config)
                 return 1
-    except FileNotFoundError:
+    # except FileNotFoundError:
+    except OSError:
         logger.critical("%s does not exist. Try again.", config)
         return 1
     if 'config' in json_data:
@@ -120,11 +121,11 @@ def files_to_hpss(hpss_map_cache, release):
         with open(hpss_map_cache) as t:
             hpss_map = json.load(t)
     else:
-        if resource_exists('hpsspy.data', hpss_map_cache):
+        if resource_exists('hpsspy', 'data/' + hpss_map_cache):
             logger.info("Reading from file %s in the hpsspy distribution.",
                         hpss_map_cache)
-            t = resource_stream('hpsspy.data', hpss_map_cache)
-            hpss_map = json.load(t)
+            t = resource_stream('hpsspy', 'data/' + hpss_map_cache)
+            hpss_map = json.loads(t.read().decode())
             t.close()
         else:
             logger.warning("Returning empty map file!")
@@ -356,7 +357,7 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                     makedirs(dirname(h_file), mode=dirmode)
                 created_directories.add(dirname(h_file))
             logger.info("hsi('put', '%s', ':', '%s')",
-                         join(disk_root, missing[h]['files'][0]), h_file)
+                        join(disk_root, missing[h]['files'][0]), h_file)
             if test:
                 out = "Test mode, skipping hsi command."
             else:
