@@ -21,8 +21,8 @@ from .. import HpssOSError
 from ..util import HpssFile, get_hpss_dir, get_tmpdir, hsi, htar
 
 
-class TestUtil(unittest.TestCase):
-    """Test the functions in the util subpackage.
+class MockHpss(unittest.TestCase):
+    """Provide access to mock HPSS commands.
     """
 
     @classmethod
@@ -38,7 +38,9 @@ class TestUtil(unittest.TestCase):
         self.env = {'TMPDIR': None, 'HPSS_DIR': None}
         for e in self.env:
             if e in os.environ:
-                self.env[e] = os.environ['TMPDIR']
+                self.env[e] = os.environ[e]
+        hsi = resource_filename('hpsspy.test', 'bin/hsi')
+        os.environ['HPSS_DIR'] = os.path.dirname(os.path.dirname(hsi))
 
     def tearDown(self):
         # Restore the original value of env variables, if they were present.
@@ -49,17 +51,10 @@ class TestUtil(unittest.TestCase):
             else:
                 os.environ[e] = self.env[e]
 
-    def setup_bin(self, command):
-        real_command = resource_filename('hpsspy.test', 't/'+command)
-        hpss_dir = os.path.dirname(real_command)
-        os.environ['HPSS_DIR'] = hpss_dir
-        os.mkdir(os.path.join(hpss_dir, 'bin'))
-        os.symlink(real_command, os.path.join(hpss_dir, 'bin', command))
 
-    def remove_bin(self, command):
-        hpss_dir = os.environ['HPSS_DIR']
-        os.remove(os.path.join(hpss_dir, 'bin', command))
-        os.rmdir(os.path.join(hpss_dir, 'bin'))
+class TestUtil(MockHpss):
+    """Test the functions in the util subpackage.
+    """
 
     def test_HpssFile(self):
         """Test the HpssFile object.
@@ -155,19 +150,16 @@ class TestUtil(unittest.TestCase):
     def test_hsi(self):
         """Test passing arguments to the hsi command.
         """
-        self.setup_bin('hsi')
         os.environ['TMPDIR'] = os.environ['HPSS_DIR']
         pre_command = ['-O', os.path.join(os.environ['TMPDIR'], 'hsi.txt'),
                        '-s', 'archive']
         command = ['ls', '-l', 'foo']
         out = hsi(*command)
         self.assertEqual(out.strip(), ' '.join(command))
-        self.remove_bin('hsi')
 
     def test_htar(self):
         """Test passing arguments to the htar command.
         """
-        self.setup_bin('htar')
         command = ['-cvf', 'foo/bar.tar', '-H', 'crc:verify=all', 'bar']
         out, err = htar(*command)
         if self.PY3:
@@ -176,7 +168,6 @@ class TestUtil(unittest.TestCase):
         else:
             self.assertEqual(out.strip(), ' '.join(command))
             self.assertEqual(err.strip(), '')
-        self.remove_bin('htar')
 
 
 def test_suite():

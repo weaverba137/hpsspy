@@ -14,38 +14,28 @@ import unittest
 # import json
 # from pkg_resources import resource_filename
 import os
-from ..os import chmod
+from ..os import chmod, lstat, stat
 from ..os.path import isdir, isfile, islink
+from .test_util import MockHpss
 
 
-class TestOs(unittest.TestCase):
+class TestOs(MockHpss):
     """Test the functions in the os subpackage.
     """
 
-    @classmethod
-    def setUpClass(cls):
+    def test_isdir(self):
+        """Test the isdir() function.
+        """
         pass
 
-    @classmethod
-    def tearDownClass(cls):
+    def test_isfile(self):
+        """Test the isfile() function.
+        """
         pass
 
-    def setUp(self):
-        # Store the original value of env variables, if present.
-        # self.env = {'TMPDIR': None, 'HPSS_DIR': None}
-        # for e in self.env:
-        #     if e in os.environ:
-        #         self.env[e] = os.environ['TMPDIR']
-        pass
-
-    def tearDown(self):
-        # Restore the original value of env variables, if they were present.
-        # for e in self.env:
-        #     if self.env[e] is None:
-        #         if e in os.environ:
-        #             del os.environ[e]
-        #     else:
-        #         os.environ[e] = self.env[e]
+    def test_islink(self):
+        """Test the islink() function.
+        """
         pass
 
 

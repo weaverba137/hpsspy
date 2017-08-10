@@ -164,7 +164,7 @@ class TestScan(unittest.TestCase):
         self.assertLog(-2, "foo.bar might not be a JSON file!")
         self.assertLog(-1, "foo.bar does not exist. Try again.")
         # invalid file
-        invalid = resource_filename('hpsspy.test', 't/hsi')
+        invalid = resource_filename('hpsspy.test', 'bin/hsi')
         status = validate_configuration(invalid)
         self.assertEqual(status, 1)
         self.assertLog(-2, "{0} might not be a JSON file!".format(invalid))
