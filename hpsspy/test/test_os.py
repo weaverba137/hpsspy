@@ -28,7 +28,6 @@ class TestOs(MockHpss):
         """
         s = stat("desi/cosmos_nvo.tar")
         self.assertEqual(s.st_size, 29956061184)
-        self.assertEqual(s.st_mtime, 1400137200)
         self.assertEqual(s.st_mode, 33200)
 
     def test_lstat(self):
