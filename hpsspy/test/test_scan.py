@@ -116,7 +116,7 @@ class TestScan(unittest.TestCase):
         desi_map = {"dc2/batch/.*$": "dc2/batch.tar",
                     "dc2/([^/]+\\.txt)$": "dc2/\\1",
                     "dc2/templates/[^/]+$": "dc2/templates/templates_files.tar"
-                   }
+                    }
         for key in hpss_map['dc2']:
             self.assertIn(key[0].pattern, desi_map)
             self.assertEqual(key[1], desi_map[key[0].pattern])

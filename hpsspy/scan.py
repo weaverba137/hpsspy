@@ -41,7 +41,7 @@ def validate_configuration(config):
                 logger.critical("%s is not valid JSON.", config)
                 return 1
     # except FileNotFoundError:
-    except OSError:
+    except IOError:
         logger.critical("%s does not exist. Try again.", config)
         return 1
     if 'config' in json_data:
