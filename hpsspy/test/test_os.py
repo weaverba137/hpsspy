@@ -23,20 +23,36 @@ class TestOs(MockHpss):
     """Test the functions in the os subpackage.
     """
 
+    def test_stat(self):
+        """Test the stat() function.
+        """
+        s = stat("desi/cosmos_nvo.tar")
+        self.assertEqual(s.st_size, 29956061184)
+        self.assertEqual(s.st_mtime, 1400137200)
+        self.assertEqual(s.st_mode, 33200)
+
+    def test_lstat(self):
+        """Test the lstat() function.
+        """
+        s = lstat("cosmo")
+        self.assertTrue(s.islink)
+        s = lstat("test")
+        self.assertFalse(s.islink)
+
     def test_isdir(self):
         """Test the isdir() function.
         """
-        pass
+        self.assertTrue(isdir('test'))
 
     def test_isfile(self):
         """Test the isfile() function.
         """
-        pass
+        self.assertTrue(isfile('desi/cosmos_nvo.tar'))
 
     def test_islink(self):
         """Test the islink() function.
         """
-        pass
+        self.assertTrue(islink('cosmo'))
 
 
 def test_suite():
