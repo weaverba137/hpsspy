@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-0.4.0 (unreleased)
+0.4.0 (2017-08-10)
 ------------------
 
 * Add ``--version`` option.
