@@ -23,8 +23,9 @@ from ..util import HpssFile, get_hpss_dir, get_tmpdir, hsi, htar
 mock_available = True
 try:
     from unittest.mock import patch, MagicMock
-except:
+except ImportError:
     mock_available = False
+
 
 class MockHpss(unittest.TestCase):
     """Provide access to mock HPSS commands.
@@ -142,7 +143,8 @@ class TestUtil(MockHpss):
         self.assertEqual(str(err.exception),
                          "Unknown file type, s, for fake.socket!")
 
-    @unittest.skipUnless(mock_available, "Skipping test that requires unittest.mock.")
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
     def test_HpssFile_isdir(self):
         """Test the isdir property on symbolic links.
         """
@@ -152,7 +154,8 @@ class TestUtil(MockHpss):
             m.isdir = True
             s.return_value = m
             f = HpssFile(lspath, 'l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver',
-                         21, 'Aug', 22, '2014', 'cosmo@ -> /nersc/projects/cosmo')
+                         21, 'Aug', 22, '2014',
+                         'cosmo@ -> /nersc/projects/cosmo')
             self.assertTrue(f.islink)
             self.assertTrue(f.isdir)
             s.assert_called_with('/nersc/projects/cosmo')
@@ -166,7 +169,8 @@ class TestUtil(MockHpss):
             self.assertFalse(f.isdir)
             s.assert_called_with('/home/b/bweaver/cosmo.txt')
 
-    @unittest.skipUnless(mock_available, "Skipping test that requires unittest.mock.")
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
     def test_HpssFile_htar_contents(self):
         """Test retrieval of htar file contents.
         """
@@ -179,10 +183,17 @@ class TestUtil(MockHpss):
         self.assertListEqual(f.htar_contents(), ['foo.txt'])
         f._contents = None
         with patch('hpsspy.util.htar') as h:
-            h.return_value = ('HTAR: -rw-rw-r-- bweaver/bweaver 100 2012-07-03 12:00 foo.txt\nHTAR: -rw-rw-r-- bweaver/bweaver 100 2012-07-03 12:00 bar.txt', '')
+            h.return_value = ("HTAR: -rw-rw-r-- bweaver/bweaver 100 " +
+                              "2012-07-03 12:00 foo.txt\n" +
+                              "HTAR: -rw-rw-r-- bweaver/bweaver 100 " +
+                              "2012-07-03 12:00 bar.txt", '')
             self.assertListEqual(f.htar_contents(),
-                                 [('-', 'rw-rw-r--', 'bweaver', 'bweaver', '100', '2012', '07', '03', '12:00', 'foo.txt'),
-                                  ('-', 'rw-rw-r--', 'bweaver', 'bweaver', '100', '2012', '07', '03', '12:00', 'bar.txt')])
+                                 [('-', 'rw-rw-r--', 'bweaver', 'bweaver',
+                                   '100', '2012', '07', '03', '12:00',
+                                   'foo.txt'),
+                                  ('-', 'rw-rw-r--', 'bweaver', 'bweaver',
+                                   '100', '2012', '07', '03', '12:00',
+                                   'bar.txt')])
             h.assert_called_with('-t', '-f', '/home/b/bweaver/bundle.tar')
 
     def test_get_hpss_dir(self):

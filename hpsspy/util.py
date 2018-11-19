@@ -146,7 +146,8 @@ class HpssFile(object):
             try:
                 mode = self._file_modes[self.raw_type]
             except KeyError:
-                raise AttributeError("Unknown file type, {0.raw_type}, for {0.name}!".format(self))
+                raise AttributeError(("Unknown file type, {0.raw_type}, " +
+                                      "for {0.name}!").format(self))
             if self.raw_permission[0] == 'r':
                 mode |= stat.S_IRUSR
             if self.raw_permission[1] == 'w':

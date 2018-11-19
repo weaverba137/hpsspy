@@ -14,29 +14,185 @@ import unittest
 # import json
 # from pkg_resources import resource_filename
 import os
-from ..os import chmod, lstat, stat
+from ..os._os import chmod, listdir, makedirs, mkdir, lstat, stat
 from ..os.path import isdir, isfile, islink
+from .. import HpssOSError
 from .test_util import MockHpss
+
+mock_available = True
+try:
+    from unittest.mock import call, patch, MagicMock
+except ImportError:
+    mock_available = False
 
 
 class TestOs(MockHpss):
     """Test the functions in the os subpackage.
     """
 
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
+    def test_chmod(self):
+        """Test the chmod() function.
+        """
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = '** Error!'
+            with self.assertRaises(HpssOSError) as err:
+                chmod('/home/b/bweaver/foo.txt', 0o664)
+            self.assertEqual(str(err.exception), "** Error!")
+            h.assert_called_with('chmod', '436', '/home/b/bweaver/foo.txt')
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = 'All good!'
+            chmod('/home/b/bweaver/foo.txt', 0o664)
+            h.assert_called_with('chmod', '436', '/home/b/bweaver/foo.txt')
+
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
+    def test_listdir(self):
+        """Test the listdir() function.
+        """
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = '** Error!'
+            with self.assertRaises(HpssOSError) as err:
+                files = listdir('/home/b/bweaver')
+            self.assertEqual(str(err.exception), "** Error!")
+            h.assert_called_with('ls', '-la', '/home/b/bweaver')
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = '/home/b/bweaver:\nGarbage line'
+            with self.assertRaises(HpssOSError) as err:
+                files = listdir('/home/b/bweaver')
+            self.assertEqual(str(err.exception),
+                             "Could not match line!\nGarbage line")
+            h.assert_called_with('ls', '-la', '/home/b/bweaver')
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = ('/home/b/bweaver:\n'
+                              '-rw-rw----    1 bweaver   desi     ' +
+                              '29956061184 May 15  2014 cosmos_nvo.tar\n' +
+                              '-rw-rw----    1 bweaver   desi     ' +
+                              '      61184 May 15  2014 cosmos_nvo.tar.idx\n')
+            files = listdir('/home/b/bweaver')
+            h.assert_called_with('ls', '-la', '/home/b/bweaver')
+            self.assertTrue(files[0].ishtar)
+
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
+    def test_makedirs(self):
+        """Test the makedirs() function.
+        """
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = '** Error!'
+            with self.assertRaises(HpssOSError) as err:
+                makedirs('/home/b/bweaver', '2775')
+            self.assertEqual(str(err.exception), "** Error!")
+            h.assert_called_with('mkdir', '-p', '-m', '2775',
+                                 '/home/b/bweaver')
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = 'All good!'
+            makedirs('/home/b/bweaver', '2775')
+            h.assert_called_with('mkdir', '-p', '-m', '2775',
+                                 '/home/b/bweaver')
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = 'All good!'
+            makedirs('/home/b/bweaver')
+            h.assert_called_with('mkdir', '-p', '/home/b/bweaver')
+
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
+    def test_mkdir(self):
+        """Test the mkdir() function.
+        """
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = '** Error!'
+            with self.assertRaises(HpssOSError) as err:
+                mkdir('/home/b/bweaver', '2775')
+            self.assertEqual(str(err.exception), "** Error!")
+            h.assert_called_with('mkdir', '-m', '2775', '/home/b/bweaver')
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = 'All good!'
+            mkdir('/home/b/bweaver', '2775')
+            h.assert_called_with('mkdir', '-m', '2775', '/home/b/bweaver')
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = 'All good!'
+            mkdir('/home/b/bweaver')
+            h.assert_called_with('mkdir', '/home/b/bweaver')
+
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
     def test_stat(self):
         """Test the stat() function.
         """
-        s = stat("desi/cosmos_nvo.tar")
-        self.assertEqual(s.st_size, 29956061184)
-        self.assertEqual(s.st_mode, 33200)
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = '** Error!'
+            with self.assertRaises(HpssOSError) as err:
+                s = stat("desi/cosmos_nvo.tar")
+            self.assertEqual(str(err.exception), "** Error!")
+            h.assert_called_with('ls', '-ld', 'desi/cosmos_nvo.tar')
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = 'Garbage line'
+            with self.assertRaises(HpssOSError) as err:
+                s = stat("desi/cosmos_nvo.tar")
+            self.assertEqual(str(err.exception),
+                             "Could not match line!\nGarbage line")
+            h.assert_called_with('ls', '-ld', 'desi/cosmos_nvo.tar')
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = ('desi:\n-rw-rw----    1 bweaver   desi     ' +
+                              '29956061184 May 15  2014 cosmos_nvo.tar\n')
+            s = stat("desi/cosmos_nvo.tar")
+            h.assert_called_with('ls', '-ld', 'desi/cosmos_nvo.tar')
+            self.assertEqual(s.st_size, 29956061184)
+            self.assertEqual(s.st_mode, 33200)
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = ('desi:\n-rw-rw----    1 bweaver   desi     ' +
+                              '29956061184 May 15  2014 cosmos_nvo.tar\n' +
+                              'desi:\n-rw-rw----    1 bweaver   desi     ' +
+                              '29956061184 May 15  2014 cosmos_nvo.tar.idx\n')
+            with self.assertRaises(HpssOSError) as err:
+                s = stat("desi/cosmos_nvo.tar")
+            self.assertEqual(str(err.exception),
+                             "Non-unique response for desi/cosmos_nvo.tar!")
+            h.assert_called_with('ls', '-ld', 'desi/cosmos_nvo.tar')
+        with patch('hpsspy.os._os.hsi') as h:
+            h.side_effect = [('lrwxrwxrwx    1 bweaver   bweaver           ' +
+                              '21 Aug 22  2014 cosmo@ -> ' +
+                              '/nersc/projects/cosmo\n'),
+                             ('drwxrws---    6 nugent    cosmo            ' +
+                              '512 Dec 16  2016 cosmo')]
+            s = stat("cosmo")
+            self.assertTrue(s.isdir)
+            h.assert_has_calls([call('ls', '-ld', 'cosmo'),
+                                call('ls', '-ld', '/nersc/projects/cosmo')])
+        #
+        # This may be pointing to some unexpected behavior.
+        #
+        # with patch('hpsspy.os._os.hsi') as h:
+        #     h.side_effect = [('lrwxrwxrwx    1 bweaver   bweaver      ' +
+        #                       '21 Aug 22  2014 cosmo@ -> ' +
+        #                       'cosmo.old\n'),
+        #                      ('drwxrws---    6 nugent    cosmo       ' +
+        #                       '512 Dec 16  2016 cosmo.old')]
+        #     s = stat("cosmo")
+        #     self.assertTrue(s.isdir)
+        #     h.assert_has_calls([call('ls', '-ld', 'cosmo'),
+        #                         call('ls', '-ld', 'cosmo.old')])
 
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
     def test_lstat(self):
         """Test the lstat() function.
         """
-        s = lstat("cosmo")
-        self.assertTrue(s.islink)
-        s = lstat("test")
-        self.assertFalse(s.islink)
+        with patch('hpsspy.os._os.hsi') as h:
+            h.side_effect = [('lrwxrwxrwx    1 bweaver   bweaver           ' +
+                              '21 Aug 22  2014 cosmo@ -> ' +
+                              '/nersc/projects/cosmo\n'),
+                             ('drwxrws---    6 nugent    cosmo            ' +
+                              '512 Dec 16  2016 cosmo')]
+            s = lstat("cosmo")
+            self.assertTrue(s.islink)
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = ('drwxr-sr-x    3 bweaver   bweaver          ' +
+                              '512 Oct  4  2010 test')
+            s = lstat("test")
+            self.assertFalse(s.islink)
 
     def test_isdir(self):
         """Test the isdir() function.

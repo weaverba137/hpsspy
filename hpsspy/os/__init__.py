@@ -10,7 +10,7 @@ Reproduces some features of the Python built-in :mod:`os`.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 #
-from . import path
+# from . import path
 from ._os import *
 
 import re

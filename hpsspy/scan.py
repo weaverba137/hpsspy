@@ -329,7 +329,8 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                     if len(htar_dir) > 0:
                         break
                 if len(htar_dir) == 0:
-                    logger.error("Could not find directories corresponding to %s!", h)
+                    logger.error(("Could not find directories corresponding " +
+                                  "to %s!"), h)
                     continue
             logger.debug("chdir('%s')", full_chdir)
             chdir(full_chdir)
