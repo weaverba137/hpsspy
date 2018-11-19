@@ -316,7 +316,7 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                 # contain underscore characters, or X characters.
                 #
                 htar_base = basename(h).rsplit('.', 1)[0]  # remove .tar
-                # htar_dir = [basename(h).split('_')[-1].split('.')[0]]
+                htar_dir = []
                 for b in iterrsplit(htar_base, '_'):
                     if b.endswith('X'):
                         htar_re = re.compile(b.replace('X', '.') + '$')
@@ -328,6 +328,9 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                             htar_dir = [b]
                     if len(htar_dir) > 0:
                         break
+                if len(htar_dir) == 0:
+                    logger.error("Could not find directories corresponding to %s!", h)
+                    continue
             logger.debug("chdir('%s')", full_chdir)
             chdir(full_chdir)
             h_dir = join(hpss_root, disk_chdir)
