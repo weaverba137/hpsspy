@@ -160,10 +160,12 @@ imposes some additional requirements, conventions and idioms:
     For example ``batch.tar`` means "archive a batch/ directory".
     For longer file names, the "suffix" of the file will be used.
     ``data_d1_batch.tar`` also means "archive a batch/ directory", because
-    ``data_d1_`` is stripped off.
+    ``data_d1_`` is stripped off.  The directory name will be verified, so
+    if the directory to back up is actually ``d1_batch/``, ``batch/`` will be
+    searched for, then ``d1_batch/``.
   - An archive filename that ends with ``_files.tar``, *e.g.* ``foo/bar_files.tar``
     is a signal to :command:`missing_from_hpss` to construct
-    the archive file in a certain way, not by decending into a directory,
+    the archive file in a certain way, not by descending into a directory,
     but by constructing an explicit list of files and building an archive
     file out of that.
 
@@ -175,7 +177,7 @@ imposes some additional requirements, conventions and idioms:
     ``"foo/(bar|baz|flub)/.*$" : "foo/foo_\\1.tar"``.  The name of the
     directory matched in parentheses will be substituted into the file name.
   - Archive arbitrary subdirectories of a *set* of subdirectories:
-    ``"d1/foo/(ab|bc|cd|de|ef)/([^/]+)/.*$":"d1/foo/\\1/d1_foo_\\1_\\2.tar"``
+    ``"d1/foo/(ab|bc|cd|de|ef)/([^/]+)/.*$" : "d1/foo/\\1/d1_foo_\\1_\\2.tar"``
   - Match files in a directory, but not any files in any
     subdirectory: ``"foo/[^/]+$" : "foo_files.tar"``.  See also the
     ``_files.tar`` convention mentioned above.
@@ -183,7 +185,8 @@ imposes some additional requirements, conventions and idioms:
     archive file for efficiency: ``"foo/([0-9])([0-9][0-9])/.*$" : "foo/foo_\\1XX.tar"``.
     Note the ending of the archive file, and that the directories have to
     have a very uniform naming convention (three and only three digits
-    in this example).
+    in this example).  Also, the placeholder ``X`` needs to be at the *end* of
+    the file name.
   - Do not create an archive file, just copy the file, as is, to HPSS:
     ``"d1/README\\.txt$" : "d1/README.txt"``.  Similarly, for a set of TXT files:
     ``"d1/([^/]+\\.txt)$" : "d1/\\1"``.

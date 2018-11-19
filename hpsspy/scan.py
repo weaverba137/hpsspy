@@ -311,12 +311,23 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                         fp.write(Lfile_lines)
             else:
                 Lfile = None
-                htar_dir = [basename(h).split('_')[-1].split('.')[0]]
-                if 'X' in htar_dir[0]:
-                    htar_re = re.compile(htar_dir[0].replace('X', '.') + '$')
-                    htar_dir = [d for d in listdir(full_chdir)
-                                if isdir(join(full_chdir, d)) and
-                                htar_re.match(d) is not None]
+                #
+                # Be careful, because the directory name may itself
+                # contain underscore characters, or X characters.
+                #
+                htar_base = basename(h).rsplit('.', 1)[0]  # remove .tar
+                # htar_dir = [basename(h).split('_')[-1].split('.')[0]]
+                for b in iterrsplit(htar_base, '_'):
+                    if b.endswith('X'):
+                        htar_re = re.compile(b.replace('X', '.') + '$')
+                        htar_dir = [d for d in listdir(full_chdir)
+                                    if isdir(join(full_chdir, d)) and
+                                    htar_re.match(d) is not None]
+                    else:
+                        if isdir(join(full_chdir, b)):
+                            htar_dir = [b]
+                    if len(htar_dir) > 0:
+                        break
             logger.debug("chdir('%s')", full_chdir)
             chdir(full_chdir)
             h_dir = join(hpss_root, disk_chdir)
@@ -365,6 +376,29 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                           ':', h_file)
             logger.debug(out)
     chdir(start_directory)
+    return
+
+
+def iterrsplit(s, c):
+    """Split string `s` on `c` and rejoin on `c` from the end of `s`.
+
+    Parameters
+    ----------
+    s : :class:`str`
+        String to split
+    c : :class:`str`
+        Split on this string.
+
+    Returns
+    -------
+    :class:`str`
+        Iteratively return the joined parts of `s`.
+    """
+    ss = s.split(c)
+    i = -1
+    while abs(i) <= len(ss):
+        yield c.join(ss[i:])
+        i -= 1
     return
 
 

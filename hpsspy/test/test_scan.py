@@ -20,7 +20,7 @@ import logging
 from logging.handlers import MemoryHandler
 from pkg_resources import resource_filename, resource_stream
 from ..scan import (compile_map, files_to_hpss, physical_disks,
-                    validate_configuration)
+                    validate_configuration, iterrsplit)
 
 
 class TestHandler(MemoryHandler):
@@ -84,6 +84,13 @@ class TestScan(unittest.TestCase):
         logger = logging.getLogger('hpsspy.scan')
         self.assertEqual(logger.handlers[0].buffer[index].getMessage(),
                          message)
+
+    def test_iterrsplit(self):
+        """Test reverse re-joining a string.
+        """
+        results = ['d', 'c_d', 'b_c_d', 'a_b_c_d']
+        for i, s in enumerate(iterrsplit('a_b_c_d', '_')):
+            self.assertEqual(s, results[i])
 
     def test_compile_map(self):
         """Test compiling regular expressions in the JSON configuration file.
