@@ -76,7 +76,7 @@ setup_keywords['entry_points'] = {
 #
 # Test suite
 #
-setup_keywords['test_suite'] = 'hpsspy.test.hpsspy_test_suite.hpsspy_test_suite'
+setup_keywords['test_suite'] = 'hpsspy.test.hpsspy_test_suite'
 #
 # Run setup command.
 #
