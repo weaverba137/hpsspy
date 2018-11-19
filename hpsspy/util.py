@@ -146,7 +146,7 @@ class HpssFile(object):
             try:
                 mode = self._file_modes[self.raw_type]
             except KeyError:
-                raise
+                raise AttributeError("Unknown file type, {0.raw_type}, for {0.name}!".format(self))
             if self.raw_permission[0] == 'r':
                 mode |= stat.S_IRUSR
             if self.raw_permission[1] == 'w':
@@ -341,4 +341,4 @@ def htar(*args):
     err = errfile.read()
     outfile.close()
     errfile.close()
-    return (out, err)
+    return (out.decode('utf8'), err.decode('utf8'))
