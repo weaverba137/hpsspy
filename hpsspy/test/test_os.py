@@ -252,14 +252,14 @@ class TestOs(unittest.TestCase):
         #
         e = MagicMock()
         err = HpssOSError('foobar')
-        with patch('hpsspy.os._os.listdir') as l:
-            l.side_effect = err
+        with patch('hpsspy.os._os.listdir') as ld:
+            ld.side_effect = err
             w = walk('/home/b/bweaver', onerror=e)
             try:
                 n = next(w)
             except StopIteration:
                 pass
-            l.assert_called_with('/home/b/bweaver')
+            ld.assert_called_with('/home/b/bweaver')
         e.assert_called_with(err)
         #
         # Test standard operation
@@ -269,14 +269,14 @@ class TestOs(unittest.TestCase):
         d.__str__.return_value = 'subdir'
         f = MagicMock()
         f.isdir = False
-        with patch('hpsspy.os._os.listdir') as l:
+        with patch('hpsspy.os._os.listdir') as ld:
             with patch('hpsspy.os.path.islink') as i:
                 i.return_value = False
-                l.side_effect = [[d, f], []]
+                ld.side_effect = [[d, f], []]
                 w = walk('/home/b/bweaver')
                 n = next(w)
                 self.assertEqual(n, ('/home/b/bweaver', [d], [f]))
-                l.assert_called_with('/home/b/bweaver')
+                ld.assert_called_with('/home/b/bweaver')
                 n = next(w)
                 self.assertEqual(n, ('/home/b/bweaver/subdir', [], []))
                 i.assert_called_with('/home/b/bweaver/subdir')
@@ -288,17 +288,18 @@ class TestOs(unittest.TestCase):
         d.__str__.return_value = 'subdir'
         f = MagicMock()
         f.isdir = False
-        with patch('hpsspy.os._os.listdir') as l:
+        with patch('hpsspy.os._os.listdir') as ld:
             with patch('hpsspy.os.path.islink') as i:
                 i.return_value = False
-                l.side_effect = [[d, f], []]
+                ld.side_effect = [[d, f], []]
                 w = walk('/home/b/bweaver', topdown=False)
                 n = next(w)
                 self.assertEqual(n, ('/home/b/bweaver/subdir', [], []))
                 i.assert_called_with('/home/b/bweaver/subdir')
                 n = next(w)
                 self.assertEqual(n, ('/home/b/bweaver', [d], [f]))
-                l.assert_called_with('/home/b/bweaver/subdir')
+                ld.assert_called_with('/home/b/bweaver/subdir')
+
 
 def test_suite():
     """Allows testing of only this module with the command::
