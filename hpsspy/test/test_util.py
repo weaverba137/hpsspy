@@ -17,6 +17,8 @@ import os
 import sys
 import stat
 import datetime
+from shutil import rmtree
+from tempfile import mkdtemp
 from .. import HpssOSError
 from ..util import HpssFile, get_hpss_dir, get_tmpdir, hsi, htar
 
@@ -27,8 +29,8 @@ except ImportError:
     mock_available = False
 
 
-class MockHpss(unittest.TestCase):
-    """Provide access to mock HPSS commands.
+class TestUtil(unittest.TestCase):
+    """Test the functions in the util subpackage.
     """
 
     @classmethod
@@ -45,8 +47,6 @@ class MockHpss(unittest.TestCase):
         for e in self.env:
             if e in os.environ:
                 self.env[e] = os.environ[e]
-        hsi = resource_filename('hpsspy.test', 'bin/hsi')
-        os.environ['HPSS_DIR'] = os.path.dirname(os.path.dirname(hsi))
 
     def tearDown(self):
         # Restore the original value of env variables, if they were present.
@@ -56,11 +56,6 @@ class MockHpss(unittest.TestCase):
                     del os.environ[e]
             else:
                 os.environ[e] = self.env[e]
-
-
-class TestUtil(MockHpss):
-    """Test the functions in the util subpackage.
-    """
 
     def test_HpssFile(self):
         """Test the HpssFile object.
@@ -143,6 +138,20 @@ class TestUtil(MockHpss):
         self.assertEqual(str(err.exception),
                          "Unknown file type, s, for fake.socket!")
 
+    def test_HpssFile_st_mode(self):
+        """Test all st_mode combinations.
+        """
+        lspath = '/home/b/bweaver'
+        f = HpssFile(lspath, 'd', 'rwxrwsrwt', 1, 'bweaver', 'bweaver',
+                     1000, 'Feb', 2, '2016', 'fake.dir')
+        self.assertEqual(f.st_mode, 18431)
+        f = HpssFile(lspath, '-', 'rwSrw-rwT', 1, 'bweaver', 'bweaver',
+                     1000, 'Feb', 2, '2016', 'fake.file')
+        self.assertEqual(f.st_mode, 35766)
+        f = HpssFile(lspath, '-', 'rwsrwSrwT', 1, 'bweaver', 'bweaver',
+                     1000, 'Feb', 2, '2016', 'fake.file')
+        self.assertEqual(f.st_mode, 36854)
+
     @unittest.skipUnless(mock_available,
                          "Skipping test that requires unittest.mock.")
     def test_HpssFile_isdir(self):
@@ -199,8 +208,8 @@ class TestUtil(MockHpss):
     def test_get_hpss_dir(self):
         """Test searching for the HPSS_DIR variable.
         """
-        os.environ['HPSS_DIR'] = '/path/to/hpss'
-        self.assertEqual(get_hpss_dir(), '/path/to/hpss/bin')
+        with patch.dict('os.environ', {'HPSS_DIR': '/path/to/hpss'}):
+            self.assertEqual(get_hpss_dir(), '/path/to/hpss/bin')
 
     def test_get_tmpdir(self):
         """Test the TMPDIR search function.
@@ -218,19 +227,35 @@ class TestUtil(MockHpss):
     def test_hsi(self):
         """Test passing arguments to the hsi command.
         """
-        os.environ['TMPDIR'] = os.environ['HPSS_DIR']
-        pre_command = ['-O', os.path.join(os.environ['TMPDIR'], 'hsi.txt'),
+        os.environ['TMPDIR'] = mkdtemp()
+        txt = os.path.join(os.environ['TMPDIR'], 'hsi.txt')
+        with open(txt, 'w') as t:
+            t.write('This is a test.')
+        pre_command = ['-O', txt,
                        '-s', 'archive']
         command = ['ls', '-l', 'foo']
-        out = hsi(*command)
-        self.assertEqual(out.strip(), ' '.join(command))
+        with patch.dict('os.environ', {'HPSS_DIR': '/foo/bar'}):
+            with patch('hpsspy.util.call') as c:
+                out = hsi(*command)
+                c.assert_called_with(['/foo/bar/bin/hsi',
+                                      '-O', txt, '-s', 'archive',
+                                      'ls', '-l', 'foo'])
+        self.assertEqual(out.strip(), 'This is a test.')
+        rmtree(os.environ['TMPDIR'])
 
     def test_htar(self):
         """Test passing arguments to the htar command.
         """
         command = ['-cvf', 'foo/bar.tar', '-H', 'crc:verify=all', 'bar']
-        out, err = htar(*command)
-        self.assertEqual(out.strip(), ' '.join(command))
+        with patch.dict('os.environ', {'HPSS_DIR': '/foo/bar'}):
+            with patch('hpsspy.util.call') as c:
+                c.return_value = 0
+                out, err = htar(*command)
+                c.assert_called_once()
+                # c.assert_called_with(['/foo/bar/bin/htar', '-cvf',
+                #                       'foo/bar.tar',
+                #                       '-H', 'crc:verify=all', 'bar'])
+        self.assertEqual(out.strip(), '')
         self.assertEqual(err.strip(), '')
 
 

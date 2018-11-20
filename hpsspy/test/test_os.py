@@ -14,10 +14,10 @@ import unittest
 # import json
 # from pkg_resources import resource_filename
 import os
+import sys
 from ..os._os import chmod, listdir, makedirs, mkdir, lstat, stat
 from ..os.path import isdir, isfile, islink
 from .. import HpssOSError
-from .test_util import MockHpss
 
 mock_available = True
 try:
@@ -26,9 +26,23 @@ except ImportError:
     mock_available = False
 
 
-class TestOs(MockHpss):
+class TestOs(unittest.TestCase):
     """Test the functions in the os subpackage.
     """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.PY3 = sys.version_info[0] > 2
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
 
     @unittest.skipUnless(mock_available,
                          "Skipping test that requires unittest.mock.")
@@ -194,20 +208,39 @@ class TestOs(MockHpss):
             s = lstat("test")
             self.assertFalse(s.islink)
 
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
     def test_isdir(self):
         """Test the isdir() function.
         """
-        self.assertTrue(isdir('test'))
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = ('drwxr-sr-x    3 bweaver   bweaver          ' +
+                              '512 Oct  4  2010 test')
+            self.assertTrue(isdir('test'))
+            h.assert_called_with('ls', '-ld', 'test')
 
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
     def test_isfile(self):
         """Test the isfile() function.
         """
-        self.assertTrue(isfile('desi/cosmos_nvo.tar'))
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = ('desi:\n-rw-rw----    1 bweaver   desi     ' +
+                              '29956061184 May 15  2014 cosmos_nvo.tar\n')
+            self.assertTrue(isfile('desi/cosmos_nvo.tar'))
+            h.assert_called_with('ls', '-ld', 'desi/cosmos_nvo.tar')
 
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
     def test_islink(self):
         """Test the islink() function.
         """
-        self.assertTrue(islink('cosmo'))
+        with patch('hpsspy.os._os.hsi') as h:
+            h.return_value = ('lrwxrwxrwx    1 bweaver   bweaver           ' +
+                              '21 Aug 22  2014 cosmo@ -> ' +
+                              '/nersc/projects/cosmo\n')
+            self.assertTrue(islink('cosmo'))
+            h.assert_called_with('ls', '-ld', 'cosmo')
 
 
 def test_suite():
