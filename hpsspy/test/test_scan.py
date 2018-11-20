@@ -165,13 +165,13 @@ class TestScan(unittest.TestCase):
     def test_validate_configuration(self):
         """Test the configuration file validator.
         """
-        # Non-existant file
+        # Non-existent file
         status = validate_configuration('foo.bar')
         self.assertEqual(status, 1)
         self.assertLog(-2, "foo.bar might not be a JSON file!")
         self.assertLog(-1, "foo.bar does not exist. Try again.")
         # invalid file
-        invalid = resource_filename('hpsspy.test', 'bin/hsi')
+        invalid = resource_filename('hpsspy.test', 't/invalid_file')
         status = validate_configuration(invalid)
         self.assertEqual(status, 1)
         self.assertLog(-2, "{0} might not be a JSON file!".format(invalid))
