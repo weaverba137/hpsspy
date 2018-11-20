@@ -5,7 +5,8 @@ Release Notes
 0.4.1 (unreleased)
 ------------------
 
-* Handle directory names that contain underscore characters (PR `#4`_).
+* Handle directory names that contain underscore characters; improve test
+  coverage (PR `#4`_).
 
 .. _`#4`: https://github.com/weaverba137/hpsspy/pull/4
 
