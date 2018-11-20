@@ -205,6 +205,8 @@ class TestUtil(unittest.TestCase):
                                    'bar.txt')])
             h.assert_called_with('-t', '-f', '/home/b/bweaver/bundle.tar')
 
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
     def test_get_hpss_dir(self):
         """Test searching for the HPSS_DIR variable.
         """
@@ -224,6 +226,8 @@ class TestUtil(unittest.TestCase):
         del os.environ['TMPDIR']
         self.assertEqual(get_tmpdir(), '/tmp')
 
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
     def test_hsi(self):
         """Test passing arguments to the hsi command.
         """
@@ -243,6 +247,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(out.strip(), 'This is a test.')
         rmtree(os.environ['TMPDIR'])
 
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
     def test_htar(self):
         """Test passing arguments to the htar command.
         """
@@ -251,7 +257,10 @@ class TestUtil(unittest.TestCase):
             with patch('hpsspy.util.call') as c:
                 c.return_value = 0
                 out, err = htar(*command)
-                c.assert_called_once()
+                try:
+                    c.assert_called_once()  # Python >= 3.6
+                except AttributeError:
+                    pass
                 # c.assert_called_with(['/foo/bar/bin/htar', '-cvf',
                 #                       'foo/bar.tar',
                 #                       '-H', 'crc:verify=all', 'bar'])

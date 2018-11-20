@@ -15,7 +15,7 @@ import unittest
 # from pkg_resources import resource_filename
 import os
 import sys
-from ..os._os import chmod, listdir, makedirs, mkdir, lstat, stat
+from ..os._os import chmod, listdir, makedirs, mkdir, lstat, stat, walk
 from ..os.path import isdir, isfile, islink
 from .. import HpssOSError
 
@@ -242,6 +242,17 @@ class TestOs(unittest.TestCase):
             self.assertTrue(islink('cosmo'))
             h.assert_called_with('ls', '-ld', 'cosmo')
 
+    @unittest.skipUnless(False,
+                         "Skipping test that requires unittest.mock.")
+    def test_walk(self):
+        """Test the walk() function.
+        """
+        e = MagicMock()
+        with patch('hpsspy.os._os.listdir') as l:
+            l.side_effect = HpssOSError('foobar')
+            w = walk('/home/b/bweaver', onerror=e)
+            # l.assert_called_with('/home/b/bweaver')
+        # e.assert_called_with(HpssOSError('foobar'))
 
 def test_suite():
     """Allows testing of only this module with the command::
