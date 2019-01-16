@@ -158,11 +158,11 @@ imposes some additional requirements, conventions and idioms:
     file, not the regular expression itself.  This is because regular
     expression *substition* is performed on the archive file name.
     For example ``batch.tar`` means "archive a batch/ directory".
-    For longer file names, the "suffix" of the file will be used.
-    ``data_d1_batch.tar`` also means "archive a batch/ directory", because
-    ``data_d1_`` is stripped off.  The directory name will be verified, so
-    if the directory to back up is actually ``d1_batch/``, ``batch/`` will be
-    searched for, then ``d1_batch/``.
+    For longer file names, any "prefix" of the file name will be stripped
+    off, and the "suffix" of the file will be used. For example,
+    ``d1/data_d1_batch.tar`` also means "archive a batch/ directory", because
+    ``data_d1_`` recognized as a prefix and stripped off.  In particular,
+    this allows directory names to contain underscores.
   - An archive filename that ends with ``_files.tar``, *e.g.* ``foo/bar_files.tar``
     is a signal to :command:`missing_from_hpss` to construct
     the archive file in a certain way, not by descending into a directory,

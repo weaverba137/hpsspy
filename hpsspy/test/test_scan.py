@@ -20,7 +20,8 @@ import logging
 from logging.handlers import MemoryHandler
 from pkg_resources import resource_filename, resource_stream
 from ..scan import (compile_map, files_to_hpss, physical_disks,
-                    validate_configuration, iterrsplit)
+                    validate_configuration, process_missing, iterrsplit,
+                    extract_directory_name)
 
 
 class TestHandler(MemoryHandler):
@@ -224,6 +225,21 @@ class TestScan(unittest.TestCase):
                             "section '{0}'!").format('redux'))
         os.close(fn)
         os.remove(tmp)
+
+    def test_process_missing(self):
+        """Test conversion of missing files into HPSS commands.
+        """
+        pass
+
+    def test_extract_directory_name(self):
+        """Test conversion of HTAR file name back into directory name.
+        """
+        d = extract_directory_name(('images/fpc_analysis/' +
+                                    'protodesi_images_fpc_analysis_' +
+                                    'stability_dither-33022.tar'))
+        self.assertEqual(d, 'stability_dither-33022')
+        d = extract_directory_name('foo/bar/batch.tar')
+        self.assertEqual(d, 'batch')
 
 
 def test_suite():

@@ -2,6 +2,11 @@
 Release Notes
 =============
 
+0.5.0 (unreleased)
+------------------
+
+*Python 2 support will be dropped starting with this release.*
+
 0.4.1 (unreleased)
 ------------------
 
