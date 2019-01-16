@@ -6,10 +6,6 @@ hpsspy.test.test_top_level
 
 Test top-level hpsspy functions.
 """
-#
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# The line above will help with 2to3 support.
 import unittest
 import re
 import sys
@@ -38,10 +34,7 @@ class TestTopLevel(unittest.TestCase):
     def test_version(self):
         """Ensure the version conforms to PEP386/PEP440.
         """
-        if sys.version_info.major == 3:
-            self.assertRegex(theVersion, self.versionre)
-        else:
-            self.assertRegexpMatches(theVersion, self.versionre)
+        self.assertRegex(theVersion, self.versionre)
 
 
 def test_suite():

@@ -6,11 +6,8 @@ hpsspy.test.test_os
 
 Test the functions in the os subpackage.
 """
-#
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-#
 import unittest
+from unittest.mock import call, patch, MagicMock
 # import json
 # from pkg_resources import resource_filename
 import os
@@ -19,12 +16,6 @@ from ..os._os import chmod, listdir, makedirs, mkdir, lstat, stat, walk
 from ..os.path import isdir, isfile, islink
 from .. import HpssOSError
 
-mock_available = True
-try:
-    from unittest.mock import call, patch, MagicMock
-except ImportError:
-    mock_available = False
-
 
 class TestOs(unittest.TestCase):
     """Test the functions in the os subpackage.
@@ -32,7 +23,7 @@ class TestOs(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.PY3 = sys.version_info[0] > 2
+        pass
 
     @classmethod
     def tearDownClass(cls):
@@ -44,8 +35,6 @@ class TestOs(unittest.TestCase):
     def tearDown(self):
         pass
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_chmod(self):
         """Test the chmod() function.
         """
@@ -60,8 +49,6 @@ class TestOs(unittest.TestCase):
             chmod('/home/b/bweaver/foo.txt', 0o664)
             h.assert_called_with('chmod', '436', '/home/b/bweaver/foo.txt')
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_listdir(self):
         """Test the listdir() function.
         """
@@ -88,8 +75,6 @@ class TestOs(unittest.TestCase):
             h.assert_called_with('ls', '-la', '/home/b/bweaver')
             self.assertTrue(files[0].ishtar)
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_makedirs(self):
         """Test the makedirs() function.
         """
@@ -110,8 +95,6 @@ class TestOs(unittest.TestCase):
             makedirs('/home/b/bweaver')
             h.assert_called_with('mkdir', '-p', '/home/b/bweaver')
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_mkdir(self):
         """Test the mkdir() function.
         """
@@ -130,8 +113,6 @@ class TestOs(unittest.TestCase):
             mkdir('/home/b/bweaver')
             h.assert_called_with('mkdir', '/home/b/bweaver')
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_stat(self):
         """Test the stat() function.
         """
@@ -189,8 +170,6 @@ class TestOs(unittest.TestCase):
         #     h.assert_has_calls([call('ls', '-ld', 'cosmo'),
         #                         call('ls', '-ld', 'cosmo.old')])
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_lstat(self):
         """Test the lstat() function.
         """
@@ -208,8 +187,6 @@ class TestOs(unittest.TestCase):
             s = lstat("test")
             self.assertFalse(s.islink)
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_isdir(self):
         """Test the isdir() function.
         """
@@ -219,8 +196,6 @@ class TestOs(unittest.TestCase):
             self.assertTrue(isdir('test'))
             h.assert_called_with('ls', '-ld', 'test')
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_isfile(self):
         """Test the isfile() function.
         """
@@ -230,8 +205,6 @@ class TestOs(unittest.TestCase):
             self.assertTrue(isfile('desi/cosmos_nvo.tar'))
             h.assert_called_with('ls', '-ld', 'desi/cosmos_nvo.tar')
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_islink(self):
         """Test the islink() function.
         """
@@ -242,8 +215,6 @@ class TestOs(unittest.TestCase):
             self.assertTrue(islink('cosmo'))
             h.assert_called_with('ls', '-ld', 'cosmo')
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_walk(self):
         """Test the walk() function.
         """

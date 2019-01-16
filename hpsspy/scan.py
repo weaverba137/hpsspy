@@ -6,10 +6,6 @@ hpsspy.scan
 
 Functions for scanning directory trees to find files in need of backup.
 """
-#
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-#
 import csv
 import json
 import logging

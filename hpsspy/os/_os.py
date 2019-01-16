@@ -6,10 +6,6 @@ hpsspy.os._os
 
 Contains the actual functions in :mod:`hpsspy.os`.
 """
-#
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-#
 from .. import HpssOSError
 from ..util import HpssFile, hsi
 

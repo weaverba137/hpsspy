@@ -6,10 +6,8 @@ hpsspy.test
 
 Used to initialize the unit test framework via ``python setup.py test``.
 """
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# The line above will help with 2to3 support.
 import unittest
+from os.path import dirname
 
 
 def hpsspy_test_suite():
@@ -18,7 +16,6 @@ def hpsspy_test_suite():
     This is factored out separately from runtests() so that it can be used by
     ``python setup.py test``.
     """
-    from os.path import dirname
     py_dir = dirname(dirname(__file__))
     return unittest.defaultTestLoader.discover(py_dir,
                                                top_level_dir=dirname(py_dir))

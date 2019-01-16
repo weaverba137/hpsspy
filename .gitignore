@@ -50,6 +50,3 @@ nosetests.xml
 
 # Mac OSX
 .DS_Store
-
-# don't ignore test/bin
-!hpsspy/test/bin/*
