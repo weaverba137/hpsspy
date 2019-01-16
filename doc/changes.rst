@@ -7,7 +7,7 @@ Release Notes
 
 *Python 2 support will be dropped starting with this release.*
 
-0.4.1 (unreleased)
+0.4.1 (2019-01-16)
 ------------------
 
 * Handle directory names that contain underscore characters; improve test
