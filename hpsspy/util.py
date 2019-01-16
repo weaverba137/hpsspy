@@ -10,10 +10,13 @@ Low-level utilities.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 #
-from . import HpssOSError
-from os.path import exists, join
+import os
 import stat
 import re
+from datetime import datetime
+from subprocess import call
+from tempfile import TemporaryFile
+from . import HpssOSError
 
 
 class HpssFile(object):
@@ -108,7 +111,7 @@ class HpssFile(object):
             if new_path.startswith('/'):
                 return hpss_stat(new_path).isdir
             else:
-                return hpss_stat(join(self.hpss_path, new_path)).isdir
+                return hpss_stat(os.path.join(self.hpss_path, new_path)).isdir
         else:
             return self.raw_type == 'd'
 
@@ -134,7 +137,7 @@ class HpssFile(object):
     def path(self):
         """Full path to the file.
         """
-        return join(self.hpss_path, self.name)
+        return os.path.join(self.hpss_path, self.name)
 
     @property
     def st_mode(self):
@@ -146,7 +149,8 @@ class HpssFile(object):
             try:
                 mode = self._file_modes[self.raw_type]
             except KeyError:
-                raise
+                raise AttributeError(("Unknown file type, {0.raw_type}, " +
+                                      "for {0.name}!").format(self))
             if self.raw_permission[0] == 'r':
                 mode |= stat.S_IRUSR
             if self.raw_permission[1] == 'w':
@@ -184,7 +188,6 @@ class HpssFile(object):
     def st_mtime(self):
         """File modification time.
         """
-        from datetime import datetime
         if 'st_mtime' in self._property_cache:
             return self._property_cache['st_mtime']
         else:
@@ -238,9 +241,7 @@ def get_hpss_dir():
     KeyError
         If the :envvar:`HPSS_DIR` environment variable has not been set.
     """
-    from os import environ
-    hpss_dir = environ['HPSS_DIR']
-    return join(hpss_dir, 'bin')
+    return os.path.join(os.environ['HPSS_DIR'], 'bin')
 
 
 def get_tmpdir(**kwargs):
@@ -264,11 +265,10 @@ def get_tmpdir(**kwargs):
     :class:`str`
         The name of a temporary directory.
     """
-    from os import environ
     if 'tmpdir' in kwargs:
         t = kwargs['tmpdir']
-    elif 'TMPDIR' in environ:
-        t = environ['TMPDIR']
+    elif 'TMPDIR' in os.environ:
+        t = os.environ['TMPDIR']
     else:
         t = '/tmp'
     return t
@@ -296,17 +296,15 @@ def hsi(*args, **kwargs):
     KeyError
         If the :envvar:`HPSS_DIR` environment variable has not been set.
     """
-    from os import remove
-    from subprocess import call
     path = get_hpss_dir()
-    ofile = join(get_tmpdir(**kwargs), 'hsi.txt')
-    base_command = [join(path, 'hsi'), '-O', ofile, '-s', 'archive']
+    ofile = os.path.join(get_tmpdir(**kwargs), 'hsi.txt')
+    base_command = [os.path.join(path, 'hsi'), '-O', ofile, '-s', 'archive']
     command = base_command + list(args)
     status = call(command)
     with open(ofile) as o:
         out = o.read()
-    if exists(ofile):
-        remove(ofile)
+    if os.path.exists(ofile):
+        os.remove(ofile)
     return out
 
 
@@ -328,12 +326,10 @@ def htar(*args):
     KeyError
         If the :envvar:`HPSS_DIR` environment variable has not been set.
     """
-    from tempfile import TemporaryFile
-    from subprocess import call
     outfile = TemporaryFile()
     errfile = TemporaryFile()
     path = get_hpss_dir()
-    command = [join(path, 'htar')] + list(args)
+    command = [os.path.join(path, 'htar')] + list(args)
     status = call(command, stdout=outfile, stderr=errfile)
     outfile.seek(0)
     out = outfile.read()
@@ -341,4 +337,4 @@ def htar(*args):
     err = errfile.read()
     outfile.close()
     errfile.close()
-    return (out, err)
+    return (out.decode('utf8'), err.decode('utf8'))

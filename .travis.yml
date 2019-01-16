@@ -61,7 +61,7 @@ matrix:
         # Coverage test, pass the results to coveralls.
         - os: linux
           python: 3.5
-          env: MAIN_CMD='coverage' SETUP_CMD='run hpsspy/test/hpsspy_test_suite.py'
+          env: MAIN_CMD='coverage' SETUP_CMD='run setup.py test'
 
         # PEP 8 compliance.
         - os: linux

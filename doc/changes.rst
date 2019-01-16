@@ -2,10 +2,18 @@
 Release Notes
 =============
 
+0.5.0 (unreleased)
+------------------
+
+*Python 2 support will be dropped starting with this release.*
+
 0.4.1 (unreleased)
 ------------------
 
-* No changes yet.
+* Handle directory names that contain underscore characters; improve test
+  coverage (PR `#4`_).
+
+.. _`#4`: https://github.com/weaverba137/hpsspy/pull/4
 
 0.4.0 (2017-08-10)
 ------------------

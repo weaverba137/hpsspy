@@ -17,12 +17,20 @@ import os
 import sys
 import stat
 import datetime
+from shutil import rmtree
+from tempfile import mkdtemp
 from .. import HpssOSError
 from ..util import HpssFile, get_hpss_dir, get_tmpdir, hsi, htar
 
+mock_available = True
+try:
+    from unittest.mock import patch, MagicMock
+except ImportError:
+    mock_available = False
 
-class MockHpss(unittest.TestCase):
-    """Provide access to mock HPSS commands.
+
+class TestUtil(unittest.TestCase):
+    """Test the functions in the util subpackage.
     """
 
     @classmethod
@@ -39,8 +47,6 @@ class MockHpss(unittest.TestCase):
         for e in self.env:
             if e in os.environ:
                 self.env[e] = os.environ[e]
-        hsi = resource_filename('hpsspy.test', 'bin/hsi')
-        os.environ['HPSS_DIR'] = os.path.dirname(os.path.dirname(hsi))
 
     def tearDown(self):
         # Restore the original value of env variables, if they were present.
@@ -50,11 +56,6 @@ class MockHpss(unittest.TestCase):
                     del os.environ[e]
             else:
                 os.environ[e] = self.env[e]
-
-
-class TestUtil(MockHpss):
-    """Test the functions in the util subpackage.
-    """
 
     def test_HpssFile(self):
         """Test the HpssFile object.
@@ -127,12 +128,90 @@ class TestUtil(MockHpss):
                 else:
                     self.assertIsNone(f.htar_contents())
             self.assertEqual(f.st_mtime, int(mtimes[i].strftime('%s')))
+        #
+        # Test funky modes.
+        #
+        f = HpssFile(lspath, 's', 'rw-rw----', 1, 'bweaver', 'bweaver',
+                     1000, 'Feb', 2, '2016', 'fake.socket')
+        with self.assertRaises(AttributeError) as err:
+            m = f.st_mode
+        self.assertEqual(str(err.exception),
+                         "Unknown file type, s, for fake.socket!")
 
+    def test_HpssFile_st_mode(self):
+        """Test all st_mode combinations.
+        """
+        lspath = '/home/b/bweaver'
+        f = HpssFile(lspath, 'd', 'rwxrwsrwt', 1, 'bweaver', 'bweaver',
+                     1000, 'Feb', 2, '2016', 'fake.dir')
+        self.assertEqual(f.st_mode, 18431)
+        f = HpssFile(lspath, '-', 'rwSrw-rwT', 1, 'bweaver', 'bweaver',
+                     1000, 'Feb', 2, '2016', 'fake.file')
+        self.assertEqual(f.st_mode, 35766)
+        f = HpssFile(lspath, '-', 'rwsrwSrwT', 1, 'bweaver', 'bweaver',
+                     1000, 'Feb', 2, '2016', 'fake.file')
+        self.assertEqual(f.st_mode, 36854)
+
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
+    def test_HpssFile_isdir(self):
+        """Test the isdir property on symbolic links.
+        """
+        lspath = '/home/b/bweaver'
+        with patch('hpsspy.os.stat') as s:
+            m = MagicMock()
+            m.isdir = True
+            s.return_value = m
+            f = HpssFile(lspath, 'l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver',
+                         21, 'Aug', 22, '2014',
+                         'cosmo@ -> /nersc/projects/cosmo')
+            self.assertTrue(f.islink)
+            self.assertTrue(f.isdir)
+            s.assert_called_with('/nersc/projects/cosmo')
+        with patch('hpsspy.os.stat') as s:
+            m = MagicMock()
+            m.isdir = False
+            s.return_value = m
+            f = HpssFile(lspath, 'l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver',
+                         21, 'Aug', 22, '2014', 'cosmo@ -> cosmo.txt')
+            self.assertTrue(f.islink)
+            self.assertFalse(f.isdir)
+            s.assert_called_with('/home/b/bweaver/cosmo.txt')
+
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
+    def test_HpssFile_htar_contents(self):
+        """Test retrieval of htar file contents.
+        """
+        lspath = '/home/b/bweaver'
+        f = HpssFile(lspath, '-', 'rw-rw-r--', 1, 'bweaver', 'bweaver',
+                     12345, 'Aug', 22, '2014', 'bundle.tar')
+        self.assertIsNone(f.htar_contents())
+        f.ishtar = True
+        f._contents = ['foo.txt']
+        self.assertListEqual(f.htar_contents(), ['foo.txt'])
+        f._contents = None
+        with patch('hpsspy.util.htar') as h:
+            h.return_value = ("HTAR: -rw-rw-r-- bweaver/bweaver 100 " +
+                              "2012-07-03 12:00 foo.txt\n" +
+                              "HTAR: -rw-rw-r-- bweaver/bweaver 100 " +
+                              "2012-07-03 12:00 bar.txt", '')
+            self.assertListEqual(f.htar_contents(),
+                                 [('-', 'rw-rw-r--', 'bweaver', 'bweaver',
+                                   '100', '2012', '07', '03', '12:00',
+                                   'foo.txt'),
+                                  ('-', 'rw-rw-r--', 'bweaver', 'bweaver',
+                                   '100', '2012', '07', '03', '12:00',
+                                   'bar.txt')])
+            h.assert_called_with('-t', '-f', '/home/b/bweaver/bundle.tar')
+
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
     def test_get_hpss_dir(self):
         """Test searching for the HPSS_DIR variable.
         """
-        os.environ['HPSS_DIR'] = '/path/to/hpss'
-        self.assertEqual(get_hpss_dir(), '/path/to/hpss/bin')
+        with patch.dict('os.environ', {'HPSS_DIR': '/path/to/hpss'}):
+            self.assertEqual(get_hpss_dir(), '/path/to/hpss/bin')
 
     def test_get_tmpdir(self):
         """Test the TMPDIR search function.
@@ -147,27 +226,46 @@ class TestUtil(MockHpss):
         del os.environ['TMPDIR']
         self.assertEqual(get_tmpdir(), '/tmp')
 
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
     def test_hsi(self):
         """Test passing arguments to the hsi command.
         """
-        os.environ['TMPDIR'] = os.environ['HPSS_DIR']
-        pre_command = ['-O', os.path.join(os.environ['TMPDIR'], 'hsi.txt'),
+        os.environ['TMPDIR'] = mkdtemp()
+        txt = os.path.join(os.environ['TMPDIR'], 'hsi.txt')
+        with open(txt, 'w') as t:
+            t.write('This is a test.')
+        pre_command = ['-O', txt,
                        '-s', 'archive']
         command = ['ls', '-l', 'foo']
-        out = hsi(*command)
-        self.assertEqual(out.strip(), ' '.join(command))
+        with patch.dict('os.environ', {'HPSS_DIR': '/foo/bar'}):
+            with patch('hpsspy.util.call') as c:
+                out = hsi(*command)
+                c.assert_called_with(['/foo/bar/bin/hsi',
+                                      '-O', txt, '-s', 'archive',
+                                      'ls', '-l', 'foo'])
+        self.assertEqual(out.strip(), 'This is a test.')
+        rmtree(os.environ['TMPDIR'])
 
+    @unittest.skipUnless(mock_available,
+                         "Skipping test that requires unittest.mock.")
     def test_htar(self):
         """Test passing arguments to the htar command.
         """
         command = ['-cvf', 'foo/bar.tar', '-H', 'crc:verify=all', 'bar']
-        out, err = htar(*command)
-        if self.PY3:
-            self.assertEqual(out.decode('utf8').strip(), ' '.join(command))
-            self.assertEqual(err.decode('utf8').strip(), '')
-        else:
-            self.assertEqual(out.strip(), ' '.join(command))
-            self.assertEqual(err.strip(), '')
+        with patch.dict('os.environ', {'HPSS_DIR': '/foo/bar'}):
+            with patch('hpsspy.util.call') as c:
+                c.return_value = 0
+                out, err = htar(*command)
+                try:
+                    c.assert_called_once()  # Python >= 3.6
+                except AttributeError:
+                    pass
+                # c.assert_called_with(['/foo/bar/bin/htar', '-cvf',
+                #                       'foo/bar.tar',
+                #                       '-H', 'crc:verify=all', 'bar'])
+        self.assertEqual(out.strip(), '')
+        self.assertEqual(err.strip(), '')
 
 
 def test_suite():

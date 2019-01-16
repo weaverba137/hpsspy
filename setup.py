@@ -24,9 +24,10 @@ setup_keywords['license'] = 'BSD'
 setup_keywords['url'] = 'https://github.com/weaverba137/hpsspy'
 setup_keywords['keywords'] = ['backup']
 setup_keywords['classifiers'] = [
-    'Development Status :: 3 - Alpha',
+    'Development Status :: 4 - Beta',
     'Environment :: Console',
     'Intended Audience :: Science/Research',
+    'Intended Audience :: System Administrators',
     'License :: OSI Approved :: BSD License',
     'Operating System :: OS Independent',
     'Programming Language :: Python :: 2.7',
@@ -64,7 +65,7 @@ setup_keywords['use_2to3'] = True
 setup_keywords['packages'] = find_packages()
 setup_keywords['cmdclass'] = {'sdist': DistutilsSdist}
 setup_keywords['package_data'] = {'hpsspy': ['data/*.json',],
-                                  'hpsspy.test': ['t/*', 'bin/*']}
+                                  'hpsspy.test': ['t/*']}
 #
 # Autogenerate command-line scripts.
 #
@@ -76,7 +77,7 @@ setup_keywords['entry_points'] = {
 #
 # Test suite
 #
-setup_keywords['test_suite'] = 'hpsspy.test.hpsspy_test_suite.hpsspy_test_suite'
+setup_keywords['test_suite'] = 'hpsspy.test.hpsspy_test_suite'
 #
 # Run setup command.
 #

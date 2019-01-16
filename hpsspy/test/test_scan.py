@@ -20,7 +20,8 @@ import logging
 from logging.handlers import MemoryHandler
 from pkg_resources import resource_filename, resource_stream
 from ..scan import (compile_map, files_to_hpss, physical_disks,
-                    validate_configuration)
+                    validate_configuration, process_missing, iterrsplit,
+                    extract_directory_name)
 
 
 class TestHandler(MemoryHandler):
@@ -84,6 +85,13 @@ class TestScan(unittest.TestCase):
         logger = logging.getLogger('hpsspy.scan')
         self.assertEqual(logger.handlers[0].buffer[index].getMessage(),
                          message)
+
+    def test_iterrsplit(self):
+        """Test reverse re-joining a string.
+        """
+        results = ['d', 'c_d', 'b_c_d', 'a_b_c_d']
+        for i, s in enumerate(iterrsplit('a_b_c_d', '_')):
+            self.assertEqual(s, results[i])
 
     def test_compile_map(self):
         """Test compiling regular expressions in the JSON configuration file.
@@ -158,13 +166,13 @@ class TestScan(unittest.TestCase):
     def test_validate_configuration(self):
         """Test the configuration file validator.
         """
-        # Non-existant file
+        # Non-existent file
         status = validate_configuration('foo.bar')
         self.assertEqual(status, 1)
         self.assertLog(-2, "foo.bar might not be a JSON file!")
         self.assertLog(-1, "foo.bar does not exist. Try again.")
         # invalid file
-        invalid = resource_filename('hpsspy.test', 'bin/hsi')
+        invalid = resource_filename('hpsspy.test', 't/invalid_file')
         status = validate_configuration(invalid)
         self.assertEqual(status, 1)
         self.assertLog(-2, "{0} might not be a JSON file!".format(invalid))
@@ -217,6 +225,21 @@ class TestScan(unittest.TestCase):
                             "section '{0}'!").format('redux'))
         os.close(fn)
         os.remove(tmp)
+
+    def test_process_missing(self):
+        """Test conversion of missing files into HPSS commands.
+        """
+        pass
+
+    def test_extract_directory_name(self):
+        """Test conversion of HTAR file name back into directory name.
+        """
+        d = extract_directory_name(('images/fpc_analysis/' +
+                                    'protodesi_images_fpc_analysis_' +
+                                    'stability_dither-33022.tar'))
+        self.assertEqual(d, 'stability_dither-33022')
+        d = extract_directory_name('foo/bar/batch.tar')
+        self.assertEqual(d, 'batch')
 
 
 def test_suite():
