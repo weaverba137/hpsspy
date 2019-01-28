@@ -240,6 +240,8 @@ class TestScan(unittest.TestCase):
         self.assertEqual(d, 'stability_dither-33022')
         d = extract_directory_name('foo/bar/batch.tar')
         self.assertEqual(d, 'batch')
+        d = extract_directory_name('batch.tar')
+        self.assertEqual(d, 'batch')
 
 
 def test_suite():

@@ -7,6 +7,13 @@ Release Notes
 
 *Python 2 support will be dropped starting with this release.*
 
+0.4.2 (unreleased)
+------------------
+
+* Further fixes for mapping HTAR file names back to directories (PR `#5`_).
+
+.. _`#5`: https://github.com/weaverba137/hpsspy/pull/5
+
 0.4.1 (2019-01-16)
 ------------------
 

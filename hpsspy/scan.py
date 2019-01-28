@@ -387,8 +387,11 @@ def extract_directory_name(filename):
     :class:`str`
         Name of a directory.
     """
-    prefix = os.path.dirname(filename).replace('/', '_') + '_'
+    d = os.path.dirname(filename)
     basefile = os.path.basename(filename).rsplit('.', 1)[0]  # remove .tar
+    if not d:
+        return basefile
+    prefix = d.replace('/', '_') + '_'
     try:
         i = basefile.index(prefix)
     except ValueError:
