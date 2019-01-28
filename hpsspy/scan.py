@@ -395,7 +395,11 @@ def extract_directory_name(filename):
     try:
         i = basefile.index(prefix)
     except ValueError:
-        return basefile
+        try:
+            prefix = '_'.join(prefix.split('_')[1:])
+            i = basefile.index(prefix)
+        except ValueError:
+            return basefile
     return basefile[(i + len(prefix)):]
 
 
