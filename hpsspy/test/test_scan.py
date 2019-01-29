@@ -238,7 +238,12 @@ class TestScan(unittest.TestCase):
                                     'protodesi_images_fpc_analysis_' +
                                     'stability_dither-33022.tar'))
         self.assertEqual(d, 'stability_dither-33022')
+        d = extract_directory_name(('buzzard/buzzard_v1.6_desicut/8/' +
+                                    'buzzard_v1.6_desicut_8_7.tar'))
+        self.assertEqual(d, '7')
         d = extract_directory_name('foo/bar/batch.tar')
+        self.assertEqual(d, 'batch')
+        d = extract_directory_name('batch.tar')
         self.assertEqual(d, 'batch')
 
 
