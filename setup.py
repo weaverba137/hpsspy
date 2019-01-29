@@ -57,7 +57,7 @@ setup_keywords['download_url'] = 'https://github.com/weaverba137/hpsspy/tarball/
 # be left alone unless you are an expert.
 #
 setup_keywords['provides'] = [setup_keywords['name']]
-setup_keywords['python_requires'] = '>=3.4.0'
+setup_keywords['python_requires'] = '>=3.4'
 setup_keywords['zip_safe'] = True
 setup_keywords['use_2to3'] = False
 setup_keywords['packages'] = find_packages()
