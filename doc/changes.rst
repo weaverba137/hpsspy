@@ -10,9 +10,9 @@ Release Notes
 0.4.2 (unreleased)
 ------------------
 
-* Further fixes for mapping HTAR file names back to directories (PR `#5`_).
+* Further fixes for mapping HTAR file names back to directories (PR `#6`_).
 
-.. _`#5`: https://github.com/weaverba137/hpsspy/pull/5
+.. _`#6`: https://github.com/weaverba137/hpsspy/pull/6
 
 0.4.1 (2019-01-16)
 ------------------
