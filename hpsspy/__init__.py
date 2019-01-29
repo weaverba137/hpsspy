@@ -23,4 +23,4 @@ class HpssOSError(HpssError):
     pass
 
 
-__version__ = '0.4.2.dev242'
+__version__ = '0.4.2'
