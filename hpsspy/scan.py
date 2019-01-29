@@ -557,7 +557,7 @@ def main():
     parser = ArgumentParser(prog=os.path.basename(argv[0]), description=desc)
     parser.add_argument('-c', '--cache-dir', action='store', dest='cache',
                         metavar='DIR',
-                        default=os.path.join(os.environ['HOME'], 'scratch'),
+                        default=os.path.join(os.environ['HOME'], 'cache'),
                         help=('Write cache files to DIR (Default: ' +
                               '%(default)s).'))
     parser.add_argument('-D', '--clobber-disk', action='store_true',
