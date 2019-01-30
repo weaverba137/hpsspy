@@ -23,7 +23,7 @@ display all of them. Just the short versions of the commands are
 shown here.
 
 -c DIR      Cache files (described below) are written to
-            ``$HOME/scratch`` by default.  This option
+            ``$HOME/cache`` by default.  This option
             allows the user to choose any directory.
 -D          Delete and recreate the disk cache file
             (described below).
@@ -54,7 +54,7 @@ Cache Files
 +++++++++++
 
 :command:`missing_from_hpss` uses a few cache files primarily to reduce
-memory footprint.  These files will be stored in ``$HOME/scratch``
+memory footprint.  These files will be stored in ``$HOME/cache``
 by default.  The files are:
 
 Disk Cache
@@ -68,7 +68,7 @@ HPSS Cache
     the command-line.  This is simply a list of files found on HPSS.
 
 Missing File Cache
-    A JSON file of the form ``$HOME/scratch/missing_files_<section>.json``,
+    A JSON file of the form ``$HOME/cache/missing_files_<section>.json``,
     where ``<section>`` is the section (as defined above) specified on the
     command-line. It contains a map of HPSS archive files to the files that
     belong in that archive.  In addition the size of the resulting files
@@ -83,7 +83,7 @@ Testing and Quality Assurance
 
 To test a configuration file just run :command:`missing_from_hpss` with the
 ``--test`` option as described above.  Aside from creating cache files in
-a scratch directory as described above, this mode will not alter any of the
+a directory as described above, this mode will not alter any of the
 data, neither on disk nor on HPSS.
 
 In addition to validating JSON files and regular expressions, as

@@ -6,10 +6,6 @@ hpsspy.test.test_scan
 
 Test the functions in the scan subpackage.
 """
-#
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-#
 import unittest
 import json
 import os
@@ -44,7 +40,6 @@ class TestScan(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.PY3 = sys.version_info[0] > 2
         logging.getLogger('hpsspy.scan').addHandler(TestHandler())
         # cls.logger.setLevel(logging.DEBUG)
         # log_format = '%(asctime)s %(name)s %(levelname)s: %(message)s'

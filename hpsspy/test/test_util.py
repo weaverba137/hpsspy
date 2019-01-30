@@ -6,11 +6,8 @@ hpsspy.test.test_util
 
 Test the functions in the util subpackage.
 """
-#
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-#
 import unittest
+from unittest.mock import patch, MagicMock
 # import json
 from pkg_resources import resource_filename
 import os
@@ -22,12 +19,6 @@ from tempfile import mkdtemp
 from .. import HpssOSError
 from ..util import HpssFile, get_hpss_dir, get_tmpdir, hsi, htar
 
-mock_available = True
-try:
-    from unittest.mock import patch, MagicMock
-except ImportError:
-    mock_available = False
-
 
 class TestUtil(unittest.TestCase):
     """Test the functions in the util subpackage.
@@ -35,7 +26,7 @@ class TestUtil(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.PY3 = sys.version_info[0] > 2
+        pass
 
     @classmethod
     def tearDownClass(cls):
@@ -152,8 +143,6 @@ class TestUtil(unittest.TestCase):
                      1000, 'Feb', 2, '2016', 'fake.file')
         self.assertEqual(f.st_mode, 36854)
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_HpssFile_isdir(self):
         """Test the isdir property on symbolic links.
         """
@@ -178,8 +167,6 @@ class TestUtil(unittest.TestCase):
             self.assertFalse(f.isdir)
             s.assert_called_with('/home/b/bweaver/cosmo.txt')
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_HpssFile_htar_contents(self):
         """Test retrieval of htar file contents.
         """
@@ -205,8 +192,6 @@ class TestUtil(unittest.TestCase):
                                    'bar.txt')])
             h.assert_called_with('-t', '-f', '/home/b/bweaver/bundle.tar')
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_get_hpss_dir(self):
         """Test searching for the HPSS_DIR variable.
         """
@@ -226,8 +211,6 @@ class TestUtil(unittest.TestCase):
         del os.environ['TMPDIR']
         self.assertEqual(get_tmpdir(), '/tmp')
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_hsi(self):
         """Test passing arguments to the hsi command.
         """
@@ -247,8 +230,6 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(out.strip(), 'This is a test.')
         rmtree(os.environ['TMPDIR'])
 
-    @unittest.skipUnless(mock_available,
-                         "Skipping test that requires unittest.mock.")
     def test_htar(self):
         """Test passing arguments to the htar command.
         """

@@ -6,10 +6,6 @@ hpsspy.scan
 
 Functions for scanning directory trees to find files in need of backup.
 """
-#
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-#
 import csv
 import json
 import logging
@@ -426,7 +422,7 @@ def iterrsplit(s, c):
     return
 
 
-def scan_disk(disk_roots, disk_files_cache, clobber=False):
+def scan_disk(disk_roots, disk_files_cache, overwrite=False):
     """Scan a directory tree on disk and cache the files found there.
 
     Parameters
@@ -435,7 +431,7 @@ def scan_disk(disk_roots, disk_files_cache, clobber=False):
         Name(s) of a directory in which to start the scan.
     disk_files_cache : :class:`str`
         Name of a file to hold the cache.
-    clobber : :class:`bool`, optional
+    overwrite : :class:`bool`, optional
         If ``True``, ignore any existing cache files.
 
     Returns
@@ -444,7 +440,7 @@ def scan_disk(disk_roots, disk_files_cache, clobber=False):
         Returns ``True`` if the cache is populated and ready to read.
     """
     logger = logging.getLogger(__name__ + '.scan_disk')
-    if os.path.exists(disk_files_cache) and not clobber:
+    if os.path.exists(disk_files_cache) and not overwrite:
         logger.debug("Using existing file cache: %s", disk_files_cache)
         return True
     else:
@@ -469,7 +465,7 @@ def scan_disk(disk_roots, disk_files_cache, clobber=False):
     return True
 
 
-def scan_hpss(hpss_root, hpss_files_cache, clobber=False):
+def scan_hpss(hpss_root, hpss_files_cache, overwrite=False):
     """Scan a directory on HPSS and return the files found there.
 
     Parameters
@@ -478,7 +474,7 @@ def scan_hpss(hpss_root, hpss_files_cache, clobber=False):
         Name of a directory in which to start the scan.
     hpss_files_cache : :class:`str`
         Name of a file to hold the cache.
-    clobber : :class:`bool`, optional
+    overwrite : :class:`bool`, optional
         If ``True``, ignore any existing cache files.
 
     Returns
@@ -488,7 +484,7 @@ def scan_hpss(hpss_root, hpss_files_cache, clobber=False):
     """
     from .os import walk
     logger = logging.getLogger(__name__ + '.scan_hpss')
-    if os.path.exists(hpss_files_cache) and not clobber:
+    if os.path.exists(hpss_files_cache) and not overwrite:
         logger.info("Found cache file %s.", hpss_files_cache)
         with open(hpss_files_cache) as t:
             hpss_files = [l.strip() for l in t.readlines()]
@@ -561,14 +557,14 @@ def main():
     parser = ArgumentParser(prog=os.path.basename(argv[0]), description=desc)
     parser.add_argument('-c', '--cache-dir', action='store', dest='cache',
                         metavar='DIR',
-                        default=os.path.join(os.environ['HOME'], 'scratch'),
+                        default=os.path.join(os.environ['HOME'], 'cache'),
                         help=('Write cache files to DIR (Default: ' +
                               '%(default)s).'))
-    parser.add_argument('-D', '--clobber-disk', action='store_true',
-                        dest='clobber_disk',
+    parser.add_argument('-D', '--overwrite-disk', action='store_true',
+                        dest='overwrite_disk',
                         help='Ignore any existing disk cache files.')
-    parser.add_argument('-H', '--clobber-hpss', action='store_true',
-                        dest='clobber_hpss',
+    parser.add_argument('-H', '--overwrite-hpss', action='store_true',
+                        dest='overwrite_hpss',
                         help='Ignore any existing HPSS cache files.')
     parser.add_argument('-l', '--size-limit', action='store', type=float,
                         dest='limit', metavar='N', default=1024.0,
@@ -629,7 +625,7 @@ def main():
                                          '{0}.txt').format(options.release))
         logger.debug("hpss_files_cache = '%s'", hpss_files_cache)
         hpss_files = scan_hpss(hpss_release_root, hpss_files_cache,
-                               clobber=options.clobber_hpss)
+                               overwrite=options.overwrite_hpss)
     #
     # Read disk files and cache.
     #
@@ -639,7 +635,7 @@ def main():
     logger.debug("disk_files_cache = '%s'", disk_files_cache)
     disk_roots = physical_disks(release_root, config)
     status = scan_disk(disk_roots, disk_files_cache,
-                       clobber=options.clobber_disk)
+                       overwrite=options.overwrite_disk)
     if not status:
         return 1
     #

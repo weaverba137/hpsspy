@@ -5,7 +5,11 @@ Release Notes
 0.5.0 (unreleased)
 ------------------
 
-*Python 2 support will be dropped starting with this release.*
+*This release drops support for Python 2.*
+
+* Remove all Python 2 code. (PR `#8`_).
+
+.. _`#8`: https://github.com/weaverba137/hpsspy/pull/8
 
 0.4.2 (2019-01-29)
 ------------------
