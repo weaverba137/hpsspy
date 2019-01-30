@@ -159,16 +159,16 @@ class TestOs(unittest.TestCase):
         #
         # This may be pointing to some unexpected behavior.
         #
-        # with patch('hpsspy.os._os.hsi') as h:
-        #     h.side_effect = [('lrwxrwxrwx    1 bweaver   bweaver      ' +
-        #                       '21 Aug 22  2014 cosmo@ -> ' +
-        #                       'cosmo.old\n'),
-        #                      ('drwxrws---    6 nugent    cosmo       ' +
-        #                       '512 Dec 16  2016 cosmo.old')]
-        #     s = stat("cosmo")
-        #     self.assertTrue(s.isdir)
-        #     h.assert_has_calls([call('ls', '-ld', 'cosmo'),
-        #                         call('ls', '-ld', 'cosmo.old')])
+        with patch('hpsspy.os._os.hsi') as h:
+            h.side_effect = [('lrwxrwxrwx    1 bweaver   bweaver      ' +
+                              '21 Aug 22  2014 cosmo@ -> ' +
+                              'cosmo.old\n'),
+                             ('drwxrws---    6 nugent    cosmo       ' +
+                              '512 Dec 16  2016 cosmo.old')]
+            s = stat("cosmo")
+            self.assertTrue(s.isdir)
+            h.assert_has_calls([call('ls', '-ld', 'cosmo'),
+                                call('ls', '-ld', 'cosmo.old')])
 
     def test_lstat(self):
         """Test the lstat() function.
@@ -209,11 +209,14 @@ class TestOs(unittest.TestCase):
         """Test the islink() function.
         """
         with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = ('lrwxrwxrwx    1 bweaver   bweaver           ' +
+            h.side_effect = [('lrwxrwxrwx    1 bweaver   bweaver           ' +
                               '21 Aug 22  2014 cosmo@ -> ' +
-                              '/nersc/projects/cosmo\n')
+                              '/nersc/projects/cosmo\n'),
+                             ('/nersc/projects:\n' +
+                              'drwxrwxr-x    1 bweaver   bweaver           ' +
+                              '21 Aug 22  2014 cosmo')]
             self.assertTrue(islink('cosmo'))
-            h.assert_called_with('ls', '-ld', 'cosmo')
+            h.assert_has_calls([call('ls', '-ld', 'cosmo'),])
 
     def test_walk(self):
         """Test the walk() function.

@@ -141,15 +141,15 @@ def mkdir(path, mode=None):
     return
 
 
-def stat(path, lstat=False):
+def stat(path, follow_symlinks=True):
     """Perform the equivalent of :func:`os.stat` on the HPSS file `path`.
 
     Parameters
     ----------
     path : :class:`str`
         Path to file or directory.
-    lstat : :class:`bool`, optional
-        If ``True``, makes :func:`stat` behave like :func:`os.lstat`.
+    follow_symlinks : :class:`bool`, optional
+        If ``False``, makes :func:`stat` behave like :func:`os.lstat`.
 
     Returns
     -------
@@ -184,12 +184,8 @@ def stat(path, lstat=False):
             files.append(HpssFile(lspath, *g))
     if len(files) != 1:
         raise HpssOSError("Non-unique response for {0}!".format(path))
-    if files[0].islink and not lstat:
-        new_path = files[0].readlink
-        if new_path.startswith('/'):
-            return stat(new_path)
-        else:
-            return stat(join(lspath, new_path))
+    if files[0].islink and follow_symlinks:
+        return stat(files[0].readlink)
     else:
         return files[0]
 
@@ -213,7 +209,7 @@ def lstat(path):
     :class:`~hpsspy.HpssOSError`
         If the underlying :command:`hsi` reports an error.
     """
-    return stat(path, lstat=True)
+    return stat(path, follow_symlinks=False)
 
 
 def walk(top, topdown=True, onerror=None, followlinks=False):
