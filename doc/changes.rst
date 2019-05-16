@@ -7,9 +7,14 @@ Release Notes
 
 *This release drops support for Python 2.*
 
-* Remove all Python 2 code. (PR `#8`_).
+* Remove all Python 2 code (PR `#8`_).
+* Support fine-grained exclusion in configuration files (PR `#10`_).
+* Avoid commonly-used names for metadata in configuration files (PR `#10`_).
+* Detect newer files on disk that map to older HPSS files (PR `#10`_).
+* Allow top-level directories to contain only files (PR `#10`_).
 
 .. _`#8`: https://github.com/weaverba137/hpsspy/pull/8
+.. _`#10`: https://github.com/weaverba137/hpsspy/pull/10
 
 0.4.2 (2019-01-29)
 ------------------
