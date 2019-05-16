@@ -89,7 +89,7 @@ The name of the section is passed on the command-line::
 
     missing_from_hpss config.json data
 
-This would read the data section above.
+This would read the ``"data"`` section above.
 
 Each section should have an ``"__exclude__"`` keyword, whose value is a list
 of files to be ignored.  In the example above, in order to ignore the file
@@ -99,6 +99,10 @@ path ``/projects/my_project/data``, since ``"data"`` is the section being
 processed.  Generally, this should only be used for a handful of top-level
 files, like README files.  For more precise exclusion, see the ``"EXCLUDE"``
 statement below.
+
+In the special case where a section contains only files, and no
+subdirectories, the special pseudo-subdirectory ``"__top__"`` can be
+used to contain the configuration.
 
 Mapping File Names to HPSS Archives
 +++++++++++++++++++++++++++++++++++

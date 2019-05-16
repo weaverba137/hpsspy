@@ -181,6 +181,11 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                 logger.info("%s is excluded.", f)
                 continue
             section = f.split('/')[0]
+            if section == f:
+                #
+                # Top-level section containing no subdirectories.
+                #
+                section = '__top__'
             try:
                 s = hpss_map[section]
             except KeyError:

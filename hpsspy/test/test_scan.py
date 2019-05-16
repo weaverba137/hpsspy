@@ -183,8 +183,8 @@ class TestScan(unittest.TestCase):
             json.dump(c, fd)
         status = validate_configuration(tmp)
         self.assertEqual(status, 1)
-        self.assertLog(-1,
-                       "{0} does not contain a '__config__' section.".format(tmp))
+        self.assertLog(-1, ("{0} does not contain a " +
+                            "'__config__' section.").format(tmp))
         os.close(fn)
         os.remove(tmp)
         c = self.config.copy()
