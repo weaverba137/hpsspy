@@ -481,9 +481,10 @@ def scan_disk(disk_roots, disk_files_cache, overwrite=False):
                                 writer.writerow([cachename,
                                                  s.st_size,
                                                  int(s.st_mtime)])
-            except OSError:
+            except OSError as e:
                 logger.error('Exception encountered while creating ' +
                              'disk cache file!')
+                logger.error(e.strerror)
                 return False
     return True
 
