@@ -230,7 +230,8 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                             else:
                                 newer = True
                                 logger.warning("%s is newer than %s, " +
-                                            "marking as missing!", f, reName)
+                                               "marking as missing!",
+                                               f, reName)
                         if newer or reName not in hpss_files:
                             if reName in missing:
                                 missing[reName]['files'].append(f)
