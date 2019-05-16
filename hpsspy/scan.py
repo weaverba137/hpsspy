@@ -169,7 +169,7 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
     nfiles = 0
     nmissing = 0
     nmultiple = 0
-    missing = dict()
+    backups = dict()
     pattern_used = dict()
     section_warning = set()
     with open(disk_files_cache, newline='') as t:
@@ -232,17 +232,12 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                             logger.warning("%s is newer than %s, " +
                                            "marking as missing!",
                                            f, reName)
-                        #
-                        # Assume that everything is missing, then
-                        # eliminate backups that exist and have no newer
-                        # files on disk.
-                        #
-                        if reName in missing:
-                            missing[reName]['files'].append(f)
-                            missing[reName]['size'] += int(row['Size'])
-                            missing[reName]['newer'] = newer
+                        if reName in backups:
+                            backups[reName]['files'].append(f)
+                            backups[reName]['size'] += int(row['Size'])
+                            backups[reName]['newer'] = newer
                         else:
-                            missing[reName] = {'files': [f],
+                            backups[reName] = {'files': [f],
                                                'size': int(row['Size']),
                                                'newer': newer,
                                                'exists': exists}
@@ -257,9 +252,13 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
     #
     # Eliminate backups that exist and have no newer files on disk.
     #
-    for k in missing:
-        if missing[k]['exists'] and not missing[k]['newer']:
-            del missing[k]
+    missing = dict()
+    for k, v in backups.items():
+        if v['exists'] and not v['newer']:
+            logger.debug("%s is a valid backup.", k)
+        else:
+            logger.debug("Adding %s to missing backups.", k)
+            missing[k] = v
     with open(missing_files, 'w') as fp:
         json.dump(missing, fp, indent=2, separators=(',', ': '))
     if nmissing > 0:
