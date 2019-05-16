@@ -172,7 +172,7 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
     missing = dict()
     pattern_used = dict()
     section_warning = set()
-    with open(disk_files_cache) as t:
+    with open(disk_files_cache, newline='') as t:
         reader = csv.DictReader(t)
         for row in reader:
             f = row['Name']
@@ -222,14 +222,22 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                         logger.debug("%s is excluded from backups.", f)
                     else:
                         reName = r[0].sub(r[1], f)
-                        if reName not in hpss_files:
+                        logger.debug("%s in %s.", f, reName)
+                        newer = False
+                        if reName in hpss_files:
+                            if hpss_files[reName][1] > int(row['Mtime']):
+                                log.debug("%s is newer than %s.", reName, f)
+                            else:
+                                newer = True
+                                log.warning("%s is newer than %s, " +
+                                            "marking as missing!", f, reName)
+                        if newer or reName not in hpss_files:
                             if reName in missing:
                                 missing[reName]['files'].append(f)
                                 missing[reName]['size'] += int(row['Size'])
                             else:
                                 missing[reName] = {'files': [f],
                                                    'size': int(row['Size'])}
-                        logger.debug("%s in %s.", f, reName)
             if mapped == 0:
                 logger.error("%s is not mapped to any file on HPSS!", f)
                 nmissing += 1
@@ -456,8 +464,9 @@ def scan_disk(disk_roots, disk_files_cache, overwrite=False):
         return True
     else:
         logger.info("No disk cache file, starting scan.")
-        with open(disk_files_cache, 'w') as t:
-            t.write('Name,Size\n')
+        with open(disk_files_cache, 'w', newline='') as t:
+            writer = csv.writer(t)
+            writer.writerow(['Name', 'Size', 'Mtime'])
             try:
                 for disk_root in disk_roots:
                     logger.debug("Starting os.walk at %s.", disk_root)
@@ -467,8 +476,10 @@ def scan_disk(disk_roots, disk_files_cache, overwrite=False):
                             fullname = os.path.join(root, f)
                             if not os.path.islink(fullname):
                                 cachename = fullname.replace(disk_root+'/', '')
-                                size = os.stat(fullname).st_size
-                                t.write("{0},{1:d}\n".format(cachename, size))
+                                s = os.stat(fullname)
+                                writer.writerow([cachename,
+                                                 s.st_size,
+                                                 int(s.st_mtime)])
             except OSError:
                 logger.error('Exception encountered while creating ' +
                              'disk cache file!')
@@ -490,33 +501,30 @@ def scan_hpss(hpss_root, hpss_files_cache, overwrite=False):
 
     Returns
     -------
-    :class:`frozenset`
-        The set of files found on HPSS.
+    :class:`dict`
+        The set of files found on HPSS, with size and modification time.
     """
     from .os import walk
     logger = logging.getLogger(__name__ + '.scan_hpss')
+    hpss_files = dict()
     if os.path.exists(hpss_files_cache) and not overwrite:
         logger.info("Found cache file %s.", hpss_files_cache)
-        with open(hpss_files_cache) as t:
-            hpss_files = [l.strip() for l in t.readlines()]
+        with open(hpss_files_cache, newline='') as t:
+            reader = csv.DictReader(t)
+            for row in reader:
+                hpss_files[row['Name']] = (int(row['Size']), int(row['Mtime']))
     else:
         logger.info("No HPSS cache file, starting scan at %s.", hpss_root)
-        hpss_files = list()
-        for root, dirs, files in walk(hpss_root):
-            # hpss_files += [f.path.replace(hpss_root+'/','')
-            #                for f in files if not f.ishtar]
-            logger.debug("Scanning HPSS directory %s.", root)
-            hpss_files += [f.path.replace(hpss_root+'/', '')
-                           for f in files if not f.path.endswith('.idx')]
-            # htar_files = [f for f in files if f.ishtar]
-            # for h in htar_files:
-            #     contents = h.htar_contents()
-            #     hpss_files += [join(root,c[9]).replace(hpss_root+'/','')
-            #                    for c in contents if c[0] == '-']
-            # links += [f for f in files if f.islink]
-        with open(hpss_files_cache, 'w') as t:
-            t.write('\n'.join(hpss_files)+'\n')
-    hpss_files = frozenset(hpss_files)
+        with open(hpss_files_cache, 'w', newline='') as t:
+            w = csv.writer(t)
+            w.writerow(['Name', 'Size', 'Mtime'])
+            for root, dirs, files in walk(hpss_root):
+                logger.debug("Scanning HPSS directory %s.", root)
+                for f in files:
+                    if not f.path.endswith('.idx'):
+                        ff = f.path.replace(hpss_root+'/', '')
+                        hpss_files[ff] = (f.st_size, f.st_mtime)
+                        w.writerow([ff, f.st_size, f.st_mtime])
     return hpss_files
 
 
@@ -633,7 +641,7 @@ def main():
         logger.debug("Cache files will be written to %s.", options.cache)
         hpss_files_cache = os.path.join(options.cache,
                                         ('hpss_files_' +
-                                         '{0}.txt').format(options.release))
+                                         '{0}.csv').format(options.release))
         logger.debug("hpss_files_cache = '%s'", hpss_files_cache)
         hpss_files = scan_hpss(hpss_release_root, hpss_files_cache,
                                overwrite=options.overwrite_hpss)
