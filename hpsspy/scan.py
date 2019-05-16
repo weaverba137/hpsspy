@@ -220,32 +220,32 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                     mapped += 1
                     if r[1] == "EXCLUDE":
                         logger.debug("%s is excluded from backups.", f)
+                    elif r[1] == "AUTOMATED":
+                        logger.debug("%s is backed up by some other " +
+                                     "automated process.", f)
                     else:
                         reName = r[0].sub(r[1], f)
                         logger.debug("%s in %s.", f, reName)
-                        newer = False
-                        if reName in hpss_files:
-                            if hpss_files[reName][1] > int(row['Mtime']):
-                                logger.debug("%s is newer than %s.", reName, f)
-                                if (reName in missing and
-                                    missing[reName]['newer']):
-                                    newer = True
-                                    logger.info("%s is flagged as having " +
-                                                "newer files on disk, " +
-                                                "adding %s.", reName, f)
-                            else:
-                                newer = True
-                                logger.warning("%s is newer than %s, " +
-                                               "marking as missing!",
-                                               f, reName)
-                        if newer or reName not in hpss_files:
-                            if reName in missing:
-                                missing[reName]['files'].append(f)
-                                missing[reName]['size'] += int(row['Size'])
-                            else:
-                                missing[reName] = {'files': [f],
-                                                   'size': int(row['Size']),
-                                                   'newer': newer}
+                        exists = reName in hpss_files
+                        newer = int(row['Mtime']) > hpss_files[reName][1]
+                        if newer:
+                            logger.warning("%s is newer than %s, " +
+                                           "marking as missing!",
+                                           f, reName)
+                        #
+                        # Assume that everything is missing, then
+                        # eliminate backups that exist and have no newer
+                        # files on disk.
+                        #
+                        if reName in missing:
+                            missing[reName]['files'].append(f)
+                            missing[reName]['size'] += int(row['Size'])
+                            missing[reName]['newer'] = newer
+                        else:
+                            missing[reName] = {'files': [f],
+                                               'size': int(row['Size']),
+                                               'newer': newer,
+                                               'exists': exists}
             if mapped == 0:
                 logger.error("%s is not mapped to any file on HPSS!", f)
                 nmissing += 1
@@ -254,6 +254,12 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                 nmultiple += 1
             if (nfiles % report) == 0:
                 logger.info("%9d files scanned.", nfiles)
+    #
+    # Eliminate backups that exist and have no newer files on disk.
+    #
+    for k in missing:
+        if missing[k]['exists'] and not missing[k]['newer']:
+            del missing[k]
     with open(missing_files, 'w') as fp:
         json.dump(missing, fp, indent=2, separators=(',', ': '))
     if nmissing > 0:

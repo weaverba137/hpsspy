@@ -170,6 +170,10 @@ imposes some additional requirements, conventions and idioms:
     ``"d1/data/preproc/.*$" : "EXCLUDE"`` would prevent the ``preproc``
     directory from being backed up, even if other parts of ``d1/data``
     were configured for backup.
+  - The special string ``"AUTOMATED"`` behaves the same way as ``"EXCLUDE"``,
+    but is a human-readable way to denote data sets that are backed up by
+    automation independently of :command:`missing_from_hpss`, as opposed
+    to not being backed up at all.
   - When constructing an archive file, :command:`missing_from_hpss` will
     obtain the directory it needs to archive from the name of the *archive*
     file, not the regular expression itself.  This is because regular
