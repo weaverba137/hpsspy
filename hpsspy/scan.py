@@ -43,20 +43,20 @@ def validate_configuration(config):
     except IOError:
         logger.critical("%s does not exist. Try again.", config)
         return 1
-    if 'config' in json_data:
+    if '__config__' in json_data:
         for k in ('root', 'hpss_root', 'physical_disks'):
-            if k not in json_data['config']:
-                logger.warning("%s 'config' section does not contain an " +
+            if k not in json_data['__config__']:
+                logger.warning("%s '__config__' section does not contain an " +
                                "entry for '%s'.", config, k)
     else:
-        logger.critical("%s does not contain a 'config' section.", config)
+        logger.critical("%s does not contain a '__config__' section.", config)
         return 1
     for k in json_data:
-        if k == 'config':
+        if k == '__config__':
             continue
-        if 'exclude' not in json_data[k]:
+        if '__exclude__' not in json_data[k]:
             logger.warning("Section '%s' should at least have an " +
-                           "'exclude' entry.", k)
+                           "'__exclude__' entry.", k)
         try:
             new_map = compile_map(json_data, k)
         except re.error:
@@ -66,15 +66,16 @@ def validate_configuration(config):
     return 0
 
 
-def compile_map(old_map, release):
+def compile_map(old_map, section):
     """Compile the regular expressions in a map.
 
     Parameters
     ----------
     old_map : :class:`dict`
         A dictionary containing regular expressions to compile.
-    release : :class:`str`
+    section : :class:`str`
         An initial key to determine the section of the dictionary of interest.
+        Typically, this will be a top-level directory.
 
     Returns
     -------
@@ -82,26 +83,27 @@ def compile_map(old_map, release):
         A new dictionary containing compiled regular expressions.
     """
     new_map = dict()
-    for key in old_map[release]:
-        if key == 'exclude':
-            new_map[key] = frozenset(old_map[release][key])
+    for key in old_map[section]:
+        if key == '__exclude__':
+            new_map[key] = frozenset(old_map[section][key])
         else:
             foo = list()
-            for r in old_map[release][key]:
-                foo.append((re.compile(r), old_map[release][key][r]))
+            for r in old_map[section][key]:
+                foo.append((re.compile(r), old_map[section][key][r]))
             new_map[key] = tuple(foo)
     return new_map
 
 
-def files_to_hpss(hpss_map_cache, release):
+def files_to_hpss(hpss_map_cache, section):
     """Create a map of files on disk to HPSS files.
 
     Parameters
     ----------
     hpss_map_cache : :class:`str`
         Data file containing the map.
-    release : :class:`str`
-        Release name.
+    section : :class:`str`
+        An initial key to determine the section of the dictionary of interest.
+        Typically, this will be a top-level directory.
 
     Returns
     -------
@@ -123,19 +125,20 @@ def files_to_hpss(hpss_map_cache, release):
             t.close()
         else:
             logger.warning("Returning empty map file!")
-            hpss_map = {"config": {},
-                        "dr8": {"exclude": [], "casload": {}, "apogee": {},
-                                "boss": {}, "sdss": {}},
-                        "dr9": {"exclude": [], "casload": {}, "apogee": {},
-                                "boss": {}, "sdss": {}},
-                        "dr10": {"exclude": [], "casload": {}, "apogee": {},
-                                 "boss": {}, "sdss": {}},
-                        "dr11": {"exclude": [], "casload": {}, "apogee": {},
-                                 "boss": {}, "marvels": {}, "sdss": {}},
-                        "dr12": {"exclude": [], "casload": {}, "apo": {},
+            hpss_map = {"__config__": {},
+                        "dr8": {"__exclude__": [], "casload": {},
+                                "apogee": {}, "boss": {}, "sdss": {}},
+                        "dr9": {"__exclude__": [], "casload": {},
+                                "apogee": {}, "boss": {}, "sdss": {}},
+                        "dr10": {"__exclude__": [], "casload": {},
+                                 "apogee": {}, "boss": {}, "sdss": {}},
+                        "dr11": {"__exclude__": [], "casload": {},
+                                 "apogee": {}, "boss": {}, "marvels": {},
+                                 "sdss": {}},
+                        "dr12": {"__exclude__": [], "casload": {}, "apo": {},
                                  "apogee": {}, "boss": {}, "marvels": {},
                                  "sdss": {}}}
-    return (compile_map(hpss_map, release), hpss_map['config'])
+    return (compile_map(hpss_map, section), hpss_map['__config__'])
 
 
 def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
@@ -174,7 +177,7 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
         for row in reader:
             f = row['Name']
             nfiles += 1
-            if f in hpss_map["exclude"]:
+            if f in hpss_map["__exclude__"]:
                 logger.info("%s is excluded.", f)
                 continue
             section = f.split('/')[0]
@@ -209,16 +212,19 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                 m = r[0].match(f)
                 if m is not None:
                     pattern_used[r[0].pattern] += 1
-                    reName = r[0].sub(r[1], f)
-                    if reName not in hpss_files:
-                        if reName in missing:
-                            missing[reName]['files'].append(f)
-                            missing[reName]['size'] += int(row['Size'])
-                        else:
-                            missing[reName] = {'files': [f],
-                                               'size': int(row['Size'])}
-                    logger.debug("%s in %s.", f, reName)
                     mapped += 1
+                    if r[1] == "EXCLUDE":
+                        logger.debug("%s is excluded from backups.", f)
+                    else:
+                        reName = r[0].sub(r[1], f)
+                        if reName not in hpss_files:
+                            if reName in missing:
+                                missing[reName]['files'].append(f)
+                                missing[reName]['size'] += int(row['Size'])
+                            else:
+                                missing[reName] = {'files': [f],
+                                                   'size': int(row['Size'])}
+                        logger.debug("%s in %s.", f, reName)
             if mapped == 0:
                 logger.error("%s is not mapped to any file on HPSS!", f)
                 nmissing += 1

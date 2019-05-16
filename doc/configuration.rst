@@ -30,12 +30,12 @@ described below.
 Metadata
 ++++++++
 
-The configuration file should contain a top-level keyword ``"config"``.
+The configuration file should contain a top-level keyword ``"__config__"``.
 The value should itself be a :class:`dict`, containing some important
 metadata::
 
     {
-        "config": {
+        "__config__": {
             "root": "/global/project/projectdirs/my_project",
             "hpss_root": "/nersc/projects/my_project",
             "physical_disks": ["my_project"]
@@ -65,17 +65,17 @@ Sections
 
 Inside the root directory, as described above, there may be several top-level
 directories.  For the purposes of this documentation, these are called
-"sections" or "releases".  The terms are interchangable.  Each section
+"sections" or "releases".  The terms are interchangeable.  Each section
 has configuration items that describe its structure::
 
     {
-        "config": {
+        "__config__": {
             "root": "/projects/my_project",
             "hpss_root": "/hpss/projects/my_project",
             "physical_disks": ["my_project"]
         },
         "data": {
-            "exclude": [],
+            "__exclude__": [],
             "d1": {
                 "d1/batch/.*$": "d1/batch.tar",
                 "d1/([^/]+\\.txt)$": "d1/\\1",
@@ -91,12 +91,14 @@ The name of the section is passed on the command-line::
 
 This would read the data section above.
 
-Each section should have an ``"exclude"`` keyword, whose value is a list
+Each section should have an ``"__exclude__"`` keyword, whose value is a list
 of files to be ignored.  In the example above, in order to ignore the file
-``/projects/my_project/data/d1/README.html``, the ``"exclude"`` value
+``/projects/my_project/data/d1/README.html``, the ``"__exclude__"`` value
 would be ``["d1/README.html"]``.  Note that this is relative to the
 path ``/projects/my_project/data``, since ``"data"`` is the section being
-processed.
+processed.  Generally, this should only be used for a handful of top-level
+files, like README files.  For more precise exclusion, see the ``"EXCLUDE"``
+statement below.
 
 Mapping File Names to HPSS Archives
 +++++++++++++++++++++++++++++++++++
@@ -129,6 +131,12 @@ In coding terms we describe a portion of a directory tree hierarchy
 using regular expressions to match *files* in that portion.  Then we map
 files that match that regular expression to tape archive files.
 
+Finally, it should be noted that the configuration of each section is
+organized by subdirectory in order to speed up the process of mapping files
+to backup files.  Instead of looking through every possible configuration
+of files, only the configurations in a subdirectory need to be considered
+when examining files in that subdirectory.
+
 Regular Expression Details
 ++++++++++++++++++++++++++
 
@@ -153,6 +161,11 @@ imposes some additional requirements, conventions and idioms:
     and that command will be used to construct it.
   - Any archive file *not* ending in ``.tar`` will simply be copied to
     HPSS as is.
+  - The special string ``"EXCLUDE"`` can be used to prevent backups of
+    parts of a directory tree that might otherwise be archival. For example,
+    ``"d1/data/preproc/.*$" : "EXCLUDE"`` would prevent the ``preproc``
+    directory from being backed up, even if other parts of ``d1/data``
+    were configured for backup.
   - When constructing an archive file, :command:`missing_from_hpss` will
     obtain the directory it needs to archive from the name of the *archive*
     file, not the regular expression itself.  This is because regular

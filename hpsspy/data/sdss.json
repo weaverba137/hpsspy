@@ -1,11 +1,11 @@
 {
-    "config":{
+    "__config__":{
         "root":"/clusterfs/riemann/raid006",
         "hpss_root":"/nersc/projects/boss",
         "physical_disks":["raid006","raid000","raid005","raid007","raid008","raid2008","netapp"]
     },
     "dr8":{
-        "exclude":[
+        "__exclude__":[
             "env/index.html",
             "boss/photoObj/frames/301/index.html",
             "sdss/spectro/data/README.html"
@@ -61,7 +61,7 @@
         }
     },
     "dr9":{
-        "exclude":[
+        "__exclude__":[
             "env/index.html"
         ],
         "casload":{
@@ -107,7 +107,7 @@
         }
     },
     "dr10":{
-        "exclude":[
+        "__exclude__":[
             "env/index.html"
         ],
         "casload":{
@@ -151,7 +151,7 @@
         }
     },
     "dr11":{
-        "exclude":[
+        "__exclude__":[
             "env/index.html",
             "boss/lss/index.html"
         ],
@@ -196,7 +196,7 @@
         }
     },
     "dr12":{
-        "exclude":[
+        "__exclude__":[
             "env/index.html",
             "boss/lss/index.html"
         ],
