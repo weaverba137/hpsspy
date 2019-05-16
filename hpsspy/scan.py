@@ -149,7 +149,7 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
     ----------
     hpss_map : :class:`dict`
         A mapping of file names to HPSS files.
-    hpss_files : :class:`frozenset`
+    hpss_files : :class:`dict`
         The list of actual HPSS files.
     disk_files_cache : :class:`str`
         Name of the disk cache file.
@@ -636,7 +636,7 @@ def main():
     #
     if options.test:
         logger.info("Test mode. Pretending no files exist on HPSS.")
-        hpss_files = frozenset([])
+        hpss_files = dict()
     else:
         logger.debug("Cache files will be written to %s.", options.cache)
         hpss_files_cache = os.path.join(options.cache,
