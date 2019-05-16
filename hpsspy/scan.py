@@ -227,6 +227,12 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                         if reName in hpss_files:
                             if hpss_files[reName][1] > int(row['Mtime']):
                                 logger.debug("%s is newer than %s.", reName, f)
+                                if (reName in missing and
+                                    missing[reName]['newer']):
+                                    newer = True
+                                    logger.info("%s is flagged as having " +
+                                                "newer files on disk, " +
+                                                "adding %s.", reName, f)
                             else:
                                 newer = True
                                 logger.warning("%s is newer than %s, " +
@@ -238,7 +244,8 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                                 missing[reName]['size'] += int(row['Size'])
                             else:
                                 missing[reName] = {'files': [f],
-                                                   'size': int(row['Size'])}
+                                                   'size': int(row['Size']),
+                                                   'newer': newer}
             if mapped == 0:
                 logger.error("%s is not mapped to any file on HPSS!", f)
                 nmissing += 1
