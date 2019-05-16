@@ -216,7 +216,7 @@ class TestOs(unittest.TestCase):
                               'drwxrwxr-x    1 bweaver   bweaver           ' +
                               '21 Aug 22  2014 cosmo')]
             self.assertTrue(islink('cosmo'))
-            h.assert_has_calls([call('ls', '-ld', 'cosmo'),])
+            h.assert_has_calls([call('ls', '-ld', 'cosmo')])
 
     def test_walk(self):
         """Test the walk() function.
