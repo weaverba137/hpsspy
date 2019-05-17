@@ -238,7 +238,12 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                         if reName in backups:
                             backups[reName]['files'].append(f)
                             backups[reName]['size'] += int(row['Size'])
-                            backups[reName]['newer'] = newer
+                            #
+                            # 'newer' can change from False to True, but
+                            # it should never change back to False.
+                            #
+                            if newer:
+                                backups[reName]['newer'] = newer
                         else:
                             backups[reName] = {'files': [f],
                                                'size': int(row['Size']),
