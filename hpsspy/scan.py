@@ -227,7 +227,10 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                         reName = r[0].sub(r[1], f)
                         logger.debug("%s in %s.", f, reName)
                         exists = reName in hpss_files
-                        newer = int(row['Mtime']) > hpss_files[reName][1]
+                        if exists:
+                            newer = int(row['Mtime']) > hpss_files[reName][1]
+                        else:
+                            newer = False
                         if newer:
                             logger.warning("%s is newer than %s, " +
                                            "marking as missing!",
