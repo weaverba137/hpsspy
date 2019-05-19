@@ -139,9 +139,7 @@ class HpssFile(object):
     def st_mode(self):
         """File permission mode.
         """
-        if 'st_mode' in self._property_cache:
-            return self._property_cache['st_mode']
-        else:
+        if 'st_mode' not in self._property_cache:
             try:
                 mode = self._file_modes[self.raw_type]
             except KeyError:
@@ -178,15 +176,13 @@ class HpssFile(object):
             if self.raw_permission[8] == 't':
                 mode |= (stat.S_IXOTH | stat.S_ISVTX)
             self._property_cache['st_mode'] = mode
-            return mode
+        return self._property_cache['st_mode']
 
     @property
     def st_mtime(self):
         """File modification time.
         """
-        if 'st_mtime' in self._property_cache:
-            return self._property_cache['st_mtime']
-        else:
+        if 'st_mtime' not in self._property_cache:
             seconds = 0
             month = self._months.index(self.raw_month) + 1
             if self.raw_year.find(':') > 0:
@@ -201,7 +197,7 @@ class HpssFile(object):
             mtime = int(datetime(year, month, self.raw_day,
                                  hours, minutes, seconds).strftime('%s'))
             self._property_cache['st_mtime'] = mtime
-            return mtime
+        return self._property_cache['st_mtime']
 
     def htar_contents(self):
         """Return (and cache) the contents of an htar file.

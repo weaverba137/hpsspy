@@ -43,20 +43,20 @@ def validate_configuration(config):
     except IOError:
         logger.critical("%s does not exist. Try again.", config)
         return 1
-    if 'config' in json_data:
+    if '__config__' in json_data:
         for k in ('root', 'hpss_root', 'physical_disks'):
-            if k not in json_data['config']:
-                logger.warning("%s 'config' section does not contain an " +
+            if k not in json_data['__config__']:
+                logger.warning("%s '__config__' section does not contain an " +
                                "entry for '%s'.", config, k)
     else:
-        logger.critical("%s does not contain a 'config' section.", config)
+        logger.critical("%s does not contain a '__config__' section.", config)
         return 1
     for k in json_data:
-        if k == 'config':
+        if k == '__config__':
             continue
-        if 'exclude' not in json_data[k]:
+        if '__exclude__' not in json_data[k]:
             logger.warning("Section '%s' should at least have an " +
-                           "'exclude' entry.", k)
+                           "'__exclude__' entry.", k)
         try:
             new_map = compile_map(json_data, k)
         except re.error:
@@ -66,15 +66,16 @@ def validate_configuration(config):
     return 0
 
 
-def compile_map(old_map, release):
+def compile_map(old_map, section):
     """Compile the regular expressions in a map.
 
     Parameters
     ----------
     old_map : :class:`dict`
         A dictionary containing regular expressions to compile.
-    release : :class:`str`
+    section : :class:`str`
         An initial key to determine the section of the dictionary of interest.
+        Typically, this will be a top-level directory.
 
     Returns
     -------
@@ -82,26 +83,27 @@ def compile_map(old_map, release):
         A new dictionary containing compiled regular expressions.
     """
     new_map = dict()
-    for key in old_map[release]:
-        if key == 'exclude':
-            new_map[key] = frozenset(old_map[release][key])
+    for key in old_map[section]:
+        if key == '__exclude__':
+            new_map[key] = frozenset(old_map[section][key])
         else:
             foo = list()
-            for r in old_map[release][key]:
-                foo.append((re.compile(r), old_map[release][key][r]))
+            for r in old_map[section][key]:
+                foo.append((re.compile(r), old_map[section][key][r]))
             new_map[key] = tuple(foo)
     return new_map
 
 
-def files_to_hpss(hpss_map_cache, release):
+def files_to_hpss(hpss_map_cache, section):
     """Create a map of files on disk to HPSS files.
 
     Parameters
     ----------
     hpss_map_cache : :class:`str`
         Data file containing the map.
-    release : :class:`str`
-        Release name.
+    section : :class:`str`
+        An initial key to determine the section of the dictionary of interest.
+        Typically, this will be a top-level directory.
 
     Returns
     -------
@@ -123,19 +125,20 @@ def files_to_hpss(hpss_map_cache, release):
             t.close()
         else:
             logger.warning("Returning empty map file!")
-            hpss_map = {"config": {},
-                        "dr8": {"exclude": [], "casload": {}, "apogee": {},
-                                "boss": {}, "sdss": {}},
-                        "dr9": {"exclude": [], "casload": {}, "apogee": {},
-                                "boss": {}, "sdss": {}},
-                        "dr10": {"exclude": [], "casload": {}, "apogee": {},
-                                 "boss": {}, "sdss": {}},
-                        "dr11": {"exclude": [], "casload": {}, "apogee": {},
-                                 "boss": {}, "marvels": {}, "sdss": {}},
-                        "dr12": {"exclude": [], "casload": {}, "apo": {},
+            hpss_map = {"__config__": {},
+                        "dr8": {"__exclude__": [], "casload": {},
+                                "apogee": {}, "boss": {}, "sdss": {}},
+                        "dr9": {"__exclude__": [], "casload": {},
+                                "apogee": {}, "boss": {}, "sdss": {}},
+                        "dr10": {"__exclude__": [], "casload": {},
+                                 "apogee": {}, "boss": {}, "sdss": {}},
+                        "dr11": {"__exclude__": [], "casload": {},
+                                 "apogee": {}, "boss": {}, "marvels": {},
+                                 "sdss": {}},
+                        "dr12": {"__exclude__": [], "casload": {}, "apo": {},
                                  "apogee": {}, "boss": {}, "marvels": {},
                                  "sdss": {}}}
-    return (compile_map(hpss_map, release), hpss_map['config'])
+    return (compile_map(hpss_map, section), hpss_map['__config__'])
 
 
 def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
@@ -146,7 +149,7 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
     ----------
     hpss_map : :class:`dict`
         A mapping of file names to HPSS files.
-    hpss_files : :class:`frozenset`
+    hpss_files : :class:`dict`
         The list of actual HPSS files.
     disk_files_cache : :class:`str`
         Name of the disk cache file.
@@ -166,18 +169,23 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
     nfiles = 0
     nmissing = 0
     nmultiple = 0
-    missing = dict()
+    backups = dict()
     pattern_used = dict()
     section_warning = set()
-    with open(disk_files_cache) as t:
+    with open(disk_files_cache, newline='') as t:
         reader = csv.DictReader(t)
         for row in reader:
             f = row['Name']
             nfiles += 1
-            if f in hpss_map["exclude"]:
+            if f in hpss_map["__exclude__"]:
                 logger.info("%s is excluded.", f)
                 continue
             section = f.split('/')[0]
+            if section == f:
+                #
+                # Top-level section containing no subdirectories.
+                #
+                section = '__top__'
             try:
                 s = hpss_map[section]
             except KeyError:
@@ -209,16 +217,38 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                 m = r[0].match(f)
                 if m is not None:
                     pattern_used[r[0].pattern] += 1
-                    reName = r[0].sub(r[1], f)
-                    if reName not in hpss_files:
-                        if reName in missing:
-                            missing[reName]['files'].append(f)
-                            missing[reName]['size'] += int(row['Size'])
-                        else:
-                            missing[reName] = {'files': [f],
-                                               'size': int(row['Size'])}
-                    logger.debug("%s in %s.", f, reName)
                     mapped += 1
+                    if r[1] == "EXCLUDE":
+                        logger.debug("%s is excluded from backups.", f)
+                    elif r[1] == "AUTOMATED":
+                        logger.debug("%s is backed up by some other " +
+                                     "automated process.", f)
+                    else:
+                        reName = r[0].sub(r[1], f)
+                        logger.debug("%s in %s.", f, reName)
+                        exists = reName in hpss_files
+                        if exists:
+                            newer = int(row['Mtime']) > hpss_files[reName][1]
+                        else:
+                            newer = False
+                        if newer:
+                            logger.warning("%s is newer than %s, " +
+                                           "marking as missing!",
+                                           f, reName)
+                        if reName in backups:
+                            backups[reName]['files'].append(f)
+                            backups[reName]['size'] += int(row['Size'])
+                            #
+                            # 'newer' can change from False to True, but
+                            # it should never change back to False.
+                            #
+                            if newer:
+                                backups[reName]['newer'] = newer
+                        else:
+                            backups[reName] = {'files': [f],
+                                               'size': int(row['Size']),
+                                               'newer': newer,
+                                               'exists': exists}
             if mapped == 0:
                 logger.error("%s is not mapped to any file on HPSS!", f)
                 nmissing += 1
@@ -227,6 +257,16 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                 nmultiple += 1
             if (nfiles % report) == 0:
                 logger.info("%9d files scanned.", nfiles)
+    #
+    # Eliminate backups that exist and have no newer files on disk.
+    #
+    missing = dict()
+    for k, v in backups.items():
+        if v['exists'] and not v['newer']:
+            logger.debug("%s is a valid backup.", k)
+        else:
+            logger.debug("Adding %s to missing backups.", k)
+            missing[k] = v
     with open(missing_files, 'w') as fp:
         json.dump(missing, fp, indent=2, separators=(',', ': '))
     if nmissing > 0:
@@ -445,8 +485,9 @@ def scan_disk(disk_roots, disk_files_cache, overwrite=False):
         return True
     else:
         logger.info("No disk cache file, starting scan.")
-        with open(disk_files_cache, 'w') as t:
-            t.write('Name,Size\n')
+        with open(disk_files_cache, 'w', newline='') as t:
+            writer = csv.writer(t)
+            writer.writerow(['Name', 'Size', 'Mtime'])
             try:
                 for disk_root in disk_roots:
                     logger.debug("Starting os.walk at %s.", disk_root)
@@ -456,11 +497,14 @@ def scan_disk(disk_roots, disk_files_cache, overwrite=False):
                             fullname = os.path.join(root, f)
                             if not os.path.islink(fullname):
                                 cachename = fullname.replace(disk_root+'/', '')
-                                size = os.stat(fullname).st_size
-                                t.write("{0},{1:d}\n".format(cachename, size))
-            except OSError:
+                                s = os.stat(fullname)
+                                writer.writerow([cachename,
+                                                 s.st_size,
+                                                 int(s.st_mtime)])
+            except OSError as e:
                 logger.error('Exception encountered while creating ' +
                              'disk cache file!')
+                logger.error(e.strerror)
                 return False
     return True
 
@@ -479,33 +523,30 @@ def scan_hpss(hpss_root, hpss_files_cache, overwrite=False):
 
     Returns
     -------
-    :class:`frozenset`
-        The set of files found on HPSS.
+    :class:`dict`
+        The set of files found on HPSS, with size and modification time.
     """
     from .os import walk
     logger = logging.getLogger(__name__ + '.scan_hpss')
+    hpss_files = dict()
     if os.path.exists(hpss_files_cache) and not overwrite:
         logger.info("Found cache file %s.", hpss_files_cache)
-        with open(hpss_files_cache) as t:
-            hpss_files = [l.strip() for l in t.readlines()]
+        with open(hpss_files_cache, newline='') as t:
+            reader = csv.DictReader(t)
+            for row in reader:
+                hpss_files[row['Name']] = (int(row['Size']), int(row['Mtime']))
     else:
         logger.info("No HPSS cache file, starting scan at %s.", hpss_root)
-        hpss_files = list()
-        for root, dirs, files in walk(hpss_root):
-            # hpss_files += [f.path.replace(hpss_root+'/','')
-            #                for f in files if not f.ishtar]
-            logger.debug("Scanning HPSS directory %s.", root)
-            hpss_files += [f.path.replace(hpss_root+'/', '')
-                           for f in files if not f.path.endswith('.idx')]
-            # htar_files = [f for f in files if f.ishtar]
-            # for h in htar_files:
-            #     contents = h.htar_contents()
-            #     hpss_files += [join(root,c[9]).replace(hpss_root+'/','')
-            #                    for c in contents if c[0] == '-']
-            # links += [f for f in files if f.islink]
-        with open(hpss_files_cache, 'w') as t:
-            t.write('\n'.join(hpss_files)+'\n')
-    hpss_files = frozenset(hpss_files)
+        with open(hpss_files_cache, 'w', newline='') as t:
+            w = csv.writer(t)
+            w.writerow(['Name', 'Size', 'Mtime'])
+            for root, dirs, files in walk(hpss_root):
+                logger.debug("Scanning HPSS directory %s.", root)
+                for f in files:
+                    if not f.path.endswith('.idx'):
+                        ff = f.path.replace(hpss_root+'/', '')
+                        hpss_files[ff] = (f.st_size, f.st_mtime)
+                        w.writerow([ff, f.st_size, f.st_mtime])
     return hpss_files
 
 
@@ -617,12 +658,12 @@ def main():
     #
     if options.test:
         logger.info("Test mode. Pretending no files exist on HPSS.")
-        hpss_files = frozenset([])
+        hpss_files = dict()
     else:
         logger.debug("Cache files will be written to %s.", options.cache)
         hpss_files_cache = os.path.join(options.cache,
                                         ('hpss_files_' +
-                                         '{0}.txt').format(options.release))
+                                         '{0}.csv').format(options.release))
         logger.debug("hpss_files_cache = '%s'", hpss_files_cache)
         hpss_files = scan_hpss(hpss_release_root, hpss_files_cache,
                                overwrite=options.overwrite_hpss)

@@ -1,11 +1,11 @@
 {
-    "config":{
+    "__config__":{
         "root":"/global/project/projectdirs/desi",
         "hpss_root":"/nersc/projects/desi",
         "physical_disks":["desi"]
     },
     "datachallenge":{
-        "exclude":[],
+        "__exclude__":[],
         "dc2":{
             "dc2/batch/.*$":"dc2/batch.tar",
             "dc2/([^/]+\\.txt)$":"dc2/\\1",
@@ -13,16 +13,16 @@
         }
     },
     "imaging":{
-        "exclude":[]
+        "__exclude__":[]
     },
     "mocks":{
-        "exclude":[]
+        "__exclude__":[]
     },
     "release":{
-        "exclude":[]
+        "__exclude__":[]
     },
     "spectro":{
-        "exclude":[],
+        "__exclude__":[],
         "data":{
         },
         "redux":{
@@ -34,6 +34,6 @@
         }
     },
     "target":{
-        "exclude":[]
+        "__exclude__":[]
     }
 }

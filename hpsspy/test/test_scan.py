@@ -92,9 +92,9 @@ class TestScan(unittest.TestCase):
         """Test compiling regular expressions in the JSON configuration file.
         """
         new_map = compile_map(self.config, 'data')
-        self.assertEqual(new_map['exclude'], frozenset(['README.html']))
+        self.assertEqual(new_map['__exclude__'], frozenset(['README.html']))
         for k in self.config['data']:
-            if k != 'exclude':
+            if k != '__exclude__':
                 for l in new_map[k]:
                     self.assertIn(l[0].pattern, self.config['data'][k])
                     self.assertEqual(l[1],
@@ -177,36 +177,36 @@ class TestScan(unittest.TestCase):
         self.assertEqual(status, 0)
         # Valid file but missing some pieces
         c = self.config.copy()
-        del c['config']
+        del c['__config__']
         fn, tmp = tempfile.mkstemp(suffix='.json')
         with open(tmp, 'w') as fd:
             json.dump(c, fd)
         status = validate_configuration(tmp)
         self.assertEqual(status, 1)
-        self.assertLog(-1,
-                       "{0} does not contain a 'config' section.".format(tmp))
+        self.assertLog(-1, ("{0} does not contain a " +
+                            "'__config__' section.").format(tmp))
         os.close(fn)
         os.remove(tmp)
         c = self.config.copy()
-        del c['config']['physical_disks']
+        del c['__config__']['physical_disks']
         fn, tmp = tempfile.mkstemp(suffix='.json')
         with open(tmp, 'w') as fd:
             json.dump(c, fd)
         status = validate_configuration(tmp)
         self.assertEqual(status, 0)
-        self.assertLog(-1, ("{0} 'config' section does not contain an " +
+        self.assertLog(-1, ("{0} '__config__' section does not contain an " +
                             "entry for '{1}'.").format(tmp, 'physical_disks'))
         os.close(fn)
         os.remove(tmp)
         c = self.config.copy()
-        del c['redux']['exclude']
+        del c['redux']['__exclude__']
         fn, tmp = tempfile.mkstemp(suffix='.json')
         with open(tmp, 'w') as fd:
             json.dump(c, fd)
         status = validate_configuration(tmp)
         self.assertEqual(status, 0)
         self.assertLog(-1, ("Section '{0}' should at least have an " +
-                            "'exclude' entry.").format('redux'))
+                            "'__exclude__' entry.").format('redux'))
         os.close(fn)
         os.remove(tmp)
         c = self.config.copy()

@@ -1,11 +1,11 @@
 {
-    "config":{
+    "__config__":{
         "root":"/temporary",
         "hpss_root":"/nersc/projects/temporary",
         "physical_disks":["temporary"]
     },
     "data":{
-        "exclude":["README.html"],
+        "__exclude__":["README.html"],
         "d1":{
             "d1/batch/.*$":"d1/batch.tar",
             "d1/([^/]+\\.txt)$":"d1/\\1",
@@ -14,6 +14,7 @@
         "d2":{
             "d2/[^/]+$":"d2/d2_files.tar",
             "d2/(batch|fiberassign)/.*$":"d2/d2_\\1.tar",
+            "d2/spectro/redux/preproc/.*$":"EXCLUDE",
             "d2/spectro/redux/([0-9a-zA-Z_-]+)/[^/]+$":"d2/spectro/redux/\\1/\\1_files.tar",
             "d2/spectro/redux/([0-9a-zA-Z_-]+)/(calib2d|plan|run)/.*$":"d2/spectro/redux/\\1/\\1_\\2.tar",
             "d2/spectro/redux/([0-9a-zA-Z_-]+)/exposures/([0-9]{8})/.*$":"d2/spectro/redux/\\1/exposures/\\1_exposures_\\2.tar",
@@ -24,9 +25,9 @@
         }
     },
     "redux":{
-        "exclude":[]
+        "__exclude__":[]
     },
     "www":{
-        "exclude":[]
+        "__exclude__":[]
     }
 }
