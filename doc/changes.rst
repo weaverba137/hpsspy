@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-0.5.0 (unreleased)
+0.5.0 (2019-05-18)
 ------------------
 
 *This release drops support for Python 2.*
