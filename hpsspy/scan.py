@@ -259,8 +259,8 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                 logger.info("%9d files scanned.", nfiles)
     for p in pattern_used:
         if pattern_used[p] == 0:
-            logger.error("Pattern '%s' was never used, " +
-                         "maybe files have been removed from disk?", p)
+            logger.info("Pattern '%s' was never used, " +
+                        "maybe files have been removed from disk?", p)
     #
     # Eliminate backups that exist and have no newer files on disk.
     #
