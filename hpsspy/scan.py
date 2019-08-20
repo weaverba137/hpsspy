@@ -257,16 +257,29 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                 nmultiple += 1
             if (nfiles % report) == 0:
                 logger.info("%9d files scanned.", nfiles)
+    for p in pattern_used:
+        if pattern_used[p] == 0:
+            logger.info("Pattern '%s' was never used, " +
+                        "maybe files have been removed from disk?", p)
     #
     # Eliminate backups that exist and have no newer files on disk.
     #
     missing = dict()
+    nbackups = 0
     for k, v in backups.items():
         if v['exists'] and not v['newer']:
             logger.debug("%s is a valid backup.", k)
         else:
-            logger.debug("Adding %s to missing backups.", k)
-            missing[k] = v
+            logger.info('%s is %d bytes.', k, v['size'])
+            if v['size']/1024/1024/1024 > limit:
+                logger.error("HPSS file %s would be too large, " +
+                             "skipping backup!", k)
+            else:
+                logger.debug("Adding %s to missing backups.", k)
+                nbackups += len(v['files'])
+                missing[k] = v
+    if nbackups > 0:
+        logger.info('%d files selected for backup.', nbackups)
     with open(missing_files, 'w') as fp:
         json.dump(missing, fp, indent=2, separators=(',', ': '))
     if nmissing > 0:
@@ -277,19 +290,6 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
         logger.critical("Some files would be backed up more than " +
                         "once with this configuration!")
         return False
-    for p in pattern_used:
-        if pattern_used[p] == 0:
-            logger.critical("Pattern '%s' was never used!", p)
-            return False
-    nbackups = 0
-    for k in missing:
-        logger.info('%s is %d bytes.', k, missing[k]['size'])
-        nbackups += len(missing[k]['files'])
-        if missing[k]['size']/1024/1024/1024 > limit:
-            logger.critical("HPSS file %s would be too large!", k)
-            return False
-    if nbackups > 0:
-        logger.info('%d files selected for backup.', nbackups)
     return (nmissing == 0) and (nmultiple == 0)
 
 
