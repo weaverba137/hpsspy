@@ -2,10 +2,11 @@
 Release Notes
 =============
 
-0.5.1 (unreleased)
+0.5.1 (2019-08-20)
 ------------------
 
-* Unused patterns no longer trigger a critical error (PR `#12`_).
+* Unused patterns and over-large backup files
+  no longer trigger a critical error (PR `#12`_).
 
 .. _`#12`: https://github.com/weaverba137/hpsspy/pull/12
 
