@@ -5,7 +5,9 @@ Release Notes
 0.5.1 (unreleased)
 ------------------
 
-* No changes yet.
+* Unused patterns no longer trigger a critical error (PR `#12`_).
+
+.. _`#12`: https://github.com/weaverba137/hpsspy/pull/12
 
 0.5.0 (2019-05-18)
 ------------------
