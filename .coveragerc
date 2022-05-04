@@ -2,11 +2,6 @@
 source = hpsspy
 omit =
    hpsspy/_version.py
-   hpsspy/conftest*
-   hpsspy/cython_version*
-   hpsspy/setup_package*
-   hpsspy/*/setup_package*
-   hpsspy/*/*/setup_package*
    hpsspy/test/*
 
 [report]

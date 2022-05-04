@@ -93,12 +93,12 @@ class TestScan(unittest.TestCase):
         """
         new_map = compile_map(self.config, 'data')
         self.assertEqual(new_map['__exclude__'], frozenset(['README.html']))
-        for k in self.config['data']:
-            if k != '__exclude__':
-                for l in new_map[k]:
-                    self.assertIn(l[0].pattern, self.config['data'][k])
-                    self.assertEqual(l[1],
-                                     self.config['data'][k][l[0].pattern])
+        for conf in self.config['data']:
+            if conf != '__exclude__':
+                for nm in new_map[conf]:
+                    self.assertIn(nm[0].pattern, self.config['data'][conf])
+                    self.assertEqual(nm[1],
+                                     self.config['data'][conf][nm[0].pattern])
         #
         # Catch bad compiles
         #

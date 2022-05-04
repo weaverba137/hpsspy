@@ -2,27 +2,29 @@
 HPSSPy
 ======
 
-.. image:: https://img.shields.io/pypi/l/hpsspy.svg
+|License| |PyPI| |Downloads| |Actions Status| |Coveralls Status| |Documentation Status|
+
+.. |License| .. image:: https://img.shields.io/pypi/l/hpsspy.svg
     :target: https://pypi.python.org/pypi/hpsspy
     :alt: License
 
-.. image:: https://img.shields.io/pypi/v/hpsspy.svg
+.. |PyPI| image:: https://img.shields.io/pypi/v/hpsspy.svg
     :target: https://pypi.python.org/pypi/hpsspy
     :alt: PyPI Badge
 
-.. image:: https://img.shields.io/pypi/dm/hpsspy.svg
+.. |Downloads| image:: https://img.shields.io/pypi/dm/hpsspy.svg
     :target: https://pypi.python.org/pypi/hpsspy
     :alt: PyPI Downloads
 
-.. image:: https://img.shields.io/travis/weaverba137/hpsspy.svg
-    :target: https://travis-ci.org/weaverba137/hpsspy
-    :alt: Travis Build Status
+.. |Actions Status| image:: https://github.com/weaverba137/hpsspy/workflows/CI/badge.svg
+    :target: https://github.com/weaverba137/hpsspy/actions
+    :alt: GitHub Actions CI Status
 
-.. image:: https://coveralls.io/repos/github/weaverba137/hpsspy/badge.svg
-    :target: https://coveralls.io/github/weaverba137/hpsspy?branch=master
+.. |Coveralls Status| image:: https://coveralls.io/repos/github/weaverba137/hpsspy/badge.svg
+    :target: https://coveralls.io/github/weaverba137/hpsspy
     :alt: Test Coverage Status
 
-.. image:: https://readthedocs.org/projects/hpsspy/badge/
+.. |Documentation Status| image:: https://readthedocs.org/projects/hpsspy/badge/
     :target: http://hpsspy.readthedocs.io/en/latest/
     :alt: Documentation Status
 

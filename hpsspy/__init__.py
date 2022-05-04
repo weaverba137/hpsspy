@@ -6,6 +6,7 @@ hpsspy
 
 Python interface to the HPSS system.
 """
+from ._version import __version__
 
 
 class HpssError(Exception):
@@ -18,6 +19,3 @@ class HpssOSError(HpssError):
     """HPSS Errors that are similar to OSError.
     """
     pass
-
-
-__version__ = '0.5.2.dev281'
