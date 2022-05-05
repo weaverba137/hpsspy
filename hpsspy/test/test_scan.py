@@ -9,10 +9,12 @@ Test the functions in the scan subpackage.
 import pytest
 import json
 import re
+from logging import DEBUG
 from pkg_resources import resource_filename, resource_stream
 from ..scan import (validate_configuration, compile_map, files_to_hpss,
                     find_missing, process_missing, extract_directory_name,
                     iterrsplit, scan_disk, scan_hpss, physical_disks, _options)
+from .test_os import mock_call, MockFile
 
 
 @pytest.fixture
@@ -197,12 +199,6 @@ def test_validate_configuration_bad_regex(caplog, tmp_path, test_config):
     assert caplog.records[0].message == "Regular Expression error detected in section 'redux'!"
 
 
-def test_process_missing():
-    """Test conversion of missing files into HPSS commands.
-    """
-    pass
-
-
 def test_extract_directory_name():
     """Test conversion of HTAR file name back into directory name.
     """
@@ -228,3 +224,144 @@ def test_options(monkeypatch):
     assert options.test
     assert options.verbose
     assert options.config == 'config'
+
+
+def test_scan_hpss_cached(caplog):
+    """Test scan_hpss() using an existing cache.
+    """
+    caplog.set_level(DEBUG)
+    cache = resource_filename('hpsspy.test', 't/hpss_cache.csv')
+    hpss_files = scan_hpss('/hpss/root', cache)
+    assert hpss_files['foo'][0] == 1
+    assert hpss_files['bar'][1] == 3
+    assert caplog.records[0].levelname == 'INFO'
+    assert caplog.records[0].message == f"Found cache file {cache}."
+
+
+def test_scan_hpss(monkeypatch, caplog, tmp_path, mock_call):
+    """Test scan_hpss() using an existing cache.
+    """
+    d = MockFile(True, 'subdir')
+    f = MockFile(False, 'name')
+    ff = MockFile(False, 'subname')
+    ld = mock_call([[d, f], [ff]])
+    i = mock_call([False])
+    monkeypatch.setattr('hpsspy.os._os.listdir', ld)
+    monkeypatch.setattr('hpsspy.os.path.islink', i)
+    caplog.set_level(DEBUG)
+    cache = tmp_path / 'temp_hpss_cache.csv'
+    # cache = resource_filename('hpsspy.test', 't/hpss_cache.csv')
+    hpss_files = scan_hpss('/hpss/root', str(cache))
+    # print(hpss_files)
+    assert hpss_files['/path/name'][0] == 12345
+    assert hpss_files['/path/subname'][1] == 54321
+    assert caplog.records[0].levelname == 'INFO'
+    assert caplog.records[0].message == "No HPSS cache file, starting scan at /hpss/root."
+    assert caplog.records[1].levelname == 'DEBUG'
+    assert caplog.records[1].message == "Scanning HPSS directory /hpss/root."
+    assert caplog.records[2].levelname == 'DEBUG'
+    assert caplog.records[2].message == "Scanning HPSS directory /hpss/root/subdir."
+    expected_csv = """Name,Size,Mtime
+/path/name,12345,54321
+/path/subname,12345,54321
+"""
+    with cache.open() as csv:
+        data = csv.read()
+    assert data == expected_csv
+
+
+def test_scan_disk_cached(monkeypatch, caplog, mock_call):
+    """Test the scan_disk() function using an existing cache.
+    """
+    m = mock_call([True])
+    monkeypatch.setattr('os.path.exists', m)
+    caplog.set_level(DEBUG)
+    assert scan_disk(['/foo', '/bar'], 'cache_file')
+    assert m.args[0] == ('cache_file', )
+    assert caplog.records[0].levelname == 'DEBUG'
+    assert caplog.records[0].message == "Using existing file cache: cache_file"
+
+
+def test_scan_disk(monkeypatch, caplog, tmp_path, mock_call):
+    """Test the scan_disk() function.
+    """
+    f = MockFile(False, 'name')
+    ff = MockFile(False, 'subname')
+    m = mock_call([[('/foo', ['subdir'], ['name']),
+                    ('/foo/subdir', [], ['subname'])],
+                   [('/bar', ['subdir'], ['name']),
+                    ('/bar/subdir', [], ['subname'])]])
+    # i = mock_call([False, False, False, False])
+    s = mock_call([f, f, ff, f, ff])
+    monkeypatch.setattr('os.walk', m)
+    # monkeypatch.setattr('os.path.islink', i)
+    monkeypatch.setattr('os.stat', s)
+    caplog.set_level(DEBUG)
+    cache = tmp_path / 'cache_file.csv'
+    foo = scan_disk(['/foo', '/bar'], str(cache), overwrite=True)
+    assert foo
+    assert m.args[0] == ('/foo', )
+    assert m.args[1] == ('/bar', )
+    assert s.args[0] == (str(cache), )
+    assert s.args[1] == ('/foo/name', )
+    assert s.args[2] == ('/foo/subdir/subname', )
+    assert s.args[3] == ('/bar/name', )
+    assert s.args[4] == ('/bar/subdir/subname', )
+    assert caplog.records[0].levelname == 'INFO'
+    assert caplog.records[0].message == "No disk cache file, starting scan."
+    assert caplog.records[1].levelname == 'DEBUG'
+    assert caplog.records[1].message == "Starting os.walk at /foo."
+    assert caplog.records[2].levelname == 'DEBUG'
+    assert caplog.records[2].message == "Scanning disk directory /foo."
+    assert caplog.records[3].levelname == 'DEBUG'
+    assert caplog.records[3].message == "Scanning disk directory /foo/subdir."
+    assert caplog.records[4].levelname == 'DEBUG'
+    assert caplog.records[4].message == "Starting os.walk at /bar."
+    assert caplog.records[5].levelname == 'DEBUG'
+    assert caplog.records[5].message == "Scanning disk directory /bar."
+    assert caplog.records[6].levelname == 'DEBUG'
+    assert caplog.records[6].message == "Scanning disk directory /bar/subdir."
+    expected_csv = """Name,Size,Mtime
+name,12345,54321
+subdir/subname,12345,54321
+name,12345,54321
+subdir/subname,12345,54321
+"""
+    with cache.open() as csv:
+        data = csv.read()
+    assert data == expected_csv
+
+
+def test_scan_disk_exception(monkeypatch, caplog, tmp_path, mock_call):
+    """Test the scan_disk() function, throwing an exception.
+    """
+    err = OSError(12345, 'foobar', 'foo.txt')
+    f = MockFile(False, 'name')
+    ff = MockFile(False, 'subname')
+    m = mock_call([[('/foo', ['subdir'], ['name']),
+                    ('/foo/subdir', [], ['subname'])],
+                   [('/bar', ['subdir'], ['name']),
+                    ('/bar/subdir', [], ['subname'])]], raises=err)
+    # i = mock_call([False, False, False, False])
+    s = mock_call([f, f, ff, f, ff])
+    monkeypatch.setattr('os.walk', m)
+    # monkeypatch.setattr('os.path.islink', i)
+    monkeypatch.setattr('os.stat', s)
+    caplog.set_level(DEBUG)
+    cache = tmp_path / 'cache_file.csv'
+    foo = scan_disk(['/foo', '/bar'], str(cache), overwrite=True)
+    assert not foo
+    assert caplog.records[0].levelname == 'INFO'
+    assert caplog.records[0].message == "No disk cache file, starting scan."
+    assert caplog.records[1].levelname == 'DEBUG'
+    assert caplog.records[1].message == "Starting os.walk at /foo."
+    assert caplog.records[2].levelname == 'ERROR'
+    assert caplog.records[2].message == "Exception encountered while creating disk cache file!"
+    assert caplog.records[3].levelname == 'ERROR'
+    assert caplog.records[3].message == "foobar"
+
+
+def test_process_missing():
+    """Test conversion of missing files into HPSS commands.
+    """
+    pass

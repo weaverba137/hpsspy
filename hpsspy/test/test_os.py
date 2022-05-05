@@ -18,6 +18,9 @@ class MockFile(object):
     def __init__(self, isdir, string):
         self.isdir = isdir
         self.string = string
+        self.path = f'/path/{string}'
+        self.st_size = 12345
+        self.st_mtime = 54321
 
     def __str__(self):
         return self.string
