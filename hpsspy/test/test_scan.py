@@ -240,11 +240,3 @@ class TestScan(unittest.TestCase):
         self.assertEqual(d, 'batch')
         d = extract_directory_name('batch.tar')
         self.assertEqual(d, 'batch')
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

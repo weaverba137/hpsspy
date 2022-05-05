@@ -1,4 +1,11 @@
 include LICENSE.rst
 include README.rst
+include setup.cfg
 
-graft doc
+recursive-include hpsspy *.pyx *.c *.pxd
+recursive-include doc *
+
+prune build
+prune docs/_build
+prune docs/api
+prune htmlcov
