@@ -36,9 +36,11 @@ def mock_call():
             self.return_values = return_values
             self.raises = raises
             self.args = list()
+            self.kwargs = list()
 
-        def __call__(self, *args):
+        def __call__(self, *args, **kwargs):
             self.args.append(tuple(args))
+            self.kwargs.append(kwargs)
             if self.raises:
                 raise self.raises
             r = self.return_values[self.counter]

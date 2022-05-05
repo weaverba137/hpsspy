@@ -6,47 +6,22 @@ hpsspy.test.test_util
 
 Test the functions in the util subpackage.
 """
+import pytest
 import unittest
 from unittest.mock import patch, MagicMock
-# import json
 from pkg_resources import resource_filename
 import os
 import sys
 import stat
 import datetime
-from shutil import rmtree
-from tempfile import mkdtemp
 from .. import HpssOSError
 from ..util import HpssFile, get_hpss_dir, get_tmpdir, hsi, htar
+from .test_os import mock_call
 
 
 class TestUtil(unittest.TestCase):
     """Test the functions in the util subpackage.
     """
-
-    @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    def setUp(self):
-        # Store the original value of env variables, if present.
-        self.env = {'TMPDIR': None, 'HPSS_DIR': None}
-        for e in self.env:
-            if e in os.environ:
-                self.env[e] = os.environ[e]
-
-    def tearDown(self):
-        # Restore the original value of env variables, if they were present.
-        for e in self.env:
-            if self.env[e] is None:
-                if e in os.environ:
-                    del os.environ[e]
-            else:
-                os.environ[e] = self.env[e]
 
     def test_HpssFile(self):
         """Test the HpssFile object.
@@ -192,58 +167,51 @@ class TestUtil(unittest.TestCase):
                                    'bar.txt')])
             h.assert_called_with('-t', '-f', '/home/b/bweaver/bundle.tar')
 
-    def test_get_hpss_dir(self):
-        """Test searching for the HPSS_DIR variable.
-        """
-        with patch.dict('os.environ', {'HPSS_DIR': '/path/to/hpss'}):
-            self.assertEqual(get_hpss_dir(), '/path/to/hpss/bin')
 
-    def test_get_tmpdir(self):
-        """Test the TMPDIR search function.
-        """
-        myTmpDir = '/my/own/personal/temporary/directory'
-        self.assertEqual(get_tmpdir(tmpdir=myTmpDir), myTmpDir)
-        if self.env['TMPDIR'] is None:
-            os.environ['TMPDIR'] = '/Temporary/TMPDIR'
-            self.assertEqual(get_tmpdir(), '/Temporary/TMPDIR')
-        else:
-            self.assertEqual(get_tmpdir(), self.env['TMPDIR'])
-        del os.environ['TMPDIR']
-        self.assertEqual(get_tmpdir(), '/tmp')
+def test_get_hpss_dir(monkeypatch):
+    """Test searching for the HPSS_DIR variable.
+    """
+    monkeypatch.setenv('HPSS_DIR', '/path/to/hpss')
+    assert get_hpss_dir() == '/path/to/hpss/bin'
 
-    def test_hsi(self):
-        """Test passing arguments to the hsi command.
-        """
-        os.environ['TMPDIR'] = mkdtemp()
-        txt = os.path.join(os.environ['TMPDIR'], 'hsi.txt')
-        with open(txt, 'w') as t:
-            t.write('This is a test.')
-        pre_command = ['-O', txt,
-                       '-s', 'archive']
-        command = ['ls', '-l', 'foo']
-        with patch.dict('os.environ', {'HPSS_DIR': '/foo/bar'}):
-            with patch('hpsspy.util.call') as c:
-                out = hsi(*command)
-                c.assert_called_with(['/foo/bar/bin/hsi',
-                                      '-O', txt, '-s', 'archive',
-                                      'ls', '-l', 'foo'])
-        self.assertEqual(out.strip(), 'This is a test.')
-        rmtree(os.environ['TMPDIR'])
 
-    def test_htar(self):
-        """Test passing arguments to the htar command.
-        """
-        command = ['-cvf', 'foo/bar.tar', '-H', 'crc:verify=all', 'bar']
-        with patch.dict('os.environ', {'HPSS_DIR': '/foo/bar'}):
-            with patch('hpsspy.util.call') as c:
-                c.return_value = 0
-                out, err = htar(*command)
-                try:
-                    c.assert_called_once()  # Python >= 3.6
-                except AttributeError:
-                    pass
-                # c.assert_called_with(['/foo/bar/bin/htar', '-cvf',
-                #                       'foo/bar.tar',
-                #                       '-H', 'crc:verify=all', 'bar'])
-        self.assertEqual(out.strip(), '')
-        self.assertEqual(err.strip(), '')
+def test_get_tmpdir(monkeypatch):
+    """Test the TMPDIR search function.
+    """
+    myTmpDir = '/my/own/personal/temporary/directory'
+    assert get_tmpdir(tmpdir=myTmpDir) == myTmpDir
+    monkeypatch.setenv('TMPDIR', '/Temporary/TMPDIR')
+    assert get_tmpdir() == '/Temporary/TMPDIR'
+    monkeypatch.delenv('TMPDIR')
+    assert get_tmpdir() == '/tmp'
+
+
+def test_hsi(monkeypatch, tmp_path, mock_call):
+    """Test passing arguments to the hsi command.
+    """
+    m = mock_call([0])
+    monkeypatch.setenv('TMPDIR', str(tmp_path))
+    monkeypatch.setenv('HPSS_DIR', '/foo/bar')
+    monkeypatch.setattr('hpsspy.util.call', m)
+    txt = tmp_path / 'hsi.txt'
+    with open(txt, 'w') as t:
+        t.write('This is a test.')
+    pre_command = ['-O', str(txt), '-s', 'archive']
+    command = ['ls', '-l', 'foo']
+    out = hsi(*command)
+    assert out.strip() == 'This is a test.'
+    assert m.args[0] == (['/foo/bar/bin/hsi'] + pre_command + command, )
+
+
+def test_htar(monkeypatch, mock_call):
+    """Test passing arguments to the htar command.
+    """
+    m = mock_call([0])
+    monkeypatch.setenv('HPSS_DIR', '/foo/bar')
+    monkeypatch.setattr('hpsspy.util.call', m)
+    command = ['-cvf', 'foo/bar.tar', '-H', 'crc:verify=all', 'bar']
+    out, err = htar(*command)
+    assert (out, err) == ('', '')
+    assert m.args[0] == (['/foo/bar/bin/htar'] + command, )
+    assert 'stdout' in m.kwargs[0]
+    assert 'stderr' in m.kwargs[0]
