@@ -7,14 +7,8 @@ hpsspy.test.test_scan
 Test the functions in the scan subpackage.
 """
 import pytest
-import unittest
 import json
-import os
-import sys
 import re
-import tempfile
-import logging
-from logging.handlers import MemoryHandler
 from pkg_resources import resource_filename, resource_stream
 from ..scan import (compile_map, files_to_hpss, physical_disks,
                     validate_configuration, process_missing, iterrsplit,
