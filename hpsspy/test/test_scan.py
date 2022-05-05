@@ -10,9 +10,9 @@ import pytest
 import json
 import re
 from pkg_resources import resource_filename, resource_stream
-from ..scan import (compile_map, files_to_hpss, physical_disks,
-                    validate_configuration, process_missing, iterrsplit,
-                    extract_directory_name)
+from ..scan import (validate_configuration, compile_map, files_to_hpss,
+                    find_missing, process_missing, extract_directory_name,
+                    iterrsplit, scan_disk, scan_hpss, physical_disks, _options)
 
 
 @pytest.fixture
@@ -217,3 +217,14 @@ def test_extract_directory_name():
     assert d == 'batch'
     d = extract_directory_name('batch.tar')
     assert d == 'batch'
+
+
+def test_options(monkeypatch):
+    """Test command-line parsing.
+    """
+    monkeypatch.setattr('sys.argv', ['missing_from_hpss', '--test', '--verbose',
+                                     'config', 'release'])
+    options = _options()
+    assert options.test
+    assert options.verbose
+    assert options.config == 'config'
