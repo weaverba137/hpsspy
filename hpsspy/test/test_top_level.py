@@ -10,7 +10,7 @@ import re
 from .. import __version__ as theVersion
 
 
-versionRE = re.compile('([0-9]+!)?([0-9]+)(\.[0-9]+)*((a|b|rc|\.post|\.dev)[0-9]+)?')
+versionRE = re.compile(r'([0-9]+!)?([0-9]+)(\.[0-9]+)*((a|b|rc|\.post|\.dev)[0-9]+)?')
 
 
 def test_version():
