@@ -361,7 +361,35 @@ def test_scan_disk_exception(monkeypatch, caplog, tmp_path, mock_call):
     assert caplog.records[3].message == "foobar"
 
 
-def test_process_missing():
+def test_process_missing(monkeypatch, caplog, mock_call):
     """Test conversion of missing files into HPSS commands.
     """
-    pass
+    missing_cache = resource_filename('hpsspy.test', 't/missing_cache.json')
+    getcwd = mock_call(['/working/directory', '/working/directory'])
+    chdir = mock_call([None, None])
+    isdir = mock_call([True])
+    htar = mock_call([('out', '')])
+    hsi = mock_call(['OK'])
+    monkeypatch.setenv('HPSS_DIR', '/usr/local')
+    monkeypatch.setattr('os.getcwd', getcwd)
+    monkeypatch.setattr('os.chdir', chdir)
+    monkeypatch.setattr('os.path.isdir', isdir)
+    monkeypatch.setattr('hpsspy.scan.htar', htar)
+    monkeypatch.setattr('hpsspy.os._os.hsi', hsi)
+    caplog.set_level(DEBUG)
+    process_missing(missing_cache, '/disk/root', '/hpss/root')
+    assert chdir.args[0] == ('/disk/root/', )
+    assert isdir.args[0] == ('/disk/root/test_basic_htar', )
+    assert htar.args[0] == ('-cvf', '/hpss/root/test_basic_htar.tar', '-H', 'crc:verify=all', 'test_basic_htar')
+    assert caplog.records[0].levelname == 'DEBUG'
+    assert caplog.records[0].message == f"Processing missing files from {missing_cache}."
+    assert caplog.records[1].levelname == 'DEBUG'
+    assert caplog.records[1].message == "os.chdir('/disk/root/')"
+    assert caplog.records[2].levelname == 'DEBUG'
+    assert caplog.records[2].message == "makedirs('/hpss/root/', mode='2770')"
+    assert caplog.records[3].levelname == 'INFO'
+    assert caplog.records[3].message == "htar('-cvf', '/hpss/root/test_basic_htar.tar', '-H', 'crc:verify=all', 'test_basic_htar')"
+    assert caplog.records[4].levelname == 'DEBUG'
+    assert caplog.records[4].message == 'out'
+    assert caplog.records[5].levelname == 'DEBUG'
+    assert caplog.records[5].message == "os.chdir('/working/directory')"
