@@ -272,6 +272,7 @@ def test_scan_hpss(monkeypatch, caplog, tmp_path, mock_call):
     assert ld.args[1] == ('/hpss/root/subdir', )
     assert i.args[0] == ('/hpss/root/subdir', )
 
+
 def test_scan_disk_cached(monkeypatch, caplog, mock_call):
     """Test the scan_disk() function using an existing cache.
     """
