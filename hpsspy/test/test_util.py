@@ -9,7 +9,7 @@ Test the functions in the util subpackage.
 import pytest
 import os
 import stat
-import datetime
+from datetime import datetime
 from .. import HpssOSError
 from ..util import HpssFile, get_hpss_dir, get_tmpdir, hsi, htar
 from .test_os import mock_call, MockFile
@@ -24,36 +24,25 @@ def test_HpssFile():
     links = ('/nersc/projects/boss', '/nersc/projects/cosmo',
              '/nersc/projects/desi', True, False, False, False)
     modes = (511, 511, 511, 1517, 432, 432, 432)
-    this_year = datetime.datetime.now().year
-    mtimes = (datetime.datetime(2008, 4, 3, 0, 0, 0),
-              datetime.datetime(2014, 8, 22, 0, 0, 0),
-              datetime.datetime(2013, 12, 16, 0, 0, 0),
-              datetime.datetime(this_year, 4, 4, 13, 14, 0),
-              datetime.datetime(this_year, 7, 3, 12, 34, 0),
-              datetime.datetime(2016, 2, 2, 0, 0, 0),
-              datetime.datetime(2016, 2, 2, 0, 0, 0))
-    data = (('l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver',
-             20, 'Apr', 3, '2008', 'boss@ -> /nersc/projects/boss'),
-            ('l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver',
-             21, 'Aug', 22, '2014', 'cosmo@ -> /nersc/projects/cosmo'),
-            ('l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver',
-             20, 'Dec', 16, '2013', 'desi@ -> /nersc/projects/desi'),
-            ('d', 'rwxr-sr-x', 3, 'bweaver', 'bweaver',
-             512, 'Apr', 4, '13:14', 'test'),
-            ('-', 'rw-rw----', 1, 'bweaver', 'bweaver',
-             100, 'Jul', 3, '12:34', 'README.rst'),
-            ('-', 'rw-rw----', 1, 'bweaver', 'bweaver',
-             100000, 'Feb', 2, '2016', 'backup.tar'),
-            ('-', 'rw-rw----', 1, 'bweaver', 'bweaver',
-             1000, 'Feb', 2, '2016', 'backup.tar.idx'))
-    htar_data = [('-', 'rw-rw----', 'bweaver/bweaver', '50', '2016-02-02',
-                 '12:34', 'a.txt'),
-                 ('-', 'rw-rw----', 'bweaver/bweaver', '50', '2016-02-02',
-                  '12:34', 'b.txt'),
-                 ('-', 'rw-rw----', 'bweaver/bweaver', '50', '2016-02-02',
-                  '12:34', 'c.txt')]
+    mtimes = (datetime(2008, 4, 3, 13, 4, 5, tzinfo=HpssFile._pacific),
+              datetime(2014, 8, 22, 11, 32, 9, tzinfo=HpssFile._pacific),
+              datetime(2013, 12, 16, 15, 12, 59, tzinfo=HpssFile._pacific),
+              datetime(2022, 4, 4, 13, 14, 15, tzinfo=HpssFile._pacific),
+              datetime(2021, 7, 3, 12, 34, 56, tzinfo=HpssFile._pacific),
+              datetime(2016, 2, 2, 9, 2, 7, tzinfo=HpssFile._pacific),
+              datetime(2016, 2, 2, 9, 2, 13, tzinfo=HpssFile._pacific))
+    data = (('l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver', 20, 'Thu', 'Apr', 3, '13:04:05', 2008, 'boss@ -> /nersc/projects/boss'),
+            ('l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver', 21, 'Fri', 'Aug', 22, '11:32:09', 2014, 'cosmo@ -> /nersc/projects/cosmo'),
+            ('l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver', 20, 'Mon', 'Dec', 16, '15:12:59', 2013, 'desi@ -> /nersc/projects/desi'),
+            ('d', 'rwxr-sr-x', 3, 'bweaver', 'bweaver', 512, 'Mon', 'Apr', 4, '13:14:15', 2022, 'test'),
+            ('-', 'rw-rw----', 1, 'bweaver', 'bweaver', 100, 'Sat', 'Jul', 3, '12:34:56', 2021, 'README.rst'),
+            ('-', 'rw-rw----', 1, 'bweaver', 'bweaver', 100000, 'Tue', 'Feb', 2, '09:02:07', 2016, 'backup.tar'),
+            ('-', 'rw-rw----', 1, 'bweaver', 'bweaver', 1000, 'Tue', 'Feb', 2, '09:02:13', 2016, 'backup.tar.idx'))
+    htar_data = [('-', 'rw-rw----', 'bweaver/bweaver', '50', '2016-02-02', '12:34', 'a.txt'),
+                 ('-', 'rw-rw----', 'bweaver/bweaver', '50', '2016-02-02', '12:34', 'b.txt'),
+                 ('-', 'rw-rw----', 'bweaver/bweaver', '50', '2016-02-02', '12:34', 'c.txt')]
     repr_template = ("HpssFile('{0}', '{1}', '{2}', {3:d}, '{4}', " +
-                     "'{5}', {6:d}, '{7}', {8:d}, '{9}', '{10}')")
+                     "'{5}', {6:d}, '{7}', '{8}', {9:d}, '{10}', {11:d}, '{12}')")
 
     files = list()
     for d in data:
@@ -93,7 +82,7 @@ def test_HpssFile_unusual_mode():
     """
     lspath = '/home/b/bweaver'
     f = HpssFile(lspath, 's', 'rw-rw----', 1, 'bweaver', 'bweaver',
-                 1000, 'Feb', 2, '2016', 'fake.socket')
+                 1000, 'Tue', 'Feb', 2, '09:02:07', 2016, 'fake.socket')
     with pytest.raises(AttributeError) as err:
         m = f.st_mode
     assert err.value.args[0] == "Unknown file type, s, for fake.socket!"
@@ -104,7 +93,7 @@ def test_HpssFile_htar_contents_basic():
     """
     lspath = '/home/b/bweaver'
     f = HpssFile(lspath, '-', 'rw-rw-r--', 1, 'bweaver', 'bweaver',
-                 12345, 'Aug', 22, '2014', 'bundle.tar')
+                 12345, 'Fri', 'Aug', 22, '11:32:09', 2014, 'bundle.tar')
     assert f.htar_contents() is None
     f.ishtar = True
     f._contents = ['foo.txt']
@@ -116,7 +105,7 @@ def test_HpssFile_htar_contents(monkeypatch, mock_call):
     """
     lspath = '/home/b/bweaver'
     f = HpssFile(lspath, '-', 'rw-rw-r--', 1, 'bweaver', 'bweaver',
-                 12345, 'Aug', 22, '2014', 'bundle.tar')
+                 12345, 'Fri', 'Aug', 22, '11:32:09', 2014, 'bundle.tar')
     f.ishtar = True
     foo = '''HTAR: -rw-rw-r-- bweaver/bweaver 100 2012-07-03 12:00 foo.txt
 HTAR: -rw-rw-r-- bweaver/bweaver 100 2012-07-03 12:00 bar.txt
@@ -133,13 +122,13 @@ def test_HpssFile_st_mode():
     """
     lspath = '/home/b/bweaver'
     f = HpssFile(lspath, 'd', 'rwxrwsrwt', 1, 'bweaver', 'bweaver',
-                 1000, 'Feb', 2, '2016', 'fake.dir')
+                 1000, 'Tue', 'Feb', 2, '09:02:07', 2016, 'fake.dir')
     assert f.st_mode == 18431
     f = HpssFile(lspath, '-', 'rwSrw-rwT', 1, 'bweaver', 'bweaver',
-                 1000, 'Feb', 2, '2016', 'fake.file')
+                 1000, 'Tue', 'Feb', 2, '09:02:07', 2016, 'fake.file')
     assert f.st_mode == 35766
     f = HpssFile(lspath, '-', 'rwsrwSrwT', 1, 'bweaver', 'bweaver',
-                 1000, 'Feb', 2, '2016', 'fake.file')
+                 1000, 'Tue', 'Feb', 2, '09:02:07', 2016, 'fake.file')
     assert f.st_mode == 36854
 
 
@@ -151,7 +140,7 @@ def test_HpssFile_isdir(monkeypatch, mock_call):
     s = mock_call([m])
     monkeypatch.setattr('hpsspy.os.stat', s)
     f = HpssFile(lspath, 'l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver',
-                 21, 'Aug', 22, '2014', 'cosmo@ -> /nersc/projects/cosmo')
+                 21, 'Fri', 'Aug', 22, '11:32:09', 2014, 'cosmo@ -> /nersc/projects/cosmo')
     assert f.islink
     assert f.isdir
     assert s.args[0] == ('/nersc/projects/cosmo', )
@@ -165,7 +154,7 @@ def test_HpssFile_isdir_file(monkeypatch, mock_call):
     s = mock_call([m])
     monkeypatch.setattr('hpsspy.os.stat', s)
     f = HpssFile(lspath, 'l', 'rwxrwxrwx', 1, 'bweaver', 'bweaver',
-                 21, 'Aug', 22, '2014', 'cosmo@ -> cosmo.txt')
+                 21, 'Fri', 'Aug', 22, '11:32:09', 2014, 'cosmo@ -> cosmo.txt')
     assert f.islink
     assert not f.isdir
     assert s.args[0] == ('/home/b/bweaver/cosmo.txt', )

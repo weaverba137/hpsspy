@@ -247,7 +247,7 @@ def test_scan_hpss(monkeypatch, caplog, tmp_path, mock_call):
     ld = mock_call([[d, f], [ff]])
     i = mock_call([False])
     monkeypatch.setattr('hpsspy.os._os.listdir', ld)
-    monkeypatch.setattr('hpsspy.os.path.islink', i)
+    monkeypatch.setattr('hpsspy.os._os.islink', i)
     caplog.set_level(DEBUG)
     cache = tmp_path / 'temp_hpss_cache.csv'
     # cache = resource_filename('hpsspy.test', 't/hpss_cache.csv')
@@ -268,7 +268,9 @@ def test_scan_hpss(monkeypatch, caplog, tmp_path, mock_call):
     with cache.open() as csv:
         data = csv.read()
     assert data == expected_csv
-
+    assert ld.args[0] == ('/hpss/root', )
+    assert ld.args[1] == ('/hpss/root/subdir', )
+    assert i.args[0] == ('/hpss/root/subdir', )
 
 def test_scan_disk_cached(monkeypatch, caplog, mock_call):
     """Test the scan_disk() function using an existing cache.

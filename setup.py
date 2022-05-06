@@ -24,7 +24,7 @@ setup_keywords['license'] = 'BSD'
 setup_keywords['url'] = 'https://github.com/weaverba137/hpsspy'
 setup_keywords['keywords'] = ['backup']
 setup_keywords['classifiers'] = [
-    'Development Status :: 4 - Beta',
+    'Development Status :: 5 - Production/Stable',
     'Environment :: Console',
     'Intended Audience :: Science/Research',
     'Intended Audience :: System Administrators',

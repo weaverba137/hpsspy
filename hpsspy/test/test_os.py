@@ -270,33 +270,33 @@ def test_lstat_not_link(monkeypatch, mock_call):
 def test_isdir(monkeypatch, mock_call):
     """Test the isdir() function.
     """
-    m = mock_call(['drwxr-sr-x    3 bweaver   bweaver          512 Oct  4  2010 test'])
+    m = mock_call(['drwxr-sr-x    3 bweaver   bweaver          512 Mon Oct  4 10:43:20 2010 test'])
     monkeypatch.setattr('hpsspy.os._os.hsi', m)
     assert isdir('test')
-    assert m.args[0] == ('ls', '-ld', 'test')
+    assert m.args[0] == ('ls', '-ldDTw', 'test')
 
 
 def test_isfile(monkeypatch, mock_call):
     """Test the isfile() function.
     """
     foo = '''desi:
--rw-rw----    1 bweaver   desi     29956061184 May 15  2014 cosmos_nvo.tar
+-rw-rw----    1 bweaver   desi     29956061184 Thu May 15 12:34:56 2014 cosmos_nvo.tar
 '''
     m = mock_call([foo])
     monkeypatch.setattr('hpsspy.os._os.hsi', m)
     assert isfile('desi/cosmos_nvo.tar')
-    assert m.args[0] == ('ls', '-ld', 'desi/cosmos_nvo.tar')
+    assert m.args[0] == ('ls', '-ldDTw', 'desi/cosmos_nvo.tar')
 
 
 def test_islink(monkeypatch, mock_call):
     """Test the islink() function.
     """
-    m = mock_call(['lrwxrwxrwx    1 bweaver   bweaver           21 Aug 22  2014 cosmo@ -> /nersc/projects/cosmo',
-                  '/nersc/projects:\ndrwxrwxr-x    1 bweaver   bweaver           21 Aug 22  2014 cosmo'])
+    m = mock_call(['lrwxrwxrwx    1 bweaver   bweaver           21 Fri Aug 22 01:23:45 2014 cosmo@ -> /nersc/projects/cosmo',
+                  '/nersc/projects:\ndrwxrwxr-x    1 bweaver   bweaver           21 Fri Aug 22 01:23:45 2014 cosmo'])
     monkeypatch.setattr('hpsspy.os._os.hsi', m)
     assert islink('cosmo')
-    assert m.args[0] == ('ls', '-ld', 'cosmo')
-    # assert m.args[1] == ('ls', '-ld', '/nersc/projects/cosmo')
+    assert m.args[0] == ('ls', '-ldDTw', 'cosmo')
+    # assert m.args[1] == ('ls', '-ldDTw', '/nersc/projects/cosmo')
 
 
 def test_walk_error(monkeypatch, mock_call):
@@ -323,7 +323,7 @@ def test_walk(monkeypatch, mock_call):
     ld = mock_call([[d, f], []])
     i = mock_call([False])
     monkeypatch.setattr('hpsspy.os._os.listdir', ld)
-    monkeypatch.setattr('hpsspy.os.path.islink', i)
+    monkeypatch.setattr('hpsspy.os._os.islink', i)
     w = walk('/home/b/bweaver')
     n = next(w)
     assert n == ('/home/b/bweaver', [d], [f])
@@ -342,7 +342,7 @@ def test_walk_topdown(monkeypatch, mock_call):
     ld = mock_call([[d, f], []])
     i = mock_call([False])
     monkeypatch.setattr('hpsspy.os._os.listdir', ld)
-    monkeypatch.setattr('hpsspy.os.path.islink', i)
+    monkeypatch.setattr('hpsspy.os._os.islink', i)
     w = walk('/home/b/bweaver', topdown=False)
     n = next(w)
     assert n == ('/home/b/bweaver/subdir', [], [])
