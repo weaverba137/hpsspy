@@ -7,12 +7,26 @@ hpsspy.os._os
 Contains the actual functions in :mod:`hpsspy.os`.
 """
 from os.path import join
-from . import linere
 from .path import islink
 from .. import HpssOSError
 from ..util import HpssFile, hsi
+import re
 
 __all__ = ['chmod', 'listdir', 'makedirs', 'mkdir', 'stat', 'lstat', 'walk']
+
+linere = re.compile(r"""([dl-])           # file type
+                        ([rwxsStT-]+)\s+  # file permissions
+                        (\d+)\s+          # number of links
+                        (\S+)\s+          # user
+                        (\S+)\s+          # group
+                        (\d+)\s+          # size
+                        ([A-Za-z]+)\s+    # day of week
+                        ([A-Za-z]+)\s+    # month
+                        (\d+)\s+          # day
+                        ([0-9:]+)\s       # H:M:S
+                        ([0-9]+)\s        # year
+                        (.*)$             # filename
+                        """, re.VERBOSE)
 
 
 def chmod(path, mode):

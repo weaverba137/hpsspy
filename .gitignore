@@ -50,3 +50,6 @@ nosetests.xml
 
 # Mac OSX
 .DS_Store
+
+# Pytest
+.pytest_cache

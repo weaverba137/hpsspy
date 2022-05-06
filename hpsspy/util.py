@@ -12,6 +12,7 @@ import re
 from datetime import datetime
 from subprocess import call
 from tempfile import TemporaryFile
+import pytz
 from . import HpssOSError
 
 
@@ -40,11 +41,15 @@ class HpssFile(object):
         Group name.
     st_size : :class:`int`
         File size in bytes.
+    raw_dow : :class:`str`
+        Day-of-week of modification time.
     raw_month : :class:`str`
         Month of modification time.
     raw_day : :class:`int`
         Day of modification time.
-    raw_year : :class:`str`
+    raw_hms : :class:`str`
+        H:M:S of modification time.
+    raw_year : :class:`int`
         Year of modification time.
     raw_name : :class:`str`
         Name of file.
@@ -62,6 +67,7 @@ class HpssFile(object):
     _file_modes = {'l': stat.S_IFLNK, 'd': stat.S_IFDIR, '-': stat.S_IFREG}
     _months = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+    _pacific = pytz.timezone('US/Pacific')
 
     def __init__(self, *args):
         self.hpss_path = args[0]
@@ -71,10 +77,12 @@ class HpssFile(object):
         self.st_uid = args[4]
         self.st_gid = args[5]
         self.st_size = int(args[6])
-        self.raw_month = args[7]
-        self.raw_day = int(args[8])
-        self.raw_year = args[9]
-        self.raw_name = args[10]
+        self.raw_dow = args[7]
+        self.raw_month = args[8]
+        self.raw_day = int(args[9])
+        self.raw_hms = args[10]
+        self.raw_year = int(args[11])
+        self.raw_name = args[12]
         self.ishtar = False
         self._contents = None  # placeholder for htar file contents.
         self._property_cache = dict()
@@ -83,8 +91,8 @@ class HpssFile(object):
     def __repr__(self):
         return ("HpssFile('{0.hpss_path}', '{0.raw_type}', " +
                 "'{0.raw_permission}', {0.st_nlink:d}, '{0.st_uid}', " +
-                "'{0.st_gid}', {0.st_size:d}, '{0.raw_month}', " +
-                "{0.raw_day:d}, '{0.raw_year}', " +
+                "'{0.st_gid}', {0.st_size:d}, '{0.raw_dow}', '{0.raw_month}', " +
+                "{0.raw_day:d}, '{0.raw_hms}', {0.raw_year:d}, " +
                 "'{0.raw_name}')").format(self)
 
     def __str__(self):
@@ -183,19 +191,11 @@ class HpssFile(object):
         """File modification time.
         """
         if 'st_mtime' not in self._property_cache:
-            seconds = 0
+            # seconds = 0
             month = self._months.index(self.raw_month) + 1
-            if self.raw_year.find(':') > 0:
-                hm = self.raw_year.split(':')
-                hours = int(hm[0])
-                minutes = int(hm[1])
-                year = datetime.now().year
-            else:
-                hours = 0
-                minutes = 0
-                year = int(self.raw_year)
-            mtime = int(datetime(year, month, self.raw_day,
-                                 hours, minutes, seconds).strftime('%s'))
+            h, m, s = map(int, self.raw_hms.split(':'))
+            mtime = int(datetime(self.raw_year, month, self.raw_day,
+                                 h, m, s, tzinfo=self._pacific).strftime('%s'))
             self._property_cache['st_mtime'] = mtime
         return self._property_cache['st_mtime']
 

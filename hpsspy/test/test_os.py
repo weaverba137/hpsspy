@@ -197,7 +197,7 @@ def test_stat(monkeypatch, mock_call):
     s = stat("desi/cosmos_nvo.tar")
     assert s.st_size == 29956061184
     assert s.st_mode == 33200
-    assert m.args[0] == ('ls', '-ld', 'desi/cosmos_nvo.tar')
+    assert m.args[0] == ('ls', '-ldDTw', 'desi/cosmos_nvo.tar')
 
 
 def test_stat_multiple_response(monkeypatch, mock_call):
@@ -215,7 +215,7 @@ desi:
     with pytest.raises(HpssOSError) as err:
         s = stat("desi/cosmos_nvo.tar")
     assert err.value.args[0] == "Non-unique response for desi/cosmos_nvo.tar!"
-    assert m.args[0] == ('ls', '-ld', 'desi/cosmos_nvo.tar')
+    assert m.args[0] == ('ls', '-ldDTw', 'desi/cosmos_nvo.tar')
 
 
 def test_stat_symlink(monkeypatch, mock_call):
