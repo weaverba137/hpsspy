@@ -6,6 +6,9 @@ hpsspy.os._os
 
 Contains the actual functions in :mod:`hpsspy.os`.
 """
+from os.path import join
+from . import linere
+from .path import islink
 from .. import HpssOSError
 from ..util import HpssFile, hsi
 
@@ -51,7 +54,6 @@ def listdir(path):
     :class:`~hpsspy.HpssOSError`
         If the underlying :command:`hsi` reports an error.
     """
-    from . import linere
     out = hsi('ls', '-la', path)
     if out.startswith('**'):
         raise HpssOSError(out)
@@ -162,8 +164,6 @@ def stat(path, follow_symlinks=True):
     :class:`~hpsspy.HpssOSError`
         If the underlying :command:`hsi` reports an error.
     """
-    from . import linere
-    from os.path import join
     out = hsi('ls', '-ld', path)
     if out.startswith('**'):
         raise HpssOSError(out)
@@ -231,8 +231,6 @@ def walk(top, topdown=True, onerror=None, followlinks=False):
     iterable
         This function can be used in the same way as :func:`os.walk`.
     """
-    from .path import islink
-    from os.path import join
     #
     # We may not have read permission for top, in which case we can't
     # get a list of the files the directory contains.  os.path.walk
