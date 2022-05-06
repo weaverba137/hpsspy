@@ -16,9 +16,11 @@ linere = re.compile(r"""([dl-])           # file type
                         (\S+)\s+          # user
                         (\S+)\s+          # group
                         (\d+)\s+          # size
+                        ([A-Za-z]+)\s+    # day of week
                         ([A-Za-z]+)\s+    # month
                         (\d+)\s+          # day
-                        ([0-9:]+)\s       # year
+                        ([0-9:]+)\s       # H:M:S
+                        ([0-9]+)\s        # year
                         (.*)$             # filename
                         """, re.VERBOSE)
 

@@ -81,7 +81,7 @@ def test_listdir_error(monkeypatch, mock_call):
     with pytest.raises(HpssOSError) as err:
         files = listdir('/home/b/bweaver')
     assert err.value.args[0] == '** Error!'
-    assert m.args[0] == ('ls', '-la', '/home/b/bweaver')
+    assert m.args[0] == ('ls', '-laDTw', '/home/b/bweaver')
 
 
 def test_listdir_bad_line(monkeypatch, mock_call):
@@ -92,21 +92,21 @@ def test_listdir_bad_line(monkeypatch, mock_call):
     with pytest.raises(HpssOSError) as err:
         files = listdir('/home/b/bweaver')
     assert err.value.args[0] == "Could not match line!\nGarbage line"
-    assert m.args[0] == ('ls', '-la', '/home/b/bweaver')
+    assert m.args[0] == ('ls', '-laDTw', '/home/b/bweaver')
 
 
 def test_listdir(monkeypatch, mock_call):
     """Test the listdir() function.
     """
     foo = '''/home/b/bweaver:
--rw-rw----    1 bweaver   desi     29956061184 May 15  2014 cosmos_nvo.tar
--rw-rw----    1 bweaver   desi           61184 May 15  2014 cosmos_nvo.tar.idx
+-rw-rw----    1 bweaver   desi     29956061184 Thu May 15 07:44:21 2014 cosmos_nvo.tar
+-rw-rw----    1 bweaver   desi           61184 Thu May 15 07:49:34 2014 cosmos_nvo.tar.idx
 '''
     m = mock_call([foo])
     monkeypatch.setattr('hpsspy.os._os.hsi', m)
     files = listdir('/home/b/bweaver')
     assert files[0].ishtar
-    assert m.args[0] == ('ls', '-la', '/home/b/bweaver')
+    assert m.args[0] == ('ls', '-laDTw', '/home/b/bweaver')
 
 
 def test_makedirs_error(monkeypatch, mock_call):
@@ -175,7 +175,7 @@ def test_stat_error(monkeypatch, mock_call):
     with pytest.raises(HpssOSError) as err:
         s = stat("desi/cosmos_nvo.tar")
     assert err.value.args[0] == '** Error!'
-    assert m.args[0] == ('ls', '-ld', 'desi/cosmos_nvo.tar')
+    assert m.args[0] == ('ls', '-ldDTw', 'desi/cosmos_nvo.tar')
 
 
 def test_stat_bad_line(monkeypatch, mock_call):
@@ -186,13 +186,13 @@ def test_stat_bad_line(monkeypatch, mock_call):
     with pytest.raises(HpssOSError) as err:
         s = stat("desi/cosmos_nvo.tar")
     assert err.value.args[0] == "Could not match line!\nGarbage line"
-    assert m.args[0] == ('ls', '-ld', 'desi/cosmos_nvo.tar')
+    assert m.args[0] == ('ls', '-ldDTw', 'desi/cosmos_nvo.tar')
 
 
 def test_stat(monkeypatch, mock_call):
     """Test the stat() function.
     """
-    m = mock_call(['desi:\n-rw-rw----    1 bweaver   desi     29956061184 May 15  2014 cosmos_nvo.tar\n'])
+    m = mock_call(['desi:\n-rw-rw----    1 bweaver   desi     29956061184 Thu May 15 07:49:34 2014 cosmos_nvo.tar\n'])
     monkeypatch.setattr('hpsspy.os._os.hsi', m)
     s = stat("desi/cosmos_nvo.tar")
     assert s.st_size == 29956061184
@@ -206,9 +206,9 @@ def test_stat_multiple_response(monkeypatch, mock_call):
     This is a rare error condition.
     """
     foo = '''desi:
--rw-rw----    1 bweaver   desi     29956061184 May 15  2014 cosmos_nvo.tar
+-rw-rw----    1 bweaver   desi     29956061184 Thu May 15 07:49:34 2014 cosmos_nvo.tar
 desi:
--rw-rw----    1 bweaver   desi     29956061184 May 15  2014 cosmos_nvo.tar.idx
+-rw-rw----    1 bweaver   desi     29956061184 Thu May 15 07:49:34 2014 cosmos_nvo.tar.idx
 '''
     m = mock_call([foo])
     monkeypatch.setattr('hpsspy.os._os.hsi', m)
@@ -221,13 +221,13 @@ desi:
 def test_stat_symlink(monkeypatch, mock_call):
     """Test the stat() function with a symlink.
     """
-    m = mock_call(['lrwxrwxrwx    1 bweaver   bweaver           21 Aug 22  2014 cosmo@ -> /nersc/projects/cosmo',
-                  'drwxrws---    6 nugent    cosmo            512 Dec 16  2016 cosmo'])
+    m = mock_call(['lrwxrwxrwx    1 bweaver   bweaver           21 Fri Aug 22 11:32:09 2014 cosmo@ -> /nersc/projects/cosmo',
+                  'drwxrws---    6 nugent    cosmo            512 Tue Jun  4 11:06:43 2019 cosmo'])
     monkeypatch.setattr('hpsspy.os._os.hsi', m)
     s = stat("cosmo")
     assert s.isdir
-    assert m.args[0] == ('ls', '-ld', 'cosmo')
-    assert m.args[1] == ('ls', '-ld', '/nersc/projects/cosmo')
+    assert m.args[0] == ('ls', '-ldDTw', 'cosmo')
+    assert m.args[1] == ('ls', '-ldDTw', '/nersc/projects/cosmo')
 
 
 def test_stat_different_symlink(monkeypatch, mock_call):
@@ -236,35 +236,35 @@ def test_stat_different_symlink(monkeypatch, mock_call):
     Original test had "This may be pointing to some unexpected behavior."
     Not sure what this means any longer.
     """
-    m = mock_call(['lrwxrwxrwx    1 bweaver   bweaver           21 Aug 22  2014 cosmo@ -> cosmo.old',
-                  'drwxrws---    6 nugent    cosmo            512 Dec 16  2016 cosmo.old'])
+    m = mock_call(['lrwxrwxrwx    1 bweaver   bweaver           21 Fri Aug 22 11:32:09 2014 cosmo@ -> cosmo.old',
+                  'drwxrws---    6 nugent    cosmo            512 Fri Aug 22 11:32:09 2014 cosmo.old'])
     monkeypatch.setattr('hpsspy.os._os.hsi', m)
     s = stat("cosmo")
     assert s.isdir
-    assert m.args[0] == ('ls', '-ld', 'cosmo')
-    assert m.args[1] == ('ls', '-ld', 'cosmo.old')
+    assert m.args[0] == ('ls', '-ldDTw', 'cosmo')
+    assert m.args[1] == ('ls', '-ldDTw', 'cosmo.old')
 
 
 def test_lstat_is_link(monkeypatch, mock_call):
     """Test the lstat() function.
     """
-    m = mock_call(['lrwxrwxrwx    1 bweaver   bweaver           21 Aug 22  2014 cosmo@ -> /nersc/projects/cosmo\n',
-                  'drwxrws---    6 nugent    cosmo            512 Dec 16  2016 cosmo'])
+    m = mock_call(['lrwxrwxrwx    1 bweaver   bweaver           21 Fri Aug 22 11:32:09 2014 cosmo@ -> /nersc/projects/cosmo\n',
+                  'drwxrws---    6 nugent    cosmo            512 Tue Jun  4 11:06:43 2019 cosmo'])
     monkeypatch.setattr('hpsspy.os._os.hsi', m)
     s = lstat('cosmo')
     assert s.islink
-    assert m.args[0] == ('ls', '-ld', 'cosmo')
-    # assert m.args[1] == ('ls', '-ld', '/nersc/projects/cosmo')
+    assert m.args[0] == ('ls', '-ldDTw', 'cosmo')
+    # assert m.args[1] == ('ls', '-ldDTw', '/nersc/projects/cosmo')
 
 
 def test_lstat_not_link(monkeypatch, mock_call):
     """Test the lstat() function for non-links.
     """
-    m = mock_call(['drwxr-sr-x    3 bweaver   bweaver          512 Oct  4  2010 test'])
+    m = mock_call(['drwxr-sr-x    3 bweaver   bweaver          512 Mon Oct  4 10:34:20 2010 test'])
     monkeypatch.setattr('hpsspy.os._os.hsi', m)
     s = lstat('test')
     assert not s.islink
-    assert m.args[0] == ('ls', '-ld', 'test')
+    assert m.args[0] == ('ls', '-ldDTw', 'test')
 
 
 def test_isdir(monkeypatch, mock_call):
