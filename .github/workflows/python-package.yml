@@ -11,109 +11,62 @@ on:
 
 jobs:
     tests:
-        name: Unit tests
+        name: ${{ matrix.name }}
         runs-on: ${{ matrix.os }}
         strategy:
             fail-fast: true
             matrix:
-                os: [ubuntu-latest]
-                python-version: ['3.7', '3.8', '3.9', '3.10']
+                include:
+                    - name: Code style checks
+                      os: ubuntu-latest
+                      python: 3.x
+                      toxenv: codestyle
+
+                    - name: Test building of Sphinx docs
+                      os: ubuntu-latest
+                      python: 3.9
+                      toxenv: build_docs
+
+                    - name: Python 3.9 withcoverage checking
+                      os: ubuntu-latest
+                      python: 3.9
+                      toxenv: py38-test-cov
+
+                    - name: Python 3.7
+                      os: ubuntu-latest
+                      python: 3.7
+                      toxenv: py37-test
+
+                    - name: Python 3.8
+                      os: ubuntu-latest
+                      python: 3.8
+                      toxenv: py38-test
+
+                    - name: Python 3.9
+                      os: ubuntu-latest
+                      python: 3.9
+                      toxenv: py39-test
+
+                    - name: Python 3.10
+                      os: ubuntu-latest
+                      python: 3.10
+                      toxenv: py310-test
 
         steps:
             - name: Checkout code
               uses: actions/checkout@v2
               with:
                 fetch-depth: 0
-            - name: Set up Python ${{ matrix.python-version }}
+            - name: Set up Python ${{ matrix.python }} on ${{ matrix.os }}
               uses: actions/setup-python@v2
               with:
-                python-version: ${{ matrix.python-version }}
+                  python-version: ${{ matrix.python }}
             - name: Install Python dependencies
               run: |
-                python -m pip install --upgrade pip setuptools wheel
-                python -m pip install -r requirements.txt
-                python -m pip install pytest
-            - name: Run the test
-              run: pytest
-
-    coverage:
-        name: Test coverage
-        runs-on: ${{ matrix.os }}
-        strategy:
-            fail-fast: false
-            matrix:
-                os: [ubuntu-latest]
-                python-version: ['3.9']
-
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v2
-              with:
-                fetch-depth: 0
-            - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v2
-              with:
-                python-version: ${{ matrix.python-version }}
-            - name: Install Python dependencies
-              run: |
-                python -m pip install --upgrade pip setuptools wheel
-                python -m pip install -r requirements.txt
-                python -m pip install pytest pytest-cov coveralls
-            - name: Run the test with coverage
-              run: pytest --cov
-            - name: Coveralls
-              # uses: coverallsapp/github-action@v1.1.2
-              # with:
-              #     github-token: ${{ secrets.GITHUB_TOKEN }}
+                python -m pip install --upgrade pip
+                python -m pip install tox
+            - name: Run the test with tox
               env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-              run: coveralls
-
-    docs:
-        name: Doc test
-        runs-on: ${{ matrix.os }}
-        strategy:
-            fail-fast: false
-            matrix:
-                os: [ubuntu-latest]
-                python-version: ['3.9']
-
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v2
-              with:
-                fetch-depth: 0
-            - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v2
-              with:
-                python-version: ${{ matrix.python-version }}
-            - name: Install Python dependencies
-              run: python -m pip install --upgrade pip setuptools wheel Sphinx
-            - name: Test the documentation
-              run: sphinx-build -W --keep-going -b html doc doc/_build/html
-
-    style:
-        name: Style check
-        runs-on: ${{ matrix.os }}
-        strategy:
-            fail-fast: false
-            matrix:
-                os: [ubuntu-latest]
-                python-version: ['3.9']
-
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v2
-              with:
-                fetch-depth: 0
-            - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v2
-              with:
-                python-version: ${{ matrix.python-version }}
-            - name: Install Python dependencies
-              run: python -m pip install --upgrade pip setuptools wheel pycodestyle
-            - name: Test the style
-              # This is equivalent to an allowed falure.
-              # continue-on-error: true
-              run: pycodestyle --count hpsspy
+                  COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: tox -e ${{ matrix.toxenv }}

@@ -1,6 +1,7 @@
 include LICENSE.rst
 include README.rst
 include setup.cfg
+include pyproject.toml
 
 recursive-include hpsspy *.pyx *.c *.pxd
 recursive-include doc *
