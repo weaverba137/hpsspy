@@ -25,7 +25,7 @@ HPSSPy
     :alt: Test Coverage Status
 
 .. |Documentation Status| image:: https://readthedocs.org/projects/hpsspy/badge/
-    :target: http://hpsspy.readthedocs.io/en/latest/
+    :target: https://hpsspy.readthedocs.io/en/latest/
     :alt: Documentation Status
 
 Overview
@@ -34,9 +34,9 @@ Overview
 HPSSPy is a Python_ package for interacting with the HPSS_ tape storage
 system at NERSC_.  It is currently being developed on GitHub_.
 
-.. _Python: http://python.org
-.. _HPSS: http://www.nersc.gov/systems/hpss-data-archive/
-.. _NERSC: http://www.nersc.gov
+.. _Python: https://www.python.org
+.. _HPSS: https://www.nersc.gov/systems/hpss-data-archive/
+.. _NERSC: https://www.nersc.gov
 .. _GitHub: https://github.com/weaverba137/hpsspy
 
 Requirements

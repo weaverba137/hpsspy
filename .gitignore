@@ -4,6 +4,9 @@
 # C extensions
 *.so
 
+# Other generated files
+*/_version.py
+
 # Packages
 *.egg
 *.egg-info

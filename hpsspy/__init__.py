@@ -6,7 +6,7 @@ hpsspy
 
 Python interface to the HPSS system.
 """
-from ._version import __version__
+from ._version import version as __version__
 
 
 class HpssError(Exception):
