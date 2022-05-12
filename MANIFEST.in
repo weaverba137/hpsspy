@@ -1,16 +1,2 @@
-include LICENSE.rst
-include README.rst
-include setup.cfg
-include pyproject.toml
-
-# recursive-include hpsspy *.pyx *.c *.pxd
-recursive-include doc *
-recursive-include hpsspy/data/* *
-recursive-include hpsspy/test/t *
-
-prune build
-prune doc/_build
-prune doc/api
-prune htmlcov
-
-global-exclude *.pyc *.o
+prune .github
+global-exclude .gitignore .readthedocs.yml

@@ -19,17 +19,21 @@ TEST_HELP = """
 Note: running tests is no longer done using 'python setup.py test'. Instead
 you will need to run:
 
-    pytest
+    tox -e test
 
-If you don't already have pytest installed, you can install it with:
+If you don't already have tox installed, you can install it with:
 
-    pip install pytest
+    pip install tox
 
-You can also use pytest
-directly with:
+If you only want to run part of the test suite, you can also use pytest
+directly with::
 
     pip install -e .[test]
     pytest
+
+For more information, see:
+
+  http://docs.astropy.org/en/latest/development/testguide.html#running-tests
 """
 
 if 'test' in sys.argv:
@@ -40,18 +44,21 @@ DOCS_HELP = """
 Note: building the documentation is no longer done using
 'python setup.py build_docs'. Instead you will need to run:
 
-    sphinx-build -W --keep-going -b html doc doc/_build/html
+    tox -e build_docs
 
-If you don't already have Sphinx installed, you can install it with:
+If you don't already have tox installed, you can install it with:
 
-    pip install Sphinx
+    pip install tox
 
-You can also build the documentation with Sphinx directly using:
+You can also build the documentation with Sphinx directly using::
 
     pip install -e .[docs]
     cd docs
     make html
 
+For more information, see:
+
+  http://docs.astropy.org/en/latest/install.html#builddocs
 """
 
 if 'build_docs' in sys.argv or 'build_sphinx' in sys.argv:
