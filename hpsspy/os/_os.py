@@ -59,14 +59,15 @@ def _ls(path, options=''):
         Directory or file to examine.
     options : :class:`str`, optional
         Options to ``ls`` that will be appended to a base set of options.
-        The base set is ``-lDTw``, which is needed
+        The base set is ``-D``, which is needed for high-precision
+        timestamps.
 
     Returns
     -------
     :class:`list`
         A list of :class:`~hpsspy.util.HpssFile` objects.
     """
-    out = hsi('ls', '-l' + options + 'DTw', path)
+    out = hsi('ls', '-D' + options, path)
     if out.startswith('**'):
         raise HpssOSError(out)
     lines = out.split('\n')
