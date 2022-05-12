@@ -27,7 +27,7 @@ jobs:
                       python: 3.9
                       toxenv: build_docs
 
-                    - name: Python 3.9 withcoverage checking
+                    - name: Python 3.9 with coverage checking
                       os: ubuntu-latest
                       python: 3.9
                       toxenv: py38-test-cov
