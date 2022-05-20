@@ -2,10 +2,13 @@
 Release Notes
 =============
 
-0.5.2 (unreleased)
+0.6.0 (2022-05-20)
 ------------------
 
-* No changes yet.
+* Reorganization of package structure and metadata; no changes to user-facing API.
+* Support full-precision timestamps on HPSS files (PR `#14`_).
+
+.. _`#14`: https://github.com/weaverba137/hpsspy/pull/14
 
 0.5.1 (2019-08-20)
 ------------------
