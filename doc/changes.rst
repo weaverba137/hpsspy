@@ -2,10 +2,10 @@
 Release Notes
 =============
 
-0.6.1 (unreleased)
+0.6.1 (2022-05-20)
 ------------------
 
-* No changes yet.
+* Bumped version due to malformed PyPI upload.
 
 0.6.0 (2022-05-20)
 ------------------
