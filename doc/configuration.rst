@@ -221,4 +221,4 @@ that can be used for examples.  To view the equivalent files and directories
 for section ``"dr12"``, for example, visit https://data.sdss.org/sas/dr12.
 
 .. _SDSS: https://www.sdss.org
-.. _`JSON file`: https://github.com/weaverba137/hpsspy/blob/master/hpsspy/data/sdss.json
+.. _`JSON file`: https://github.com/weaverba137/hpsspy/blob/main/hpsspy/data/sdss.json

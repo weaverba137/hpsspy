@@ -4,6 +4,9 @@
 # C extensions
 *.so
 
+# Other generated files
+*/_version.py
+
 # Packages
 *.egg
 *.egg-info
@@ -34,6 +37,7 @@ htmlcov/
 .coverage
 .tox
 nosetests.xml
+.tmp
 
 # Translations
 *.mo
@@ -50,3 +54,6 @@ nosetests.xml
 
 # Mac OSX
 .DS_Store
+
+# Pytest
+.pytest_cache

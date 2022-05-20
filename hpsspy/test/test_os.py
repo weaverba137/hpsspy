@@ -2,282 +2,352 @@
 # -*- coding: utf-8 -*-
 """
 hpsspy.test.test_os
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 Test the functions in the os subpackage.
 """
-import unittest
-from unittest.mock import call, patch, MagicMock
-# import json
-# from pkg_resources import resource_filename
-import os
-import sys
+import pytest
 from ..os._os import chmod, listdir, makedirs, mkdir, lstat, stat, walk
 from ..os.path import isdir, isfile, islink
 from .. import HpssOSError
 
 
-class TestOs(unittest.TestCase):
-    """Test the functions in the os subpackage.
+class MockFile(object):
+    """Simple mock object for use with testing walk().
+    """
+    def __init__(self, isdir, string):
+        self.isdir = isdir
+        self.string = string
+        self.path = f'/path/{string}'
+        self.st_size = 12345
+        self.st_mtime = 54321
+
+    def __str__(self):
+        return self.string
+
+
+@pytest.fixture
+def mock_call():
+    """Simple fixture to capture function calls.
     """
 
-    @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-    def test_chmod(self):
-        """Test the chmod() function.
+    class SaveArgs(object):
+        """Save a function call's arguments for later inspection.
         """
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = '** Error!'
-            with self.assertRaises(HpssOSError) as err:
-                chmod('/home/b/bweaver/foo.txt', 0o664)
-            self.assertEqual(str(err.exception), "** Error!")
-            h.assert_called_with('chmod', '436', '/home/b/bweaver/foo.txt')
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = 'All good!'
-            chmod('/home/b/bweaver/foo.txt', 0o664)
-            h.assert_called_with('chmod', '436', '/home/b/bweaver/foo.txt')
+        def __init__(self, return_values, raises=None):
+            self.counter = 0
+            self.return_values = return_values
+            self.raises = raises
+            self.args = list()
+            self.kwargs = list()
 
-    def test_listdir(self):
-        """Test the listdir() function.
-        """
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = '** Error!'
-            with self.assertRaises(HpssOSError) as err:
-                files = listdir('/home/b/bweaver')
-            self.assertEqual(str(err.exception), "** Error!")
-            h.assert_called_with('ls', '-la', '/home/b/bweaver')
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = '/home/b/bweaver:\nGarbage line'
-            with self.assertRaises(HpssOSError) as err:
-                files = listdir('/home/b/bweaver')
-            self.assertEqual(str(err.exception),
-                             "Could not match line!\nGarbage line")
-            h.assert_called_with('ls', '-la', '/home/b/bweaver')
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = ('/home/b/bweaver:\n'
-                              '-rw-rw----    1 bweaver   desi     ' +
-                              '29956061184 May 15  2014 cosmos_nvo.tar\n' +
-                              '-rw-rw----    1 bweaver   desi     ' +
-                              '      61184 May 15  2014 cosmos_nvo.tar.idx\n')
-            files = listdir('/home/b/bweaver')
-            h.assert_called_with('ls', '-la', '/home/b/bweaver')
-            self.assertTrue(files[0].ishtar)
+        def __call__(self, *args, **kwargs):
+            self.args.append(tuple(args))
+            self.kwargs.append(kwargs)
+            if self.raises:
+                raise self.raises
+            r = self.return_values[self.counter]
+            self.counter += 1
+            return r
 
-    def test_makedirs(self):
-        """Test the makedirs() function.
-        """
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = '** Error!'
-            with self.assertRaises(HpssOSError) as err:
-                makedirs('/home/b/bweaver', '2775')
-            self.assertEqual(str(err.exception), "** Error!")
-            h.assert_called_with('mkdir', '-p', '-m', '2775',
-                                 '/home/b/bweaver')
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = 'All good!'
-            makedirs('/home/b/bweaver', '2775')
-            h.assert_called_with('mkdir', '-p', '-m', '2775',
-                                 '/home/b/bweaver')
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = 'All good!'
-            makedirs('/home/b/bweaver')
-            h.assert_called_with('mkdir', '-p', '/home/b/bweaver')
-
-    def test_mkdir(self):
-        """Test the mkdir() function.
-        """
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = '** Error!'
-            with self.assertRaises(HpssOSError) as err:
-                mkdir('/home/b/bweaver', '2775')
-            self.assertEqual(str(err.exception), "** Error!")
-            h.assert_called_with('mkdir', '-m', '2775', '/home/b/bweaver')
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = 'All good!'
-            mkdir('/home/b/bweaver', '2775')
-            h.assert_called_with('mkdir', '-m', '2775', '/home/b/bweaver')
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = 'All good!'
-            mkdir('/home/b/bweaver')
-            h.assert_called_with('mkdir', '/home/b/bweaver')
-
-    def test_stat(self):
-        """Test the stat() function.
-        """
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = '** Error!'
-            with self.assertRaises(HpssOSError) as err:
-                s = stat("desi/cosmos_nvo.tar")
-            self.assertEqual(str(err.exception), "** Error!")
-            h.assert_called_with('ls', '-ld', 'desi/cosmos_nvo.tar')
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = 'Garbage line'
-            with self.assertRaises(HpssOSError) as err:
-                s = stat("desi/cosmos_nvo.tar")
-            self.assertEqual(str(err.exception),
-                             "Could not match line!\nGarbage line")
-            h.assert_called_with('ls', '-ld', 'desi/cosmos_nvo.tar')
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = ('desi:\n-rw-rw----    1 bweaver   desi     ' +
-                              '29956061184 May 15  2014 cosmos_nvo.tar\n')
-            s = stat("desi/cosmos_nvo.tar")
-            h.assert_called_with('ls', '-ld', 'desi/cosmos_nvo.tar')
-            self.assertEqual(s.st_size, 29956061184)
-            self.assertEqual(s.st_mode, 33200)
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = ('desi:\n-rw-rw----    1 bweaver   desi     ' +
-                              '29956061184 May 15  2014 cosmos_nvo.tar\n' +
-                              'desi:\n-rw-rw----    1 bweaver   desi     ' +
-                              '29956061184 May 15  2014 cosmos_nvo.tar.idx\n')
-            with self.assertRaises(HpssOSError) as err:
-                s = stat("desi/cosmos_nvo.tar")
-            self.assertEqual(str(err.exception),
-                             "Non-unique response for desi/cosmos_nvo.tar!")
-            h.assert_called_with('ls', '-ld', 'desi/cosmos_nvo.tar')
-        with patch('hpsspy.os._os.hsi') as h:
-            h.side_effect = [('lrwxrwxrwx    1 bweaver   bweaver           ' +
-                              '21 Aug 22  2014 cosmo@ -> ' +
-                              '/nersc/projects/cosmo\n'),
-                             ('drwxrws---    6 nugent    cosmo            ' +
-                              '512 Dec 16  2016 cosmo')]
-            s = stat("cosmo")
-            self.assertTrue(s.isdir)
-            h.assert_has_calls([call('ls', '-ld', 'cosmo'),
-                                call('ls', '-ld', '/nersc/projects/cosmo')])
-        #
-        # This may be pointing to some unexpected behavior.
-        #
-        with patch('hpsspy.os._os.hsi') as h:
-            h.side_effect = [('lrwxrwxrwx    1 bweaver   bweaver      ' +
-                              '21 Aug 22  2014 cosmo@ -> ' +
-                              'cosmo.old\n'),
-                             ('drwxrws---    6 nugent    cosmo       ' +
-                              '512 Dec 16  2016 cosmo.old')]
-            s = stat("cosmo")
-            self.assertTrue(s.isdir)
-            h.assert_has_calls([call('ls', '-ld', 'cosmo'),
-                                call('ls', '-ld', 'cosmo.old')])
-
-    def test_lstat(self):
-        """Test the lstat() function.
-        """
-        with patch('hpsspy.os._os.hsi') as h:
-            h.side_effect = [('lrwxrwxrwx    1 bweaver   bweaver           ' +
-                              '21 Aug 22  2014 cosmo@ -> ' +
-                              '/nersc/projects/cosmo\n'),
-                             ('drwxrws---    6 nugent    cosmo            ' +
-                              '512 Dec 16  2016 cosmo')]
-            s = lstat("cosmo")
-            self.assertTrue(s.islink)
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = ('drwxr-sr-x    3 bweaver   bweaver          ' +
-                              '512 Oct  4  2010 test')
-            s = lstat("test")
-            self.assertFalse(s.islink)
-
-    def test_isdir(self):
-        """Test the isdir() function.
-        """
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = ('drwxr-sr-x    3 bweaver   bweaver          ' +
-                              '512 Oct  4  2010 test')
-            self.assertTrue(isdir('test'))
-            h.assert_called_with('ls', '-ld', 'test')
-
-    def test_isfile(self):
-        """Test the isfile() function.
-        """
-        with patch('hpsspy.os._os.hsi') as h:
-            h.return_value = ('desi:\n-rw-rw----    1 bweaver   desi     ' +
-                              '29956061184 May 15  2014 cosmos_nvo.tar\n')
-            self.assertTrue(isfile('desi/cosmos_nvo.tar'))
-            h.assert_called_with('ls', '-ld', 'desi/cosmos_nvo.tar')
-
-    def test_islink(self):
-        """Test the islink() function.
-        """
-        with patch('hpsspy.os._os.hsi') as h:
-            h.side_effect = [('lrwxrwxrwx    1 bweaver   bweaver           ' +
-                              '21 Aug 22  2014 cosmo@ -> ' +
-                              '/nersc/projects/cosmo\n'),
-                             ('/nersc/projects:\n' +
-                              'drwxrwxr-x    1 bweaver   bweaver           ' +
-                              '21 Aug 22  2014 cosmo')]
-            self.assertTrue(islink('cosmo'))
-            h.assert_has_calls([call('ls', '-ld', 'cosmo')])
-
-    def test_walk(self):
-        """Test the walk() function.
-        """
-        #
-        # Test onerror
-        #
-        e = MagicMock()
-        err = HpssOSError('foobar')
-        with patch('hpsspy.os._os.listdir') as ld:
-            ld.side_effect = err
-            w = walk('/home/b/bweaver', onerror=e)
-            try:
-                n = next(w)
-            except StopIteration:
-                pass
-            ld.assert_called_with('/home/b/bweaver')
-        e.assert_called_with(err)
-        #
-        # Test standard operation
-        #
-        d = MagicMock()
-        d.isdir = True
-        d.__str__.return_value = 'subdir'
-        f = MagicMock()
-        f.isdir = False
-        with patch('hpsspy.os._os.listdir') as ld:
-            with patch('hpsspy.os.path.islink') as i:
-                i.return_value = False
-                ld.side_effect = [[d, f], []]
-                w = walk('/home/b/bweaver')
-                n = next(w)
-                self.assertEqual(n, ('/home/b/bweaver', [d], [f]))
-                ld.assert_called_with('/home/b/bweaver')
-                n = next(w)
-                self.assertEqual(n, ('/home/b/bweaver/subdir', [], []))
-                i.assert_called_with('/home/b/bweaver/subdir')
-        #
-        # Test topdown operation
-        #
-        d = MagicMock()
-        d.isdir = True
-        d.__str__.return_value = 'subdir'
-        f = MagicMock()
-        f.isdir = False
-        with patch('hpsspy.os._os.listdir') as ld:
-            with patch('hpsspy.os.path.islink') as i:
-                i.return_value = False
-                ld.side_effect = [[d, f], []]
-                w = walk('/home/b/bweaver', topdown=False)
-                n = next(w)
-                self.assertEqual(n, ('/home/b/bweaver/subdir', [], []))
-                i.assert_called_with('/home/b/bweaver/subdir')
-                n = next(w)
-                self.assertEqual(n, ('/home/b/bweaver', [d], [f]))
-                ld.assert_called_with('/home/b/bweaver/subdir')
+    return SaveArgs
 
 
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
+def test_chmod(monkeypatch, mock_call):
+    """Test the chmod() function.
     """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)
+    m = mock_call(['All good!'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    chmod('/home/b/bweaver/foo.txt', 0o664)
+    assert m.args[0] == ('chmod', '436', '/home/b/bweaver/foo.txt')
+
+
+def test_chmod_error(monkeypatch, mock_call):
+    """Test the chmod() throwing an error.
+    """
+    m = mock_call(['** Error!'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    with pytest.raises(HpssOSError) as err:
+        chmod('/home/b/bweaver/foo.txt', 0o664)
+    assert err.value.args[0] == "** Error!"
+    assert m.args[0] == ('chmod', '436', '/home/b/bweaver/foo.txt')
+
+
+def test_listdir_error(monkeypatch, mock_call):
+    """Test the listdir() function throwing an error.
+    """
+    m = mock_call(['** Error!'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    with pytest.raises(HpssOSError) as err:
+        files = listdir('/home/b/bweaver')
+    assert err.value.args[0] == '** Error!'
+    assert m.args[0] == ('ls', '-Da', '/home/b/bweaver')
+
+
+def test_listdir_bad_line(monkeypatch, mock_call):
+    """Test the listdir() function with bad data.
+    """
+    m = mock_call(['/home/b/bweaver:\nGarbage line'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    with pytest.raises(HpssOSError) as err:
+        files = listdir('/home/b/bweaver')
+    assert err.value.args[0] == "Could not match line!\nGarbage line"
+    assert m.args[0] == ('ls', '-Da', '/home/b/bweaver')
+
+
+def test_listdir(monkeypatch, mock_call):
+    """Test the listdir() function.
+    """
+    foo = '''/home/b/bweaver:
+-rw-rw----    1 bweaver   desi     29956061184 Thu May 15 07:44:21 2014 cosmos_nvo.tar
+-rw-rw----    1 bweaver   desi           61184 Thu May 15 07:49:34 2014 cosmos_nvo.tar.idx
+'''
+    m = mock_call([foo])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    files = listdir('/home/b/bweaver')
+    assert files[0].ishtar
+    assert m.args[0] == ('ls', '-Da', '/home/b/bweaver')
+
+
+def test_makedirs_error(monkeypatch, mock_call):
+    """Test the makedirs() function throwing an error.
+    """
+    m = mock_call(['** Error!'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    with pytest.raises(HpssOSError) as err:
+        makedirs('/home/b/bweaver', '2775')
+    assert err.value.args[0] == '** Error!'
+    assert m.args[0] == ('mkdir', '-p', '-m', '2775', '/home/b/bweaver')
+
+
+def test_makedirs_with_mode(monkeypatch, mock_call):
+    """Test the makedirs() function setting the mode.
+    """
+    m = mock_call(['All good!'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    makedirs('/home/b/bweaver', '2775')
+    assert m.args[0] == ('mkdir', '-p', '-m', '2775', '/home/b/bweaver')
+
+
+def test_makedirs(monkeypatch, mock_call):
+    """Test the makedirs() function.
+    """
+    m = mock_call(['All good!'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    makedirs('/home/b/bweaver')
+    assert m.args[0] == ('mkdir', '-p', '/home/b/bweaver')
+
+
+def test_mkdir_error(monkeypatch, mock_call):
+    """Test the mkdir() function throwing an error.
+    """
+    m = mock_call(['** Error!'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    with pytest.raises(HpssOSError) as err:
+        mkdir('/home/b/bweaver', '2775')
+    assert err.value.args[0] == '** Error!'
+    assert m.args[0] == ('mkdir', '-m', '2775', '/home/b/bweaver')
+
+
+def test_mkdir_with_mode(monkeypatch, mock_call):
+    """Test the mkdir() function setting the mode.
+    """
+    m = mock_call(['All good!'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    mkdir('/home/b/bweaver', '2775')
+    assert m.args[0] == ('mkdir', '-m', '2775', '/home/b/bweaver')
+
+
+def test_mkdir(monkeypatch, mock_call):
+    """Test the makedirs() function.
+    """
+    m = mock_call(['All good!'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    mkdir('/home/b/bweaver')
+    assert m.args[0] == ('mkdir', '/home/b/bweaver')
+
+
+def test_stat_error(monkeypatch, mock_call):
+    """Test the stat() function throwing an error.
+    """
+    m = mock_call(['** Error!'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    with pytest.raises(HpssOSError) as err:
+        s = stat("desi/cosmos_nvo.tar")
+    assert err.value.args[0] == '** Error!'
+    assert m.args[0] == ('ls', '-Dd', 'desi/cosmos_nvo.tar')
+
+
+def test_stat_bad_line(monkeypatch, mock_call):
+    """Test the stat() function with bad data.
+    """
+    m = mock_call(['Garbage line'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    with pytest.raises(HpssOSError) as err:
+        s = stat("desi/cosmos_nvo.tar")
+    assert err.value.args[0] == "Could not match line!\nGarbage line"
+    assert m.args[0] == ('ls', '-Dd', 'desi/cosmos_nvo.tar')
+
+
+def test_stat(monkeypatch, mock_call):
+    """Test the stat() function.
+    """
+    m = mock_call(['desi:\n-rw-rw----    1 bweaver   desi     29956061184 Thu May 15 07:49:34 2014 cosmos_nvo.tar\n'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    s = stat("desi/cosmos_nvo.tar")
+    assert s.st_size == 29956061184
+    assert s.st_mode == 33200
+    assert m.args[0] == ('ls', '-Dd', 'desi/cosmos_nvo.tar')
+
+
+def test_stat_multiple_response(monkeypatch, mock_call):
+    """Test the stat() function with multiple responses.
+
+    This is a rare error condition.
+    """
+    foo = '''desi:
+-rw-rw----    1 bweaver   desi     29956061184 Thu May 15 07:49:34 2014 cosmos_nvo.tar
+desi:
+-rw-rw----    1 bweaver   desi     29956061184 Thu May 15 07:49:34 2014 cosmos_nvo.tar.idx
+'''
+    m = mock_call([foo])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    with pytest.raises(HpssOSError) as err:
+        s = stat("desi/cosmos_nvo.tar")
+    assert err.value.args[0] == "Non-unique response for desi/cosmos_nvo.tar!"
+    assert m.args[0] == ('ls', '-Dd', 'desi/cosmos_nvo.tar')
+
+
+def test_stat_symlink(monkeypatch, mock_call):
+    """Test the stat() function with a symlink.
+    """
+    m = mock_call(['lrwxrwxrwx    1 bweaver   bweaver           21 Fri Aug 22 11:32:09 2014 cosmo@ -> /nersc/projects/cosmo',
+                  'drwxrws---    6 nugent    cosmo            512 Tue Jun  4 11:06:43 2019 cosmo'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    s = stat("cosmo")
+    assert s.isdir
+    assert m.args[0] == ('ls', '-Dd', 'cosmo')
+    assert m.args[1] == ('ls', '-Dd', '/nersc/projects/cosmo')
+
+
+def test_stat_different_symlink(monkeypatch, mock_call):
+    """Test the stat() function with a different symlink.
+
+    Original test had "This may be pointing to some unexpected behavior."
+    Not sure what this means any longer.
+    """
+    m = mock_call(['lrwxrwxrwx    1 bweaver   bweaver           21 Fri Aug 22 11:32:09 2014 cosmo@ -> cosmo.old',
+                  'drwxrws---    6 nugent    cosmo            512 Fri Aug 22 11:32:09 2014 cosmo.old'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    s = stat("cosmo")
+    assert s.isdir
+    assert m.args[0] == ('ls', '-Dd', 'cosmo')
+    assert m.args[1] == ('ls', '-Dd', 'cosmo.old')
+
+
+def test_lstat_is_link(monkeypatch, mock_call):
+    """Test the lstat() function.
+    """
+    m = mock_call(['lrwxrwxrwx    1 bweaver   bweaver           21 Fri Aug 22 11:32:09 2014 cosmo@ -> /nersc/projects/cosmo\n',
+                  'drwxrws---    6 nugent    cosmo            512 Tue Jun  4 11:06:43 2019 cosmo'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    s = lstat('cosmo')
+    assert s.islink
+    assert m.args[0] == ('ls', '-Dd', 'cosmo')
+    # assert m.args[1] == ('ls', '-Dd', '/nersc/projects/cosmo')
+
+
+def test_lstat_not_link(monkeypatch, mock_call):
+    """Test the lstat() function for non-links.
+    """
+    m = mock_call(['drwxr-sr-x    3 bweaver   bweaver          512 Mon Oct  4 10:34:20 2010 test'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    s = lstat('test')
+    assert not s.islink
+    assert m.args[0] == ('ls', '-Dd', 'test')
+
+
+def test_isdir(monkeypatch, mock_call):
+    """Test the isdir() function.
+    """
+    m = mock_call(['drwxr-sr-x    3 bweaver   bweaver          512 Mon Oct  4 10:43:20 2010 test'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    assert isdir('test')
+    assert m.args[0] == ('ls', '-Dd', 'test')
+
+
+def test_isfile(monkeypatch, mock_call):
+    """Test the isfile() function.
+    """
+    foo = '''desi:
+-rw-rw----    1 bweaver   desi     29956061184 Thu May 15 12:34:56 2014 cosmos_nvo.tar
+'''
+    m = mock_call([foo])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    assert isfile('desi/cosmos_nvo.tar')
+    assert m.args[0] == ('ls', '-Dd', 'desi/cosmos_nvo.tar')
+
+
+def test_islink(monkeypatch, mock_call):
+    """Test the islink() function.
+    """
+    m = mock_call(['lrwxrwxrwx    1 bweaver   bweaver           21 Fri Aug 22 01:23:45 2014 cosmo@ -> /nersc/projects/cosmo',
+                  '/nersc/projects:\ndrwxrwxr-x    1 bweaver   bweaver           21 Fri Aug 22 01:23:45 2014 cosmo'])
+    monkeypatch.setattr('hpsspy.os._os.hsi', m)
+    assert islink('cosmo')
+    assert m.args[0] == ('ls', '-Dd', 'cosmo')
+    # assert m.args[1] == ('ls', '-Dd', '/nersc/projects/cosmo')
+
+
+def test_walk_error(monkeypatch, mock_call):
+    """Test the walk() function throwing an error.
+    """
+    r = HpssOSError('foobar')
+    m = mock_call(['Error message'], raises=r)
+    e = mock_call(['Return value'])
+    monkeypatch.setattr('hpsspy.os._os.listdir', m)
+    w = walk('/home/b/bweaver', onerror=e)
+    try:
+        n = next(w)
+    except StopIteration:
+        pass
+    assert m.args[0] == ('/home/b/bweaver', )
+    assert e.args[0] == (r, )
+
+
+def test_walk(monkeypatch, mock_call):
+    """Test the walk() function.
+    """
+    d = MockFile(True, 'subdir')
+    f = MockFile(False, 'name')
+    ld = mock_call([[d, f], []])
+    i = mock_call([False])
+    monkeypatch.setattr('hpsspy.os._os.listdir', ld)
+    monkeypatch.setattr('hpsspy.os._os.islink', i)
+    w = walk('/home/b/bweaver')
+    n = next(w)
+    assert n == ('/home/b/bweaver', [d], [f])
+    assert ld.args[0] == ('/home/b/bweaver', )
+    n = next(w)
+    assert n == ('/home/b/bweaver/subdir', [], [])
+    assert ld.args[1] == ('/home/b/bweaver/subdir', )
+    assert i.args[0] == ('/home/b/bweaver/subdir', )
+
+
+def test_walk_topdown(monkeypatch, mock_call):
+    """Test the walk() function in topdown mode.
+    """
+    d = MockFile(True, 'subdir')
+    f = MockFile(False, 'name')
+    ld = mock_call([[d, f], []])
+    i = mock_call([False])
+    monkeypatch.setattr('hpsspy.os._os.listdir', ld)
+    monkeypatch.setattr('hpsspy.os._os.islink', i)
+    w = walk('/home/b/bweaver', topdown=False)
+    n = next(w)
+    assert n == ('/home/b/bweaver/subdir', [], [])
+    assert i.args[0] == ('/home/b/bweaver/subdir', )
+    n = next(w)
+    assert n == ('/home/b/bweaver', [d], [f])
+    assert ld.args[0] == ('/home/b/bweaver', )
+    assert ld.args[1] == ('/home/b/bweaver/subdir', )

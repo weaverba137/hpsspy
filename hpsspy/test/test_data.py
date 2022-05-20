@@ -6,63 +6,34 @@ hpsspy.test.test_data
 
 Check the associated data files.
 """
-import unittest
+import pytest
 import json
 from pkg_resources import resource_exists, resource_stream
 
 
-class TestData(unittest.TestCase):
-    """Check integrity of data files.
+parameters = [('sdss.json', 'dr8'),
+              ('sdss.json', 'dr9'),
+              ('sdss.json', 'dr10'),
+              ('sdss.json', 'dr11'),
+              ('sdss.json', 'dr12'),
+              ('desi.json', 'datachallenge'),
+              ('desi.json', 'imaging'),
+              ('desi.json', 'mocks'),
+              ('desi.json', 'release'),
+              ('desi.json', 'spectro'),
+              ('desi.json', 'target')]
+
+
+@pytest.mark.parametrize('filename,section', parameters)
+def test_json(filename, section):
+    """Check a generic JSON file for existence and required section.
     """
-
-    @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-    def check_json(self, filename, sections):
-        """Check a generic JSON file.
-        """
-        res_filename = 'data/{0}'.format(filename)
-        self.assertTrue(resource_exists('hpsspy', res_filename),
-                        "Could not find {0}!".format(filename))
-        t = resource_stream('hpsspy', res_filename)
-        j = t.read()
-        t.close()
-        try:
-            hpss_map = json.loads(j)
-        except TypeError:
-            hpss_map = json.loads(j.decode('utf8'))
-        for s in sections:
-            self.assertIn(s, hpss_map,
-                          "Release {0} is not in {1}!".format(s, filename))
-
-    def test_sdss(self):
-        """Test SDSS data file.
-        """
-        releases = ['dr{0:d}'.format(k) for k in range(8, 13)]
-        self.check_json('sdss.json', releases)
-
-    def test_desi(self):
-        """Test DESI data file.
-        """
-        releases = ('datachallenge', 'imaging', 'mocks', 'release',
-                    'spectro', 'target')
-        self.check_json('desi.json', releases)
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)
+    assert resource_exists('hpsspy', f'data/{filename}'), f"Could not find {filename}!"
+    t = resource_stream('hpsspy', f'data/{filename}')
+    j = t.read()
+    t.close()
+    try:
+        hpss_map = json.loads(j)
+    except TypeError:
+        hpss_map = json.loads(j.decode('utf8'))
+    assert section in hpss_map, f"Section {section} is not in {filename}!"

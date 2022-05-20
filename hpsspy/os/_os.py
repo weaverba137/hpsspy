@@ -6,10 +6,27 @@ hpsspy.os._os
 
 Contains the actual functions in :mod:`hpsspy.os`.
 """
+from os.path import join
+from .path import islink
 from .. import HpssOSError
 from ..util import HpssFile, hsi
+import re
 
 __all__ = ['chmod', 'listdir', 'makedirs', 'mkdir', 'stat', 'lstat', 'walk']
+
+linere = re.compile(r"""([dl-])           # file type
+                        ([rwxsStT-]+)\s+  # file permissions
+                        (\d+)\s+          # number of links
+                        (\S+)\s+          # user
+                        (\S+)\s+          # group
+                        (\d+)\s+          # size
+                        ([A-Za-z]+)\s+    # day of week
+                        ([A-Za-z]+)\s+    # month
+                        (\d+)\s+          # day
+                        ([0-9:]+)\s       # H:M:S
+                        ([0-9]+)\s        # year
+                        (.*)$             # filename
+                        """, re.VERBOSE)
 
 
 def chmod(path, mode):
@@ -33,6 +50,44 @@ def chmod(path, mode):
     return
 
 
+def _ls(path, options=''):
+    """Perform :command:`hsi ls` and parse the results.
+
+    Parameters
+    ----------
+    path : :class:`str`
+        Directory or file to examine.
+    options : :class:`str`, optional
+        Options to ``ls`` that will be appended to a base set of options.
+        The base set is ``-D``, which is needed for high-precision
+        timestamps.
+
+    Returns
+    -------
+    :class:`list`
+        A list of :class:`~hpsspy.util.HpssFile` objects.
+    """
+    out = hsi('ls', '-D' + options, path)
+    if out.startswith('**'):
+        raise HpssOSError(out)
+    lines = out.split('\n')
+    lspath = path  # sometimes you don't get the path echoed back.
+    files = list()
+    for f in lines:
+        if len(f) == 0:
+            continue
+        m = linere.match(f)
+        if m is None:
+            if f.endswith(':'):
+                lspath = f.strip(': ')
+            else:
+                raise HpssOSError("Could not match line!\n{0}".format(f))
+        else:
+            g = m.groups()
+            files.append(HpssFile(lspath, *g))
+    return files
+
+
 def listdir(path):
     """List the contents of an HPSS directory, similar to :func:`os.listdir`.
 
@@ -51,25 +106,7 @@ def listdir(path):
     :class:`~hpsspy.HpssOSError`
         If the underlying :command:`hsi` reports an error.
     """
-    from . import linere
-    out = hsi('ls', '-la', path)
-    if out.startswith('**'):
-        raise HpssOSError(out)
-    lines = out.split('\n')
-    lspath = path  # sometimes you don't get the path echoed back.
-    files = list()
-    for f in lines:
-        if len(f) == 0:
-            continue
-        m = linere.match(f)
-        if m is None:
-            if f.endswith(':'):
-                lspath = f.strip(': ')
-            else:
-                raise HpssOSError("Could not match line!\n{0}".format(f))
-        else:
-            g = m.groups()
-            files.append(HpssFile(lspath, *g))
+    files = _ls(path, options='a')
     #
     # Create a unique set of filenames for use below.
     #
@@ -160,28 +197,9 @@ def stat(path, follow_symlinks=True):
     Raises
     ------
     :class:`~hpsspy.HpssOSError`
-        If the underlying :command:`hsi` reports an error.
+        If the underlying :command:`hsi ls` reports an error.
     """
-    from . import linere
-    from os.path import join
-    out = hsi('ls', '-ld', path)
-    if out.startswith('**'):
-        raise HpssOSError(out)
-    lines = out.split('\n')
-    lspath = path  # sometimes you don't get the path echoed back.
-    files = list()
-    for f in lines:
-        if len(f) == 0:
-            continue
-        m = linere.match(f)
-        if m is None:
-            if f.endswith(':'):
-                lspath = f.strip(': ')
-            else:
-                raise HpssOSError("Could not match line!\n{0}".format(f))
-        else:
-            g = m.groups()
-            files.append(HpssFile(lspath, *g))
+    files = _ls(path, options='d')
     if len(files) != 1:
         raise HpssOSError("Non-unique response for {0}!".format(path))
     if files[0].islink and follow_symlinks:
@@ -231,8 +249,6 @@ def walk(top, topdown=True, onerror=None, followlinks=False):
     iterable
         This function can be used in the same way as :func:`os.walk`.
     """
-    from .path import islink
-    from os.path import join
     #
     # We may not have read permission for top, in which case we can't
     # get a list of the files the directory contains.  os.path.walk

@@ -11,7 +11,12 @@ import json
 import logging
 import os
 import re
+import sys
+from argparse import ArgumentParser
 from pkg_resources import resource_exists, resource_stream
+from . import __version__ as hpsspyVersion
+from .os import makedirs, walk
+from .util import get_tmpdir, hsi, htar
 
 
 def validate_configuration(config):
@@ -310,8 +315,6 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
     test : :class:`bool`, optional
         Test mode.  Try not to make any changes.
     """
-    from .os import makedirs
-    from .util import get_tmpdir, hsi, htar
     logger = logging.getLogger(__name__ + '.process_missing')
     logger.debug("Processing missing files from %s.", missing_cache)
     with open(missing_cache) as fp:
@@ -526,7 +529,6 @@ def scan_hpss(hpss_root, hpss_files_cache, overwrite=False):
     :class:`dict`
         The set of files found on HPSS, with size and modification time.
     """
-    from .os import walk
     logger = logging.getLogger(__name__ + '.scan_hpss')
     hpss_files = dict()
     if os.path.exists(hpss_files_cache) and not overwrite:
@@ -580,22 +582,16 @@ def physical_disks(release_root, config):
     return tuple([release_root.replace(broot, d) for d in pd])
 
 
-def main():
-    """Entry-point for command-line scripts.
+def _options():
+    """Parse command-line options.
 
     Returns
     -------
-    :class:`int`
-        An integer suitable for passing to :func:`sys.exit`.
+    :class:`argparse.Namespace`
+        The parsed command-line arguments.
     """
-    from argparse import ArgumentParser
-    from sys import argv
-    from . import __version__ as hpsspyVersion
-    #
-    # Options
-    #
     desc = 'Verify the presence of files on HPSS.'
-    parser = ArgumentParser(prog=os.path.basename(argv[0]), description=desc)
+    parser = ArgumentParser(prog=os.path.basename(sys.argv[0]), description=desc)
     parser.add_argument('-c', '--cache-dir', action='store', dest='cache',
                         metavar='DIR',
                         default=os.path.join(os.environ['HOME'], 'cache'),
@@ -631,7 +627,21 @@ def main():
                         help="Read configuration from FILE.")
     parser.add_argument('release', metavar='SECTION',
                         help="Read SECTION from the configuration file.")
-    options = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+    """Entry-point for command-line scripts.
+
+    Returns
+    -------
+    :class:`int`
+        An integer suitable for passing to :func:`sys.exit`.
+    """
+    #
+    # Options
+    #
+    options = _options()
     #
     # Logging
     #

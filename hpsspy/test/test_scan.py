@@ -6,245 +6,393 @@ hpsspy.test.test_scan
 
 Test the functions in the scan subpackage.
 """
-import unittest
+import pytest
 import json
-import os
-import sys
 import re
-import tempfile
-import logging
-from logging.handlers import MemoryHandler
+from logging import DEBUG
 from pkg_resources import resource_filename, resource_stream
-from ..scan import (compile_map, files_to_hpss, physical_disks,
-                    validate_configuration, process_missing, iterrsplit,
-                    extract_directory_name)
+from ..scan import (validate_configuration, compile_map, files_to_hpss,
+                    find_missing, process_missing, extract_directory_name,
+                    iterrsplit, scan_disk, scan_hpss, physical_disks, _options)
+from .test_os import mock_call, MockFile
 
 
-class TestHandler(MemoryHandler):
-    """Capture log messages in memory.
+@pytest.fixture
+def test_config():
+    """Provide access to configuration file.
     """
-    def __init__(self, capacity=1000000, flushLevel=logging.CRITICAL):
-        nh = logging.NullHandler()
-        MemoryHandler.__init__(self, capacity,
-                               flushLevel=flushLevel, target=nh)
-
-    def shouldFlush(self, record):
-        """Never flush, except manually.
+    class TestConfig(object):
+        """Simple class to set config_file attributes.
         """
-        return False
+        def __init__(self):
+            self.config_name = resource_filename('hpsspy.test', 't/test_scan.json')
+            config_file = resource_stream('hpsspy.test', 't/test_scan.json')
+            self.config = json.loads(config_file.read().decode())
+            config_file.close()
+
+    return TestConfig()
 
 
-class TestScan(unittest.TestCase):
-    """Test the functions in the scan subpackage.
+def test_iterrsplit():
+    """Test reverse re-joining a string.
     """
-
-    @classmethod
-    def setUpClass(cls):
-        logging.getLogger('hpsspy.scan').addHandler(TestHandler())
-        # cls.logger.setLevel(logging.DEBUG)
-        # log_format = '%(asctime)s %(name)s %(levelname)s: %(message)s'
-        # logging.basicConfig(level=ll, format=log_format,
-        #                     datefmt='%Y-%m-%dT%H:%M:%S')
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    def setUp(self):
-        # Store the original value of env variables, if present.
-        # self.env = {'TMPDIR': None, 'HPSS_DIR': None}
-        # for e in self.env:
-        #     if e in os.environ:
-        #         self.env[e] = os.environ['TMPDIR']
-        #
-        # Reload the configuration file, since we might need to manipulate it.
-        #
-        self.config_name = resource_filename('hpsspy.test', 't/test_scan.json')
-        config_file = resource_stream('hpsspy.test', 't/test_scan.json')
-        self.config = json.loads(config_file.read().decode())
-        config_file.close()
-
-    def tearDown(self):
-        # Restore the original value of env variables, if they were present.
-        # for e in self.env:
-        #     if self.env[e] is None:
-        #         if e in os.environ:
-        #             del os.environ[e]
-        #     else:
-        #         os.environ[e] = self.env[e]
-        logging.getLogger('hpsspy.scan').handlers[0].flush()
-
-    def assertLog(self, index=-1, message=''):
-        """Examine the log messages.
-        """
-        logger = logging.getLogger('hpsspy.scan')
-        self.assertEqual(logger.handlers[0].buffer[index].getMessage(),
-                         message)
-
-    def test_iterrsplit(self):
-        """Test reverse re-joining a string.
-        """
-        results = ['d', 'c_d', 'b_c_d', 'a_b_c_d']
-        for i, s in enumerate(iterrsplit('a_b_c_d', '_')):
-            self.assertEqual(s, results[i])
-
-    def test_compile_map(self):
-        """Test compiling regular expressions in the JSON configuration file.
-        """
-        new_map = compile_map(self.config, 'data')
-        self.assertEqual(new_map['__exclude__'], frozenset(['README.html']))
-        for k in self.config['data']:
-            if k != '__exclude__':
-                for l in new_map[k]:
-                    self.assertIn(l[0].pattern, self.config['data'][k])
-                    self.assertEqual(l[1],
-                                     self.config['data'][k][l[0].pattern])
-        #
-        # Catch bad compiles
-        #
-        self.config['redux']['d1'] = {'d1/(r\\d{5,4})/.*$': 'd1/d1_\\1.tar'}
-        with self.assertRaises(re.error) as err:
-            new_map = compile_map(self.config, 'redux')
-            self.assertEqual(err.colno, 8)
-
-    def test_files_to_hpss(self):
-        """Test conversion of JSON files to directory dictionary.
-        """
-        hpss_map, config = files_to_hpss(self.config_name, 'data')
-        self.assertEqual(config['root'], '/temporary')
-        for key in hpss_map['d2']:
-            self.assertIn(key[0].pattern, self.config['data']['d2'])
-            self.assertEqual(key[1], self.config['data']['d2'][key[0].pattern])
-        hpss_map, config = files_to_hpss('desi.json', 'datachallenge')
-        desi_map = {"dc2/batch/.*$": "dc2/batch.tar",
-                    "dc2/([^/]+\\.txt)$": "dc2/\\1",
-                    "dc2/templates/[^/]+$": "dc2/templates/templates_files.tar"
-                    }
-        for key in hpss_map['dc2']:
-            self.assertIn(key[0].pattern, desi_map)
-            self.assertEqual(key[1], desi_map[key[0].pattern])
-        hpss_map, config = files_to_hpss('foo.json', 'dr8')
-        self.assertIn('casload', hpss_map)
-
-    def test_physical_disks(self):
-        """Test physical disk path setup.
-        """
-        release_root = '/foo/bar/baz/data'
-        config = {'root': '/foo/bar/baz'}
-        pd = physical_disks(release_root, config)
-        self.assertEqual(pd, (release_root,))
-        config['physical_disks'] = None
-        pd = physical_disks(release_root, config)
-        self.assertEqual(pd, (release_root,))
-        config['physical_disks'] = False
-        pd = physical_disks(release_root, config)
-        self.assertEqual(pd, (release_root,))
-        config['physical_disks'] = []
-        pd = physical_disks(release_root, config)
-        self.assertEqual(pd, (release_root,))
-        config['physical_disks'] = ['baz']
-        pd = physical_disks(release_root, config)
-        self.assertEqual(pd, (release_root,))
-        config['physical_disks'] = ['baz0', 'baz1', 'baz2']
-        pd = physical_disks(release_root, config)
-        self.assertEqual(pd, ('/foo/bar/baz0/data',
-                              '/foo/bar/baz1/data',
-                              '/foo/bar/baz2/data'))
-        config['physical_disks'] = ['/foo/bar0/baz',
-                                    '/foo/bar1/baz',
-                                    '/foo/bar2/baz']
-        pd = physical_disks(release_root, config)
-        self.assertEqual(pd, ('/foo/bar0/baz/data',
-                              '/foo/bar1/baz/data',
-                              '/foo/bar2/baz/data'))
-
-    def test_validate_configuration(self):
-        """Test the configuration file validator.
-        """
-        # Non-existent file
-        status = validate_configuration('foo.bar')
-        self.assertEqual(status, 1)
-        self.assertLog(-2, "foo.bar might not be a JSON file!")
-        self.assertLog(-1, "foo.bar does not exist. Try again.")
-        # invalid file
-        invalid = resource_filename('hpsspy.test', 't/invalid_file')
-        status = validate_configuration(invalid)
-        self.assertEqual(status, 1)
-        self.assertLog(-2, "{0} might not be a JSON file!".format(invalid))
-        self.assertLog(-1, "{0} is not valid JSON.".format(invalid))
-        # Valid file
-        status = validate_configuration(self.config_name)
-        self.assertEqual(status, 0)
-        # Valid file but missing some pieces
-        c = self.config.copy()
-        del c['__config__']
-        fn, tmp = tempfile.mkstemp(suffix='.json')
-        with open(tmp, 'w') as fd:
-            json.dump(c, fd)
-        status = validate_configuration(tmp)
-        self.assertEqual(status, 1)
-        self.assertLog(-1, ("{0} does not contain a " +
-                            "'__config__' section.").format(tmp))
-        os.close(fn)
-        os.remove(tmp)
-        c = self.config.copy()
-        del c['__config__']['physical_disks']
-        fn, tmp = tempfile.mkstemp(suffix='.json')
-        with open(tmp, 'w') as fd:
-            json.dump(c, fd)
-        status = validate_configuration(tmp)
-        self.assertEqual(status, 0)
-        self.assertLog(-1, ("{0} '__config__' section does not contain an " +
-                            "entry for '{1}'.").format(tmp, 'physical_disks'))
-        os.close(fn)
-        os.remove(tmp)
-        c = self.config.copy()
-        del c['redux']['__exclude__']
-        fn, tmp = tempfile.mkstemp(suffix='.json')
-        with open(tmp, 'w') as fd:
-            json.dump(c, fd)
-        status = validate_configuration(tmp)
-        self.assertEqual(status, 0)
-        self.assertLog(-1, ("Section '{0}' should at least have an " +
-                            "'__exclude__' entry.").format('redux'))
-        os.close(fn)
-        os.remove(tmp)
-        c = self.config.copy()
-        c['redux']['d1'] = {'d1/(r\\d{5,4})/.*$': 'd1/d1_\\1.tar'}
-        fn, tmp = tempfile.mkstemp(suffix='.json')
-        with open(tmp, 'w') as fd:
-            json.dump(c, fd)
-        status = validate_configuration(tmp)
-        self.assertEqual(status, 1)
-        self.assertLog(-1, ("Regular Expression error detected in " +
-                            "section '{0}'!").format('redux'))
-        os.close(fn)
-        os.remove(tmp)
-
-    def test_process_missing(self):
-        """Test conversion of missing files into HPSS commands.
-        """
-        pass
-
-    def test_extract_directory_name(self):
-        """Test conversion of HTAR file name back into directory name.
-        """
-        d = extract_directory_name(('images/fpc_analysis/' +
-                                    'protodesi_images_fpc_analysis_' +
-                                    'stability_dither-33022.tar'))
-        self.assertEqual(d, 'stability_dither-33022')
-        d = extract_directory_name(('buzzard/buzzard_v1.6_desicut/8/' +
-                                    'buzzard_v1.6_desicut_8_7.tar'))
-        self.assertEqual(d, '7')
-        d = extract_directory_name('foo/bar/batch.tar')
-        self.assertEqual(d, 'batch')
-        d = extract_directory_name('batch.tar')
-        self.assertEqual(d, 'batch')
+    results = ['d', 'c_d', 'b_c_d', 'a_b_c_d']
+    for i, s in enumerate(iterrsplit('a_b_c_d', '_')):
+        assert s == results[i]
 
 
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
+def test_compile_map(test_config):
+    """Test compiling regular expressions in the JSON configuration file.
     """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)
+    new_map = compile_map(test_config.config, 'data')
+    assert new_map['__exclude__'] == frozenset(['README.html'])
+    for conf in test_config.config['data']:
+        if conf != '__exclude__':
+            for nm in new_map[conf]:
+                assert nm[0].pattern in test_config.config['data'][conf]
+                assert nm[1] == test_config.config['data'][conf][nm[0].pattern]
+    #
+    # Catch bad compiles
+    #
+    test_config.config['redux']['d1'] = {'d1/(r\\d{5,4})/.*$': 'd1/d1_\\1.tar'}
+    with pytest.raises(re.error) as err:
+        new_map = compile_map(test_config.config, 'redux')
+    assert err.value.colno == 9
+
+
+def test_files_to_hpss(test_config):
+    """Test conversion of JSON files to directory dictionary.
+    """
+    hpss_map, config = files_to_hpss(test_config.config_name, 'data')
+    assert config['root'] == '/temporary'
+    for key in hpss_map['d2']:
+        assert key[0].pattern in test_config.config['data']['d2']
+        assert key[1] == test_config.config['data']['d2'][key[0].pattern]
+    hpss_map, config = files_to_hpss('desi.json', 'datachallenge')
+    desi_map = {"dc2/batch/.*$": "dc2/batch.tar",
+                "dc2/([^/]+\\.txt)$": "dc2/\\1",
+                "dc2/templates/[^/]+$": "dc2/templates/templates_files.tar"
+                }
+    for key in hpss_map['dc2']:
+        assert key[0].pattern in desi_map
+        assert key[1] == desi_map[key[0].pattern]
+    hpss_map, config = files_to_hpss('foo.json', 'dr8')
+    assert 'casload' in hpss_map
+
+
+def test_physical_disks():
+    """Test physical disk path setup.
+    """
+    release_root = '/foo/bar/baz/data'
+    config = {'root': '/foo/bar/baz'}
+    pd = physical_disks(release_root, config)
+    assert pd == (release_root,)
+    config['physical_disks'] = None
+    pd = physical_disks(release_root, config)
+    assert pd == (release_root,)
+    config['physical_disks'] = False
+    pd = physical_disks(release_root, config)
+    assert pd == (release_root,)
+    config['physical_disks'] = []
+    pd = physical_disks(release_root, config)
+    assert pd == (release_root,)
+    config['physical_disks'] = ['baz']
+    pd = physical_disks(release_root, config)
+    assert pd == (release_root,)
+    config['physical_disks'] = ['baz0', 'baz1', 'baz2']
+    pd = physical_disks(release_root, config)
+    assert pd == ('/foo/bar/baz0/data',
+                  '/foo/bar/baz1/data',
+                  '/foo/bar/baz2/data')
+    config['physical_disks'] = ['/foo/bar0/baz',
+                                '/foo/bar1/baz',
+                                '/foo/bar2/baz']
+    pd = physical_disks(release_root, config)
+    assert pd == ('/foo/bar0/baz/data',
+                  '/foo/bar1/baz/data',
+                  '/foo/bar2/baz/data')
+
+
+def test_validate_configuration_no_file(caplog):
+    """Test the configuration file validator with a missing file.
+    """
+    status = validate_configuration('foo.bar')
+    assert status == 1
+    assert caplog.records[0].levelname == 'WARNING'
+    assert caplog.records[0].message == "foo.bar might not be a JSON file!"
+    assert caplog.records[1].levelname == 'CRITICAL'
+    assert caplog.records[1].message == "foo.bar does not exist. Try again."
+
+
+def test_validate_configuration_invalid_file(caplog):
+    """Test the configuration file validator with an invalid file.
+    """
+    invalid = resource_filename('hpsspy.test', 't/invalid_file')
+    status = validate_configuration(invalid)
+    assert status == 1
+    assert caplog.records[0].levelname == 'WARNING'
+    assert caplog.records[0].message == f"{invalid} might not be a JSON file!"
+    assert caplog.records[1].levelname == 'CRITICAL'
+    assert caplog.records[1].message == f"{invalid} is not valid JSON."
+
+
+def test_validate_configuration_valid_file(caplog, test_config):
+    """Test the configuration file validator with a valid file.
+    """
+    status = validate_configuration(test_config.config_name)
+    assert status == 0
+
+
+def test_validate_configuration_partial_valid_file(caplog, tmp_path, test_config):
+    """Test the configuration file validator with a valid file but missing some pieces.
+    """
+    c = test_config.config.copy()
+    del c['__config__']
+    tmp = tmp_path / 'missing_config.json'
+    with tmp.open('w') as fd:
+        json.dump(c, fd)
+    status = validate_configuration(str(tmp))
+    assert status == 1
+    assert caplog.records[0].levelname == 'CRITICAL'
+    assert caplog.records[0].message == f"{tmp} does not contain a '__config__' section."
+
+
+def test_validate_configuration_another_partial_valid_file(caplog, tmp_path, test_config):
+    """Test the configuration file validator with a valid file but missing some other pieces.
+    """
+    c = test_config.config.copy()
+    del c['__config__']['physical_disks']
+    tmp = tmp_path / 'missing_physical.json'
+    with tmp.open('w') as fd:
+        json.dump(c, fd)
+    status = validate_configuration(str(tmp))
+    assert status == 0
+    assert caplog.records[0].levelname == 'WARNING'
+    assert caplog.records[0].message == f"{tmp} '__config__' section does not contain an entry for 'physical_disks'."
+
+
+def test_validate_configuration_yet_another_partial_valid_file(caplog, tmp_path, test_config):
+    """Test the configuration file validator with a valid file but missing some other pieces.
+    """
+    c = test_config.config.copy()
+    del c['redux']['__exclude__']
+    tmp = tmp_path / 'missing_exclude.json'
+    with tmp.open('w') as fd:
+        json.dump(c, fd)
+    status = validate_configuration(str(tmp))
+    assert status == 0
+    assert caplog.records[0].levelname == 'WARNING'
+    assert caplog.records[0].message == "Section 'redux' should at least have an '__exclude__' entry."
+
+
+def test_validate_configuration_bad_regex(caplog, tmp_path, test_config):
+    """Test the configuration file validator with an invalid regular expression.
+    """
+    c = test_config.config.copy()
+    c['redux']['d1'] = {'d1/(r\\d{5,4})/.*$': 'd1/d1_\\1.tar'}
+    tmp = tmp_path / 'bad_regex.json'
+    with tmp.open('w') as fd:
+        json.dump(c, fd)
+    status = validate_configuration(str(tmp))
+    assert status == 1
+    assert caplog.records[0].levelname == 'CRITICAL'
+    assert caplog.records[0].message == "Regular Expression error detected in section 'redux'!"
+
+
+def test_extract_directory_name():
+    """Test conversion of HTAR file name back into directory name.
+    """
+    d = extract_directory_name(('images/fpc_analysis/' +
+                                'protodesi_images_fpc_analysis_' +
+                                'stability_dither-33022.tar'))
+    assert d == 'stability_dither-33022'
+    d = extract_directory_name(('buzzard/buzzard_v1.6_desicut/8/' +
+                                'buzzard_v1.6_desicut_8_7.tar'))
+    assert d == '7'
+    d = extract_directory_name('foo/bar/batch.tar')
+    assert d == 'batch'
+    d = extract_directory_name('batch.tar')
+    assert d == 'batch'
+
+
+def test_options(monkeypatch):
+    """Test command-line parsing.
+    """
+    monkeypatch.setattr('sys.argv', ['missing_from_hpss', '--test', '--verbose',
+                                     'config', 'release'])
+    options = _options()
+    assert options.test
+    assert options.verbose
+    assert options.config == 'config'
+
+
+def test_scan_hpss_cached(caplog):
+    """Test scan_hpss() using an existing cache.
+    """
+    caplog.set_level(DEBUG)
+    cache = resource_filename('hpsspy.test', 't/hpss_cache.csv')
+    hpss_files = scan_hpss('/hpss/root', cache)
+    assert hpss_files['foo'][0] == 1
+    assert hpss_files['bar'][1] == 3
+    assert caplog.records[0].levelname == 'INFO'
+    assert caplog.records[0].message == f"Found cache file {cache}."
+
+
+def test_scan_hpss(monkeypatch, caplog, tmp_path, mock_call):
+    """Test scan_hpss() using an existing cache.
+    """
+    d = MockFile(True, 'subdir')
+    f = MockFile(False, 'name')
+    ff = MockFile(False, 'subname')
+    ld = mock_call([[d, f], [ff]])
+    i = mock_call([False])
+    monkeypatch.setattr('hpsspy.os._os.listdir', ld)
+    monkeypatch.setattr('hpsspy.os._os.islink', i)
+    caplog.set_level(DEBUG)
+    cache = tmp_path / 'temp_hpss_cache.csv'
+    # cache = resource_filename('hpsspy.test', 't/hpss_cache.csv')
+    hpss_files = scan_hpss('/hpss/root', str(cache))
+    # print(hpss_files)
+    assert hpss_files['/path/name'][0] == 12345
+    assert hpss_files['/path/subname'][1] == 54321
+    assert caplog.records[0].levelname == 'INFO'
+    assert caplog.records[0].message == "No HPSS cache file, starting scan at /hpss/root."
+    assert caplog.records[1].levelname == 'DEBUG'
+    assert caplog.records[1].message == "Scanning HPSS directory /hpss/root."
+    assert caplog.records[2].levelname == 'DEBUG'
+    assert caplog.records[2].message == "Scanning HPSS directory /hpss/root/subdir."
+    expected_csv = """Name,Size,Mtime
+/path/name,12345,54321
+/path/subname,12345,54321
+"""
+    with cache.open() as csv:
+        data = csv.read()
+    assert data == expected_csv
+    assert ld.args[0] == ('/hpss/root', )
+    assert ld.args[1] == ('/hpss/root/subdir', )
+    assert i.args[0] == ('/hpss/root/subdir', )
+
+
+def test_scan_disk_cached(monkeypatch, caplog, mock_call):
+    """Test the scan_disk() function using an existing cache.
+    """
+    m = mock_call([True])
+    monkeypatch.setattr('os.path.exists', m)
+    caplog.set_level(DEBUG)
+    assert scan_disk(['/foo', '/bar'], 'cache_file')
+    assert m.args[0] == ('cache_file', )
+    assert caplog.records[0].levelname == 'DEBUG'
+    assert caplog.records[0].message == "Using existing file cache: cache_file"
+
+
+def test_scan_disk(monkeypatch, caplog, tmp_path, mock_call):
+    """Test the scan_disk() function.
+    """
+    f = MockFile(False, 'name')
+    ff = MockFile(False, 'subname')
+    m = mock_call([[('/foo', ['subdir'], ['name']),
+                    ('/foo/subdir', [], ['subname'])],
+                   [('/bar', ['subdir'], ['name']),
+                    ('/bar/subdir', [], ['subname'])]])
+    # i = mock_call([False, False, False, False])
+    s = mock_call([f, f, ff, f, ff])
+    monkeypatch.setattr('os.walk', m)
+    # monkeypatch.setattr('os.path.islink', i)
+    monkeypatch.setattr('os.stat', s)
+    caplog.set_level(DEBUG)
+    cache = tmp_path / 'cache_file.csv'
+    foo = scan_disk(['/foo', '/bar'], str(cache), overwrite=True)
+    assert foo
+    assert m.args[0] == ('/foo', )
+    assert m.args[1] == ('/bar', )
+    assert s.args[0] == (str(cache), )
+    assert s.args[1] == ('/foo/name', )
+    assert s.args[2] == ('/foo/subdir/subname', )
+    assert s.args[3] == ('/bar/name', )
+    assert s.args[4] == ('/bar/subdir/subname', )
+    assert caplog.records[0].levelname == 'INFO'
+    assert caplog.records[0].message == "No disk cache file, starting scan."
+    assert caplog.records[1].levelname == 'DEBUG'
+    assert caplog.records[1].message == "Starting os.walk at /foo."
+    assert caplog.records[2].levelname == 'DEBUG'
+    assert caplog.records[2].message == "Scanning disk directory /foo."
+    assert caplog.records[3].levelname == 'DEBUG'
+    assert caplog.records[3].message == "Scanning disk directory /foo/subdir."
+    assert caplog.records[4].levelname == 'DEBUG'
+    assert caplog.records[4].message == "Starting os.walk at /bar."
+    assert caplog.records[5].levelname == 'DEBUG'
+    assert caplog.records[5].message == "Scanning disk directory /bar."
+    assert caplog.records[6].levelname == 'DEBUG'
+    assert caplog.records[6].message == "Scanning disk directory /bar/subdir."
+    expected_csv = """Name,Size,Mtime
+name,12345,54321
+subdir/subname,12345,54321
+name,12345,54321
+subdir/subname,12345,54321
+"""
+    with cache.open() as csv:
+        data = csv.read()
+    assert data == expected_csv
+
+
+def test_scan_disk_exception(monkeypatch, caplog, tmp_path, mock_call):
+    """Test the scan_disk() function, throwing an exception.
+    """
+    err = OSError(12345, 'foobar', 'foo.txt')
+    f = MockFile(False, 'name')
+    ff = MockFile(False, 'subname')
+    m = mock_call([[('/foo', ['subdir'], ['name']),
+                    ('/foo/subdir', [], ['subname'])],
+                   [('/bar', ['subdir'], ['name']),
+                    ('/bar/subdir', [], ['subname'])]], raises=err)
+    # i = mock_call([False, False, False, False])
+    s = mock_call([f, f, ff, f, ff])
+    monkeypatch.setattr('os.walk', m)
+    # monkeypatch.setattr('os.path.islink', i)
+    monkeypatch.setattr('os.stat', s)
+    caplog.set_level(DEBUG)
+    cache = tmp_path / 'cache_file.csv'
+    foo = scan_disk(['/foo', '/bar'], str(cache), overwrite=True)
+    assert not foo
+    assert caplog.records[0].levelname == 'INFO'
+    assert caplog.records[0].message == "No disk cache file, starting scan."
+    assert caplog.records[1].levelname == 'DEBUG'
+    assert caplog.records[1].message == "Starting os.walk at /foo."
+    assert caplog.records[2].levelname == 'ERROR'
+    assert caplog.records[2].message == "Exception encountered while creating disk cache file!"
+    assert caplog.records[3].levelname == 'ERROR'
+    assert caplog.records[3].message == "foobar"
+
+
+def test_process_missing(monkeypatch, caplog, mock_call):
+    """Test conversion of missing files into HPSS commands.
+    """
+    missing_cache = resource_filename('hpsspy.test', 't/missing_cache.json')
+    getcwd = mock_call(['/working/directory', '/working/directory'])
+    chdir = mock_call([None, None])
+    isdir = mock_call([True])
+    htar = mock_call([('out', '')])
+    hsi = mock_call(['OK'])
+    monkeypatch.setenv('HPSS_DIR', '/usr/local')
+    monkeypatch.setattr('os.getcwd', getcwd)
+    monkeypatch.setattr('os.chdir', chdir)
+    monkeypatch.setattr('os.path.isdir', isdir)
+    monkeypatch.setattr('hpsspy.scan.htar', htar)
+    monkeypatch.setattr('hpsspy.os._os.hsi', hsi)
+    caplog.set_level(DEBUG)
+    process_missing(missing_cache, '/disk/root', '/hpss/root')
+    assert chdir.args[0] == ('/disk/root/', )
+    assert isdir.args[0] == ('/disk/root/test_basic_htar', )
+    assert htar.args[0] == ('-cvf', '/hpss/root/test_basic_htar.tar', '-H', 'crc:verify=all', 'test_basic_htar')
+    assert caplog.records[0].levelname == 'DEBUG'
+    assert caplog.records[0].message == f"Processing missing files from {missing_cache}."
+    assert caplog.records[1].levelname == 'DEBUG'
+    assert caplog.records[1].message == "os.chdir('/disk/root/')"
+    assert caplog.records[2].levelname == 'DEBUG'
+    assert caplog.records[2].message == "makedirs('/hpss/root/', mode='2770')"
+    assert caplog.records[3].levelname == 'INFO'
+    assert caplog.records[3].message == "htar('-cvf', '/hpss/root/test_basic_htar.tar', '-H', 'crc:verify=all', 'test_basic_htar')"
+    assert caplog.records[4].levelname == 'DEBUG'
+    assert caplog.records[4].message == 'out'
+    assert caplog.records[5].levelname == 'DEBUG'
+    assert caplog.records[5].message == "os.chdir('/working/directory')"

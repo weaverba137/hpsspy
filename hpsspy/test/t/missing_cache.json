@@ -1,0 +1,9 @@
+{
+    "test_basic_htar.tar": {
+        "files": ["test_basic_htar/test_file1.txt",
+                  "test_basic_htar/test_file2.sha256sum"],
+        "size": 12345,
+        "newer": true,
+        "exists": true
+    }
+}
