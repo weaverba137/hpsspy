@@ -4,7 +4,7 @@ HPSSPy
 
 |License| |PyPI| |Downloads| |Actions Status| |Coveralls Status| |Documentation Status|
 
-.. |License| .. image:: https://img.shields.io/pypi/l/hpsspy.svg
+.. |License| image:: https://img.shields.io/pypi/l/hpsspy.svg
     :target: https://pypi.python.org/pypi/hpsspy
     :alt: License
 
