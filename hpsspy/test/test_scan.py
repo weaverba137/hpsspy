@@ -359,9 +359,84 @@ def test_scan_disk_exception(monkeypatch, caplog, tmp_path, mock_call):
     assert caplog.records[1].levelname == 'DEBUG'
     assert caplog.records[1].message == "Starting os.walk at /foo."
     assert caplog.records[2].levelname == 'ERROR'
-    assert caplog.records[2].message == "Exception encountered while creating disk cache file!"
+    assert caplog.records[2].message == "Exception encountered while traversing /foo!"
     assert caplog.records[3].levelname == 'ERROR'
     assert caplog.records[3].message == "foobar"
+
+
+def test_scan_disk_stat_exception(monkeypatch, caplog, tmp_path, mock_call):
+    """Test the scan_disk() function, throwing an exception on os.stat.
+    """
+    err = PermissionError(13, 'Permission denied', '/bar/subdir/subname')
+    f = MockFile(False, 'name')
+    ff = MockFile(False, 'subname')
+    m = mock_call([[('/foo', ['subdir'], ['name']),
+                    ('/foo/subdir', [], ['subname'])],
+                   [('/bar', ['subdir'], ['name']),
+                    ('/bar/subdir', [], ['subname'])]])
+    # i = mock_call([False, False, False, False])
+    s = mock_call([f, f, ff, f, ff], raises=[None, None, None, None, err])
+    monkeypatch.setattr('os.walk', m)
+    # monkeypatch.setattr('os.path.islink', i)
+    monkeypatch.setattr('os.stat', s)
+    caplog.set_level(DEBUG)
+    cache = tmp_path / 'cache_file.csv'
+    foo = scan_disk(['/foo', '/bar'], str(cache), overwrite=True)
+    assert foo
+    assert caplog.records[0].levelname == 'INFO'
+    assert caplog.records[0].message == "No disk cache file, starting scan."
+    assert caplog.records[1].levelname == 'DEBUG'
+    assert caplog.records[1].message == "Starting os.walk at /foo."
+    assert caplog.records[2].levelname == 'DEBUG'
+    assert caplog.records[2].message == "Scanning disk directory /foo."
+    assert caplog.records[3].levelname == 'DEBUG'
+    assert caplog.records[3].message == "Scanning disk directory /foo/subdir."
+    assert caplog.records[4].levelname == 'DEBUG'
+    assert caplog.records[4].message == "Starting os.walk at /bar."
+    assert caplog.records[5].levelname == 'DEBUG'
+    assert caplog.records[5].message == "Scanning disk directory /bar."
+    assert caplog.records[6].levelname == 'DEBUG'
+    assert caplog.records[6].message == "Scanning disk directory /bar/subdir."
+    assert caplog.records[7].levelname == 'ERROR'
+    assert caplog.records[7].message == "Permission denied: /bar/subdir/subname"
+
+
+def test_scan_disk_weird_filename(monkeypatch, caplog, tmp_path, mock_call):
+    """Test the scan_disk() function, with an oddball filename.
+    """
+    f = MockFile(False, 'name')
+    ff = MockFile(False, 'subname')
+    m = mock_call([[('/foo', ['subdir'], ['name']),
+                    ('/foo/subdir', [], ['subname'])],
+                   [('/bar', ['subdir'], ['name']),
+                    ('/bar/subdir', [], ['Vpeak60_subhalos_id-\udcecd-upid.h5'])]])
+    # i = mock_call([False, False, False, False])
+    s = mock_call([f, f, ff, f, ff])
+    monkeypatch.setattr('os.walk', m)
+    # monkeypatch.setattr('os.path.islink', i)
+    monkeypatch.setattr('os.stat', s)
+    caplog.set_level(DEBUG)
+    cache = tmp_path / 'cache_file.csv'
+    foo = scan_disk(['/foo', '/bar'], str(cache), overwrite=True)
+    assert foo
+    assert caplog.records[0].levelname == 'INFO'
+    assert caplog.records[0].message == "No disk cache file, starting scan."
+    assert caplog.records[1].levelname == 'DEBUG'
+    assert caplog.records[1].message == "Starting os.walk at /foo."
+    assert caplog.records[2].levelname == 'DEBUG'
+    assert caplog.records[2].message == "Scanning disk directory /foo."
+    assert caplog.records[3].levelname == 'DEBUG'
+    assert caplog.records[3].message == "Scanning disk directory /foo/subdir."
+    assert caplog.records[4].levelname == 'DEBUG'
+    assert caplog.records[4].message == "Starting os.walk at /bar."
+    assert caplog.records[5].levelname == 'DEBUG'
+    assert caplog.records[5].message == "Scanning disk directory /bar."
+    assert caplog.records[6].levelname == 'DEBUG'
+    assert caplog.records[6].message == "Scanning disk directory /bar/subdir."
+    assert caplog.records[7].levelname == 'ERROR'
+    assert caplog.records[7].message == r"Could not write b'/bar/subdir/Vpeak60_subhalos_id-\xed\xb3\xacd-upid.h5' to cache file due to unusual characters!"
+    assert caplog.records[8].levelname == 'ERROR'
+    assert caplog.records[8].message == r"Message was: 'utf-8' codec can't encode character '\udcec' in position 27: surrogates not allowed."
 
 
 def test_process_missing(monkeypatch, caplog, mock_call):
