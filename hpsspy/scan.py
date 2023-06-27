@@ -491,16 +491,21 @@ def scan_disk(disk_roots, disk_files_cache, overwrite=False):
         with open(disk_files_cache, 'w', newline='') as t:
             writer = csv.writer(t)
             writer.writerow(['Name', 'Size', 'Mtime'])
-            try:
-                for disk_root in disk_roots:
-                    logger.debug("Starting os.walk at %s.", disk_root)
+            for disk_root in disk_roots:
+                logger.debug("Starting os.walk at %s.", disk_root)
+                try:
                     for root, dirs, files in os.walk(disk_root):
                         logger.debug("Scanning disk directory %s.", root)
                         for f in files:
                             fullname = os.path.join(root, f)
                             if not os.path.islink(fullname):
                                 cachename = fullname.replace(disk_root+'/', '')
-                                s = os.stat(fullname)
+                                try:
+                                    s = os.stat(fullname)
+                                except PermissionError as perr:
+                                    logger.error("%s: %s",
+                                                 perr.strerror, perr.filename)
+                                    continue
                                 try:
                                     writer.writerow([cachename,
                                                      s.st_size,
@@ -509,11 +514,10 @@ def scan_disk(disk_roots, disk_files_cache, overwrite=False):
                                     logger.error("Could not write %s to cache file due to unusual characters!",
                                                  fullname.encode(errors='surrogatepass'))
                                     logger.error("Message was: %s.", str(e))
-            except OSError as e:
-                logger.error('Exception encountered while creating ' +
-                             'disk cache file!')
-                logger.error(e.strerror)
-                return False
+                except OSError as oerr:
+                    logger.error('Exception encountered while traversing %s!', disk_root)
+                    logger.error(oerr.strerror)
+                    return False
     return True
 
 
