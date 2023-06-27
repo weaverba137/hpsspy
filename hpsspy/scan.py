@@ -586,9 +586,25 @@ def physical_disks(release_root, config):
     if ((len(pd) == 1) and (pd[0] == broot)):
         return (release_root,)
     if pd[0].startswith('/'):
-        return tuple([os.path.join(d, os.path.basename(release_root))
-                      for d in pd])
-    return tuple([release_root.replace(broot, d) for d in pd])
+        roots = [os.path.join(d, os.path.basename(release_root))
+                 for d in pd]
+    else:
+        roots = [release_root.replace(broot, d) for d in pd]
+    #
+    # Is any root a pure symlink to another root?
+    #
+    remove = list()
+    for r in roots:
+        if os.path.islink(r):
+            rr = os.readlink(r)
+            if rr.startswith('.'):
+                rr = os.path.normpath(os.path.join(config['root'], rr))
+            if rr in roots:
+                remove.append(r)
+    rs = set(roots)
+    for r in remove:
+        rs.remove(r)
+    return tuple(rs)
 
 
 def _options():

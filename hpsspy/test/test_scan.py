@@ -101,16 +101,41 @@ def test_physical_disks():
     assert pd == (release_root,)
     config['physical_disks'] = ['baz0', 'baz1', 'baz2']
     pd = physical_disks(release_root, config)
-    assert pd == ('/foo/bar/baz0/data',
-                  '/foo/bar/baz1/data',
-                  '/foo/bar/baz2/data')
+    assert set(pd) == set(['/foo/bar/baz0/data',
+                           '/foo/bar/baz1/data',
+                           '/foo/bar/baz2/data'])
     config['physical_disks'] = ['/foo/bar0/baz',
                                 '/foo/bar1/baz',
                                 '/foo/bar2/baz']
     pd = physical_disks(release_root, config)
-    assert pd == ('/foo/bar0/baz/data',
-                  '/foo/bar1/baz/data',
-                  '/foo/bar2/baz/data')
+    assert set(pd) == set(['/foo/bar0/baz/data',
+                           '/foo/bar1/baz/data',
+                           '/foo/bar2/baz/data'])
+
+
+def test_physical_disks_with_symlinks(monkeypatch, mock_call):
+    """Test physical disk path setup with a symlink.
+    """
+    il0 = mock_call([True, False, False])
+    rl0 = mock_call(['../baz1/data'])
+    monkeypatch.setattr('os.path.islink', il0)
+    monkeypatch.setattr('os.readlink', rl0)
+    release_root = '/foo/bar/baz/data'
+    config = {'root': '/foo/bar/baz'}
+    config['physical_disks'] = ['baz0', 'baz1', 'baz2']
+    pd = physical_disks(release_root, config)
+    assert set(pd) == set(['/foo/bar/baz1/data',
+                           '/foo/bar/baz2/data'])
+    il1 = mock_call([True, False, False])
+    rl1 = mock_call(['../../bar1/baz/data'])
+    monkeypatch.setattr('os.path.islink', il1)
+    monkeypatch.setattr('os.readlink', rl1)
+    config['physical_disks'] = ['/foo/bar0/baz',
+                                '/foo/bar1/baz',
+                                '/foo/bar2/baz']
+    pd = physical_disks(release_root, config)
+    assert set(pd) == set(['/foo/bar1/baz/data',
+                           '/foo/bar2/baz/data'])
 
 
 def test_validate_configuration_no_file(caplog):
