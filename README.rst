@@ -45,7 +45,7 @@ Requirements
 HPSSPy assumes that the HPSS utilities `hsi and htar`_ are installed.  You may
 need a NERSC account to download and install these utilities.
 
-.. _`hsi and htar`: https://www.nersc.gov/users/data-and-file-systems/hpss/storing-and-retrieving-data/software-downloads/
+.. _`hsi and htar`: https://docs.nersc.gov/filesystems/archive/#common-commands
 
 License
 -------

@@ -501,9 +501,14 @@ def scan_disk(disk_roots, disk_files_cache, overwrite=False):
                             if not os.path.islink(fullname):
                                 cachename = fullname.replace(disk_root+'/', '')
                                 s = os.stat(fullname)
-                                writer.writerow([cachename,
-                                                 s.st_size,
-                                                 int(s.st_mtime)])
+                                try:
+                                    writer.writerow([cachename,
+                                                     s.st_size,
+                                                     int(s.st_mtime)])
+                                except UnicodeEncodeError as e:
+                                    logger.error("Could not write %s to cache file due to unusual characters!",
+                                                 fullname.encode(errors='surrogatepass'))
+                                    logger.error("Message was: %s.", str(e))
             except OSError as e:
                 logger.error('Exception encountered while creating ' +
                              'disk cache file!')
