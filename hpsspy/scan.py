@@ -330,6 +330,7 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                 Lfile = os.path.join(get_tmpdir(),
                                      os.path.basename(h.replace('.tar',
                                                                 '.txt')))
+                logger.debug(Lfile)
                 htar_dir = None
                 Lfile_lines = ('\n'.join([os.path.basename(f)
                                           for f in missing[h]['files']]) +
@@ -360,7 +361,13 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                     continue
             logger.debug("os.chdir('%s')", full_chdir)
             os.chdir(full_chdir)
-            h_dir = os.path.join(hpss_root, disk_chdir)
+            #
+            # Avoid adding a trailing slash.
+            #
+            if disk_chdir:
+                h_dir = os.path.join(hpss_root, disk_chdir)
+            else:
+                h_dir = hpss_root
             if h_dir not in created_directories:
                 logger.debug("makedirs('%s', mode='%s')", h_dir, dirmode)
                 if not test:

@@ -469,30 +469,129 @@ def test_process_missing(monkeypatch, caplog, mock_call):
     """
     missing_cache = resource_filename('hpsspy.test', 't/missing_cache.json')
     getcwd = mock_call(['/working/directory', '/working/directory'])
-    chdir = mock_call([None, None])
-    isdir = mock_call([True])
-    htar = mock_call([('out', '')])
-    hsi = mock_call(['OK'])
+    chdir = mock_call([None, None, None, None])
+    isdir = mock_call([True, False])
+    htar = mock_call([('out', ''), ('out', 'err')])
+    hsi = mock_call(['OK', 'OK', 'OK', 'OK'])
     monkeypatch.setenv('HPSS_DIR', '/usr/local')
     monkeypatch.setattr('os.getcwd', getcwd)
     monkeypatch.setattr('os.chdir', chdir)
     monkeypatch.setattr('os.path.isdir', isdir)
     monkeypatch.setattr('hpsspy.scan.htar', htar)
     monkeypatch.setattr('hpsspy.os._os.hsi', hsi)
+    monkeypatch.setattr('hpsspy.scan.hsi', hsi)
     caplog.set_level(DEBUG)
     process_missing(missing_cache, '/disk/root', '/hpss/root')
-    assert chdir.args[0] == ('/disk/root/', )
-    assert isdir.args[0] == ('/disk/root/test_basic_htar', )
-    assert htar.args[0] == ('-cvf', '/hpss/root/test_basic_htar.tar', '-H', 'crc:verify=all', 'test_basic_htar')
+    assert chdir.args[0] == ('/disk/root/files', )
+    assert chdir.args[1] == ('/disk/root/', )
+    assert isdir.args[0] == ('/disk/root/files/test_basic_htar', )
+    assert isdir.args[1] == ('/disk/root/bad_dir/test_basic_htar', )
     assert caplog.records[0].levelname == 'DEBUG'
     assert caplog.records[0].message == f"Processing missing files from {missing_cache}."
     assert caplog.records[1].levelname == 'DEBUG'
-    assert caplog.records[1].message == "os.chdir('/disk/root/')"
+    assert caplog.records[1].message == "os.chdir('/disk/root/files')"
     assert caplog.records[2].levelname == 'DEBUG'
-    assert caplog.records[2].message == "makedirs('/hpss/root/', mode='2770')"
+    assert caplog.records[2].message == "makedirs('/hpss/root/files', mode='2770')"
     assert caplog.records[3].levelname == 'INFO'
-    assert caplog.records[3].message == "htar('-cvf', '/hpss/root/test_basic_htar.tar', '-H', 'crc:verify=all', 'test_basic_htar')"
+    assert caplog.records[3].message == "htar('-cvf', '/hpss/root/files/test_basic_htar.tar', '-H', 'crc:verify=all', 'test_basic_htar')"
     assert caplog.records[4].levelname == 'DEBUG'
     assert caplog.records[4].message == 'out'
+
     assert caplog.records[5].levelname == 'DEBUG'
-    assert caplog.records[5].message == "os.chdir('/working/directory')"
+    Lfile = caplog.records[5].message
+    assert caplog.records[6].levelname == 'DEBUG'
+    assert caplog.records[6].message == "os.chdir('/disk/root/')"
+    assert caplog.records[7].levelname == 'DEBUG'
+    assert caplog.records[7].message == "makedirs('/hpss/root', mode='2770')"
+    assert caplog.records[8].levelname == 'INFO'
+    assert caplog.records[8].message == f"htar('-cvf', '/hpss/root/test_basic_files.tar', '-H', 'crc:verify=all', '-L', '{Lfile}')"
+    assert caplog.records[9].levelname == 'DEBUG'
+    assert caplog.records[9].message == 'out'
+    assert caplog.records[10].levelname == 'WARNING'
+    assert caplog.records[10].message == 'err'
+    assert caplog.records[11].levelname == 'DEBUG'
+    assert caplog.records[11].message == f"os.remove('{Lfile}')"
+
+    assert caplog.records[12].levelname == 'DEBUG'
+    assert caplog.records[12].message == "makedirs('/hpss/root/big_file', mode='2770')"
+    assert caplog.records[13].levelname == 'INFO'
+    assert caplog.records[13].message == "hsi('put', '/disk/root/big_file/test_basic_file.dump', ':', '/hpss/root/big_file/test_basic_file.dump')"
+    assert caplog.records[14].levelname == 'DEBUG'
+    assert caplog.records[14].message == "OK"
+
+    assert caplog.records[15].levelname == 'ERROR'
+    assert caplog.records[15].message == 'Could not find directories corresponding to bad_dir/test_basic_htar.tar!'
+
+    assert caplog.records[16].levelname == 'DEBUG'
+    assert caplog.records[16].message == "os.chdir('/working/directory')"
+
+    assert hsi.args[0] == ('mkdir', '-p', '-m', '2770', '/hpss/root/files')
+    assert hsi.args[1] == ('mkdir', '-p', '-m', '2770', '/hpss/root')
+    assert hsi.args[2] == ('mkdir', '-p', '-m', '2770', '/hpss/root/big_file')
+    assert hsi.args[3] == ('put', '/disk/root/big_file/test_basic_file.dump', ':', '/hpss/root/big_file/test_basic_file.dump')
+
+    assert htar.args[0] == ('-cvf', '/hpss/root/files/test_basic_htar.tar', '-H', 'crc:verify=all', 'test_basic_htar')
+    assert htar.args[1] == ('-cvf', '/hpss/root/test_basic_files.tar', '-H', 'crc:verify=all', '-L', Lfile)
+
+
+def test_process_missing_test_mode(monkeypatch, caplog, mock_call):
+    """Test conversion of missing files into HPSS commands in test mode.
+    """
+    missing_cache = resource_filename('hpsspy.test', 't/missing_cache.json')
+    getcwd = mock_call(['/working/directory', '/working/directory'])
+    chdir = mock_call([None, None, None, None])
+    isdir = mock_call([True, False])
+    htar = mock_call([('out', ''), ('out', '')])
+    hsi = mock_call(['OK', 'OK', 'OK', 'OK'])
+    monkeypatch.setenv('HPSS_DIR', '/usr/local')
+    monkeypatch.setattr('os.getcwd', getcwd)
+    monkeypatch.setattr('os.chdir', chdir)
+    monkeypatch.setattr('os.path.isdir', isdir)
+    monkeypatch.setattr('hpsspy.scan.htar', htar)
+    monkeypatch.setattr('hpsspy.os._os.hsi', hsi)
+    monkeypatch.setattr('hpsspy.scan.hsi', hsi)
+    caplog.set_level(DEBUG)
+    process_missing(missing_cache, '/disk/root', '/hpss/root', dirmode='2775', test=True)
+    assert chdir.args[0] == ('/disk/root/files', )
+    assert chdir.args[1] == ('/disk/root/', )
+    assert isdir.args[0] == ('/disk/root/files/test_basic_htar', )
+    assert isdir.args[1] == ('/disk/root/bad_dir/test_basic_htar', )
+    assert caplog.records[0].levelname == 'DEBUG'
+    assert caplog.records[0].message == f"Processing missing files from {missing_cache}."
+    assert caplog.records[1].levelname == 'DEBUG'
+    assert caplog.records[1].message == "os.chdir('/disk/root/files')"
+    assert caplog.records[2].levelname == 'DEBUG'
+    assert caplog.records[2].message == "makedirs('/hpss/root/files', mode='2775')"
+    assert caplog.records[3].levelname == 'INFO'
+    assert caplog.records[3].message == "htar('-cvf', '/hpss/root/files/test_basic_htar.tar', '-H', 'crc:verify=all', 'test_basic_htar')"
+    assert caplog.records[4].levelname == 'DEBUG'
+    assert caplog.records[4].message == 'Test mode, skipping htar command.'
+
+    assert caplog.records[5].levelname == 'DEBUG'
+    Lfile = caplog.records[5].message
+    assert caplog.records[6].levelname == 'DEBUG'
+    assert caplog.records[6].message == 'test_file3.txt\ntest_file4.sha256sum\n'
+
+    assert caplog.records[7].levelname == 'DEBUG'
+    assert caplog.records[7].message == "os.chdir('/disk/root/')"
+    assert caplog.records[8].levelname == 'DEBUG'
+    assert caplog.records[8].message == "makedirs('/hpss/root', mode='2775')"
+    assert caplog.records[9].levelname == 'INFO'
+    assert caplog.records[9].message == f"htar('-cvf', '/hpss/root/test_basic_files.tar', '-H', 'crc:verify=all', '-L', '{Lfile}')"
+    assert caplog.records[10].levelname == 'DEBUG'
+    assert caplog.records[10].message == 'Test mode, skipping htar command.'
+    assert caplog.records[11].levelname == 'DEBUG'
+    assert caplog.records[11].message == f"os.remove('{Lfile}')"
+
+    assert caplog.records[12].levelname == 'DEBUG'
+    assert caplog.records[12].message == "makedirs('/hpss/root/big_file', mode='2775')"
+    assert caplog.records[13].levelname == 'INFO'
+    assert caplog.records[13].message == "hsi('put', '/disk/root/big_file/test_basic_file.dump', ':', '/hpss/root/big_file/test_basic_file.dump')"
+    assert caplog.records[14].levelname == 'DEBUG'
+    assert caplog.records[14].message == "Test mode, skipping hsi command."
+
+    assert caplog.records[15].levelname == 'ERROR'
+    assert caplog.records[15].message == 'Could not find directories corresponding to bad_dir/test_basic_htar.tar!'
+
+    assert caplog.records[16].levelname == 'DEBUG'
+    assert caplog.records[16].message == "os.chdir('/working/directory')"
