@@ -527,31 +527,61 @@ def test_find_missing(test_config, tmpdir, caplog):
     assert caplog.records[22].message == "d1/batch/b.txt in d1/batch.tar."
     assert caplog.records[23].levelname == 'WARNING'
     assert caplog.records[23].message == 'd1/batch/b.txt is newer than d1/batch.tar, marking as missing!'
+
     assert caplog.records[24].levelname == 'DEBUG'
-    assert caplog.records[24].message == "pattern_used[r'd2/spectro/redux/([0-9a-zA-Z_-]+)/preproc/.*$'] += 1"
+    assert caplog.records[24].message == "pattern_used[r'd2/(batch|fiberassign)/.*$'] += 1"
     assert caplog.records[25].levelname == 'DEBUG'
-    assert caplog.records[25].message == "r[1] = r'EXCLUDE'"
+    assert caplog.records[25].message == r"r[1] = r'd2/d2_\1.tar'"
     assert caplog.records[26].levelname == 'DEBUG'
-    assert caplog.records[26].message == "d2/spectro/redux/specprod/preproc/excluded.txt is excluded from backups."
+    assert caplog.records[26].message == "d2/fiberassign/a.txt in d2/d2_fiberassign.tar."
 
     assert caplog.records[27].levelname == 'INFO'
     assert caplog.records[27].message == "       10 files scanned."
 
-    assert caplog.records[28].levelname == 'WARNING'
-    assert caplog.records[28].message == 'Directory d3 is not described in the configuration!'
+    assert caplog.records[28].levelname == 'DEBUG'
+    assert caplog.records[28].message == "pattern_used[r'd2/(batch|fiberassign)/.*$'] += 1"
+    assert caplog.records[29].levelname == 'DEBUG'
+    assert caplog.records[29].message == r"r[1] = r'd2/d2_\1.tar'"
+    assert caplog.records[30].levelname == 'DEBUG'
+    assert caplog.records[30].message == "d2/fiberassign/b.txt in d2/d2_fiberassign.tar."
 
-    assert caplog.records[29].levelname == 'WARNING'
-    assert caplog.records[29].message == 'Directory d4 is not configured!'
+    assert caplog.records[31].levelname == 'DEBUG'
+    assert caplog.records[31].message == "pattern_used[r'd2/spectro/redux/([0-9a-zA-Z_-]+)/preproc/.*$'] += 1"
+    assert caplog.records[32].levelname == 'DEBUG'
+    assert caplog.records[32].message == "r[1] = r'EXCLUDE'"
+    assert caplog.records[33].levelname == 'DEBUG'
+    assert caplog.records[33].message == "d2/spectro/redux/specprod/preproc/excluded.txt is excluded from backups."
 
-    assert caplog.records[30].levelname == 'INFO'
-    assert caplog.records[30].message == "Pattern 'd1/templates/[^/]+$' was never used, maybe files have been removed from disk?"
+    assert caplog.records[34].levelname == 'WARNING'
+    assert caplog.records[34].message == 'Directory d3 is not described in the configuration!'
+
+    assert caplog.records[35].levelname == 'WARNING'
+    assert caplog.records[35].message == 'Directory d4 is not configured!'
+
+    assert caplog.records[36].levelname == 'INFO'
+    assert caplog.records[36].message == "Pattern 'd1/templates/[^/]+$' was never used, maybe files have been removed from disk?"
+
+    assert caplog.records[45].levelname == 'DEBUG'
+    assert caplog.records[45].message == "data_files.tar is a valid backup."
+    assert caplog.records[46].levelname == 'DEBUG'
+    assert caplog.records[46].message == "d1/SINGLE_FILE.txt is a valid backup."
+    assert caplog.records[47].levelname == 'INFO'
+    assert caplog.records[47].message == "d1/batch.tar is 10000 bytes."
+    assert caplog.records[48].levelname == 'DEBUG'
+    assert caplog.records[48].message == "Adding d1/batch.tar to missing backups."
+    assert caplog.records[49].levelname == 'INFO'
+    assert caplog.records[49].message == "d2/d2_fiberassign.tar is 2147483648 bytes."
+    assert caplog.records[50].levelname == 'ERROR'
+    assert caplog.records[50].message == "HPSS file d2/d2_fiberassign.tar would be too large, skipping backup!"
+    assert caplog.records[51].levelname == 'INFO'
+    assert caplog.records[51].message == "2 files selected for backup."
 
     # assert False
     with open(missing_files) as j:
         missing = json.load(j)
     assert tuple(missing.keys()) == ('d1/batch.tar', )
     assert missing['d1/batch.tar']['files'] == ['d1/batch/a.txt', 'd1/batch/b.txt']
-    assert missing['d1/batch.tar']['size'] == 30
+    assert missing['d1/batch.tar']['size'] == 10000
     assert missing['d1/batch.tar']['newer']
     assert missing['d1/batch.tar']['exists']
 
