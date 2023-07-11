@@ -13,6 +13,13 @@
         "newer": true,
         "exists": true
     },
+    "dir_set/test_dir_set_XX.tar": {
+        "files": ["dir_set/01/test_dir_set_01.txt",
+                  "dir_set/02/test_dir_set_02.txt"],
+        "size": 54321,
+        "newer": true,
+        "exists": true
+    },
     "big_file/test_basic_file.dump": {
         "files": ["big_file/test_basic_file.dump"],
         "size": 76543,

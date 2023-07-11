@@ -464,19 +464,27 @@ def test_scan_disk_weird_filename(monkeypatch, caplog, tmp_path, mock_call):
     assert caplog.records[8].message == r"Message was: 'utf-8' codec can't encode character '\udcec' in position 27: surrogates not allowed."
 
 
+def test_find_missing(monkeypatch, caplog, mock_call):
+    """Test comparison of disk files to HPSS files.
+    """
+    pass
+
+
 def test_process_missing(monkeypatch, caplog, mock_call):
     """Test conversion of missing files into HPSS commands.
     """
     missing_cache = resource_filename('hpsspy.test', 't/missing_cache.json')
     getcwd = mock_call(['/working/directory', '/working/directory'])
-    chdir = mock_call([None, None, None, None])
-    isdir = mock_call([True, False])
-    htar = mock_call([('out', ''), ('out', 'err')])
-    hsi = mock_call(['OK', 'OK', 'OK', 'OK'])
+    chdir = mock_call([None, None, None, None, None])
+    isdir = mock_call([True, False, True, True, False])
+    htar = mock_call([('out', ''), ('out', 'err'), ('out', ''), ('out', '')])
+    hsi = mock_call(['OK', 'OK', 'OK', 'OK', 'OK', 'OK'])
+    listdir = mock_call([('01', '02')])
     monkeypatch.setenv('HPSS_DIR', '/usr/local')
     monkeypatch.setattr('os.getcwd', getcwd)
     monkeypatch.setattr('os.chdir', chdir)
     monkeypatch.setattr('os.path.isdir', isdir)
+    monkeypatch.setattr('os.listdir', listdir)
     monkeypatch.setattr('hpsspy.scan.htar', htar)
     monkeypatch.setattr('hpsspy.os._os.hsi', hsi)
     monkeypatch.setattr('hpsspy.scan.hsi', hsi)
@@ -485,7 +493,11 @@ def test_process_missing(monkeypatch, caplog, mock_call):
     assert chdir.args[0] == ('/disk/root/files', )
     assert chdir.args[1] == ('/disk/root/', )
     assert isdir.args[0] == ('/disk/root/files/test_basic_htar', )
-    assert isdir.args[1] == ('/disk/root/bad_dir/test_basic_htar', )
+    assert isdir.args[1] == ('/disk/root/dir_set/XX', )
+    assert isdir.args[2] == ('/disk/root/dir_set/01', )
+    assert isdir.args[3] == ('/disk/root/dir_set/02', )
+    assert isdir.args[4] == ('/disk/root/bad_dir/test_basic_htar', )
+    assert listdir.args[0] == ('/disk/root/dir_set', )
     assert caplog.records[0].levelname == 'DEBUG'
     assert caplog.records[0].message == f"Processing missing files from {missing_cache}."
     assert caplog.records[1].levelname == 'DEBUG'
@@ -513,25 +525,36 @@ def test_process_missing(monkeypatch, caplog, mock_call):
     assert caplog.records[11].message == f"os.remove('{Lfile}')"
 
     assert caplog.records[12].levelname == 'DEBUG'
-    assert caplog.records[12].message == "makedirs('/hpss/root/big_file', mode='2770')"
-    assert caplog.records[13].levelname == 'INFO'
-    assert caplog.records[13].message == "hsi('put', '/disk/root/big_file/test_basic_file.dump', ':', '/hpss/root/big_file/test_basic_file.dump')"
-    assert caplog.records[14].levelname == 'DEBUG'
-    assert caplog.records[14].message == "OK"
-
-    assert caplog.records[15].levelname == 'ERROR'
-    assert caplog.records[15].message == 'Could not find directories corresponding to bad_dir/test_basic_htar.tar!'
+    assert caplog.records[12].message == "os.chdir('/disk/root/dir_set')"
+    assert caplog.records[13].levelname == 'DEBUG'
+    assert caplog.records[13].message == "makedirs('/hpss/root/dir_set', mode='2770')"
+    assert caplog.records[14].levelname == 'INFO'
+    assert caplog.records[14].message == f"htar('-cvf', '/hpss/root/dir_set/test_dir_set_XX.tar', '-H', 'crc:verify=all', '01', '02')"
+    assert caplog.records[15].levelname == 'DEBUG'
+    assert caplog.records[15].message == 'out'
 
     assert caplog.records[16].levelname == 'DEBUG'
-    assert caplog.records[16].message == "os.chdir('/working/directory')"
+    assert caplog.records[16].message == "makedirs('/hpss/root/big_file', mode='2770')"
+    assert caplog.records[17].levelname == 'INFO'
+    assert caplog.records[17].message == "hsi('put', '/disk/root/big_file/test_basic_file.dump', ':', '/hpss/root/big_file/test_basic_file.dump')"
+    assert caplog.records[18].levelname == 'DEBUG'
+    assert caplog.records[18].message == "OK"
+
+    assert caplog.records[19].levelname == 'ERROR'
+    assert caplog.records[19].message == "Could not find directories corresponding to bad_dir/test_basic_htar.tar!"
+
+    assert caplog.records[20].levelname == 'DEBUG'
+    assert caplog.records[20].message == "os.chdir('/working/directory')"
 
     assert hsi.args[0] == ('mkdir', '-p', '-m', '2770', '/hpss/root/files')
     assert hsi.args[1] == ('mkdir', '-p', '-m', '2770', '/hpss/root')
-    assert hsi.args[2] == ('mkdir', '-p', '-m', '2770', '/hpss/root/big_file')
-    assert hsi.args[3] == ('put', '/disk/root/big_file/test_basic_file.dump', ':', '/hpss/root/big_file/test_basic_file.dump')
+    assert hsi.args[2] == ('mkdir', '-p', '-m', '2770', '/hpss/root/dir_set')
+    assert hsi.args[3] == ('mkdir', '-p', '-m', '2770', '/hpss/root/big_file')
+    assert hsi.args[4] == ('put', '/disk/root/big_file/test_basic_file.dump', ':', '/hpss/root/big_file/test_basic_file.dump')
 
     assert htar.args[0] == ('-cvf', '/hpss/root/files/test_basic_htar.tar', '-H', 'crc:verify=all', 'test_basic_htar')
     assert htar.args[1] == ('-cvf', '/hpss/root/test_basic_files.tar', '-H', 'crc:verify=all', '-L', Lfile)
+    assert htar.args[2] == ('-cvf', '/hpss/root/dir_set/test_dir_set_XX.tar', '-H', 'crc:verify=all', '01', '02')
 
 
 def test_process_missing_test_mode(monkeypatch, caplog, mock_call):
@@ -539,14 +562,16 @@ def test_process_missing_test_mode(monkeypatch, caplog, mock_call):
     """
     missing_cache = resource_filename('hpsspy.test', 't/missing_cache.json')
     getcwd = mock_call(['/working/directory', '/working/directory'])
-    chdir = mock_call([None, None, None, None])
-    isdir = mock_call([True, False])
-    htar = mock_call([('out', ''), ('out', '')])
-    hsi = mock_call(['OK', 'OK', 'OK', 'OK'])
+    chdir = mock_call([None, None, None, None, None])
+    isdir = mock_call([True, False, True, True, False])
+    htar = mock_call([('out', ''), ('out', 'err'), ('out', ''), ('out', '')])
+    hsi = mock_call(['OK', 'OK', 'OK', 'OK', 'OK', 'OK'])
+    listdir = mock_call([('01', '02')])
     monkeypatch.setenv('HPSS_DIR', '/usr/local')
     monkeypatch.setattr('os.getcwd', getcwd)
     monkeypatch.setattr('os.chdir', chdir)
     monkeypatch.setattr('os.path.isdir', isdir)
+    monkeypatch.setattr('os.listdir', listdir)
     monkeypatch.setattr('hpsspy.scan.htar', htar)
     monkeypatch.setattr('hpsspy.os._os.hsi', hsi)
     monkeypatch.setattr('hpsspy.scan.hsi', hsi)
@@ -555,7 +580,11 @@ def test_process_missing_test_mode(monkeypatch, caplog, mock_call):
     assert chdir.args[0] == ('/disk/root/files', )
     assert chdir.args[1] == ('/disk/root/', )
     assert isdir.args[0] == ('/disk/root/files/test_basic_htar', )
-    assert isdir.args[1] == ('/disk/root/bad_dir/test_basic_htar', )
+    assert isdir.args[1] == ('/disk/root/dir_set/XX', )
+    assert isdir.args[2] == ('/disk/root/dir_set/01', )
+    assert isdir.args[3] == ('/disk/root/dir_set/02', )
+    assert isdir.args[4] == ('/disk/root/bad_dir/test_basic_htar', )
+    assert listdir.args[0] == ('/disk/root/dir_set', )
     assert caplog.records[0].levelname == 'DEBUG'
     assert caplog.records[0].message == f"Processing missing files from {missing_cache}."
     assert caplog.records[1].levelname == 'DEBUG'
@@ -584,14 +613,23 @@ def test_process_missing_test_mode(monkeypatch, caplog, mock_call):
     assert caplog.records[11].message == f"os.remove('{Lfile}')"
 
     assert caplog.records[12].levelname == 'DEBUG'
-    assert caplog.records[12].message == "makedirs('/hpss/root/big_file', mode='2775')"
-    assert caplog.records[13].levelname == 'INFO'
-    assert caplog.records[13].message == "hsi('put', '/disk/root/big_file/test_basic_file.dump', ':', '/hpss/root/big_file/test_basic_file.dump')"
-    assert caplog.records[14].levelname == 'DEBUG'
-    assert caplog.records[14].message == "Test mode, skipping hsi command."
-
-    assert caplog.records[15].levelname == 'ERROR'
-    assert caplog.records[15].message == 'Could not find directories corresponding to bad_dir/test_basic_htar.tar!'
+    assert caplog.records[12].message == "os.chdir('/disk/root/dir_set')"
+    assert caplog.records[13].levelname == 'DEBUG'
+    assert caplog.records[13].message == "makedirs('/hpss/root/dir_set', mode='2775')"
+    assert caplog.records[14].levelname == 'INFO'
+    assert caplog.records[14].message == f"htar('-cvf', '/hpss/root/dir_set/test_dir_set_XX.tar', '-H', 'crc:verify=all', '01', '02')"
+    assert caplog.records[15].levelname == 'DEBUG'
+    assert caplog.records[15].message == 'Test mode, skipping htar command.'
 
     assert caplog.records[16].levelname == 'DEBUG'
-    assert caplog.records[16].message == "os.chdir('/working/directory')"
+    assert caplog.records[16].message == "makedirs('/hpss/root/big_file', mode='2775')"
+    assert caplog.records[17].levelname == 'INFO'
+    assert caplog.records[17].message == "hsi('put', '/disk/root/big_file/test_basic_file.dump', ':', '/hpss/root/big_file/test_basic_file.dump')"
+    assert caplog.records[18].levelname == 'DEBUG'
+    assert caplog.records[18].message == "Test mode, skipping hsi command."
+
+    assert caplog.records[19].levelname == 'ERROR'
+    assert caplog.records[19].message == "Could not find directories corresponding to bad_dir/test_basic_htar.tar!"
+
+    assert caplog.records[20].levelname == 'DEBUG'
+    assert caplog.records[20].message == "os.chdir('/working/directory')"
