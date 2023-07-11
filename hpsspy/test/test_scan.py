@@ -468,7 +468,8 @@ def test_find_missing(test_config, tmpdir, monkeypatch, caplog, mock_call):
     """Test comparison of disk files to HPSS files.
     """
     hpss_map = compile_map(test_config.config, 'data')
-    hpss_files = {'d1/batch.tar': (1000, 1552494004)}
+    hpss_files = {'d1/batch.tar': (1000, 1552494004),
+                  'd1/SINGLE_FILE.txt': (100, 1552494004)}
     disk_files_cache = resource_filename('hpsspy.test', 't/test_scan_disk_cache.csv')
     missing_files = tmpdir.join('missing_files_data.json')
     status = find_missing(hpss_map, hpss_files, disk_files_cache, str(missing_files),
@@ -479,8 +480,8 @@ def test_find_missing(test_config, tmpdir, monkeypatch, caplog, mock_call):
     assert caplog.records[1].levelname == 'WARNING'
     assert caplog.records[1].message == 'd1/batch/b.txt is newer than d1/batch.tar, marking as missing!'
 
-    # assert caplog.records[2].levelname == 'WARNING'
-    # assert caplog.records[2].message == 'd1/batch/b.txt is newer than d1/batch.tar, marking as missing!'
+    assert caplog.records[2].levelname == 'WARNING'
+    assert caplog.records[2].message == 'Directory d3 is not described in the configuration!'
 
     with open(missing_files) as j:
         missing = json.load(j)
