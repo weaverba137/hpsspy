@@ -483,6 +483,9 @@ def test_find_missing(test_config, tmpdir, monkeypatch, caplog, mock_call):
     assert caplog.records[2].levelname == 'WARNING'
     assert caplog.records[2].message == 'Directory d3 is not described in the configuration!'
 
+    assert caplog.records[3].levelname == 'WARNING'
+    assert caplog.records[3].message == 'Directory d4 is not configured!'
+
     with open(missing_files) as j:
         missing = json.load(j)
     assert tuple(missing.keys()) == ('d1/batch.tar', )

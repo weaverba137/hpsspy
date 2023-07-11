@@ -22,6 +22,8 @@
             "d2/spectro/sim/([0-9a-zA-Z_-]+)/([0-9]{8})/.*$":"d2/spectro/sim/\\1/sim_\\1_\\2.tar",
             "d2/targets/[^/]+$":"d2/targets/d2_targets_files.tar",
             "d2/targets/([0-9]+)/.*$":"d2/targets/d2_targets_\\1.tar"
+        },
+        "d4":{
         }
     },
     "redux":{
