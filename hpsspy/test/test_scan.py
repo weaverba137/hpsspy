@@ -464,10 +464,31 @@ def test_scan_disk_weird_filename(monkeypatch, caplog, tmp_path, mock_call):
     assert caplog.records[8].message == r"Message was: 'utf-8' codec can't encode character '\udcec' in position 27: surrogates not allowed."
 
 
-def test_find_missing(monkeypatch, caplog, mock_call):
+def test_find_missing(test_config, tmpdir, monkeypatch, caplog, mock_call):
     """Test comparison of disk files to HPSS files.
     """
-    pass
+    hpss_map = compile_map(test_config.config, 'data')
+    hpss_files = {'d1/batch.tar': (1000, 1552494004)}
+    disk_files_cache = resource_filename('hpsspy.test', 't/test_scan_disk_cache.csv')
+    missing_files = tmpdir.join('missing_files_data.json')
+    status = find_missing(hpss_map, hpss_files, disk_files_cache, str(missing_files),
+                          report=10, limit=1)
+    assert status
+    assert caplog.records[0].levelname == 'WARNING'
+    assert caplog.records[0].message == 'd1/batch/a.txt is newer than d1/batch.tar, marking as missing!'
+    assert caplog.records[1].levelname == 'WARNING'
+    assert caplog.records[1].message == 'd1/batch/b.txt is newer than d1/batch.tar, marking as missing!'
+
+    # assert caplog.records[2].levelname == 'WARNING'
+    # assert caplog.records[2].message == 'd1/batch/b.txt is newer than d1/batch.tar, marking as missing!'
+
+    with open(missing_files) as j:
+        missing = json.load(j)
+    assert tuple(missing.keys()) == ('d1/batch.tar', )
+    assert missing['d1/batch.tar']['files'] == ['d1/batch/a.txt', 'd1/batch/b.txt']
+    assert missing['d1/batch.tar']['size'] == 30
+    assert missing['d1/batch.tar']['newer']
+    assert missing['d1/batch.tar']['exists']
 
 
 def test_process_missing(monkeypatch, caplog, mock_call):
