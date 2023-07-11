@@ -28,6 +28,10 @@
             "d2/targets/([0-9]+)/.*$":"d2/targets/d2_targets_\\1.tar"
         },
         "d4":{
+        },
+        "d5":{
+            "d5/spectro/redux/preproc/.*$":"EXCLUDE",
+            "d5/spectro/redux/([0-9a-zA-Z_-]+)/[^/]+$":"d2/spectro/redux/\\1/\\1_files.tar"
         }
     },
     "redux":{

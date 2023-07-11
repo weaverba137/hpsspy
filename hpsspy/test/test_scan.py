@@ -582,7 +582,40 @@ def test_find_missing_missing_files(test_config, tmpdir, caplog):
 def test_find_missing_multiple_files(test_config, tmpdir, caplog):
     """Test comparison of disk files to HPSS files, with multiple matches to files.
     """
-    pass
+    caplog.set_level(DEBUG)
+    hpss_map = compile_map(test_config.config, 'data')
+    hpss_files = {'data_files.tar': (1000, 1552494004),
+                  'd1/batch.tar': (1000, 1552494004),
+                  'd1/SINGLE_FILE.txt': (100, 1552494004)}
+    disk_files_cache = resource_filename('hpsspy.test', 't/test_scan_disk_cache_multiple.csv')
+    missing_files = tmpdir.join('missing_files_data.json')
+    status = find_missing(hpss_map, hpss_files, disk_files_cache, str(missing_files),
+                          report=10, limit=1)
+    assert not status
+    assert caplog.records[0].levelname == 'INFO'
+    assert caplog.records[0].message == 'README.html is excluded.'
+    assert caplog.records[1].levelname == 'DEBUG'
+    assert caplog.records[1].message == "pattern_used[r'd5/spectro/redux/preproc/.*$'] += 1"
+    assert caplog.records[2].levelname == 'DEBUG'
+    assert caplog.records[2].message == "r[1] = r'EXCLUDE'"
+    assert caplog.records[3].levelname == 'DEBUG'
+    assert caplog.records[3].message == "d5/spectro/redux/preproc/excluded.txt is excluded from backups."
+    assert caplog.records[4].levelname == 'DEBUG'
+    assert caplog.records[4].message == "pattern_used[r'd5/spectro/redux/([0-9a-zA-Z_-]+)/[^/]+$'] += 1"
+    assert caplog.records[5].levelname == 'DEBUG'
+    assert caplog.records[5].message == r"r[1] = r'd2/spectro/redux/\1/\1_files.tar'"
+    assert caplog.records[6].levelname == 'DEBUG'
+    assert caplog.records[6].message == "d5/spectro/redux/preproc/excluded.txt in d2/spectro/redux/preproc/preproc_files.tar."
+    assert caplog.records[7].levelname == 'ERROR'
+    assert caplog.records[7].message == "d5/spectro/redux/preproc/excluded.txt is mapped to multiple files on HPSS!"
+    assert caplog.records[8].levelname == 'INFO'
+    assert caplog.records[8].message == "d2/spectro/redux/preproc/preproc_files.tar is 50 bytes."
+    assert caplog.records[9].levelname == 'DEBUG'
+    assert caplog.records[9].message == "Adding d2/spectro/redux/preproc/preproc_files.tar to missing backups."
+    assert caplog.records[10].levelname == 'INFO'
+    assert caplog.records[10].message == "1 files selected for backup."
+    assert caplog.records[11].levelname == 'CRITICAL'
+    assert caplog.records[11].message == "Some files would be backed up more than once with this configuration!"
 
 
 def test_process_missing(monkeypatch, caplog, mock_call):
