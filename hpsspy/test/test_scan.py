@@ -464,28 +464,89 @@ def test_scan_disk_weird_filename(monkeypatch, caplog, tmp_path, mock_call):
     assert caplog.records[8].message == r"Message was: 'utf-8' codec can't encode character '\udcec' in position 27: surrogates not allowed."
 
 
-def test_find_missing(test_config, tmpdir, monkeypatch, caplog, mock_call):
+def test_find_missing(test_config, tmpdir, caplog):
     """Test comparison of disk files to HPSS files.
     """
+    caplog.set_level(DEBUG)
     hpss_map = compile_map(test_config.config, 'data')
-    hpss_files = {'d1/batch.tar': (1000, 1552494004),
+    hpss_files = {'data_files.tar': (1000, 1552494004),
+                  'd1/batch.tar': (1000, 1552494004),
                   'd1/SINGLE_FILE.txt': (100, 1552494004)}
     disk_files_cache = resource_filename('hpsspy.test', 't/test_scan_disk_cache.csv')
     missing_files = tmpdir.join('missing_files_data.json')
     status = find_missing(hpss_map, hpss_files, disk_files_cache, str(missing_files),
                           report=10, limit=1)
     assert status
-    assert caplog.records[0].levelname == 'WARNING'
-    assert caplog.records[0].message == 'd1/batch/a.txt is newer than d1/batch.tar, marking as missing!'
-    assert caplog.records[1].levelname == 'WARNING'
-    assert caplog.records[1].message == 'd1/batch/b.txt is newer than d1/batch.tar, marking as missing!'
+    assert caplog.records[0].levelname == 'INFO'
+    assert caplog.records[0].message == 'README.html is excluded.'
+    assert caplog.records[1].levelname == 'DEBUG'
+    assert caplog.records[1].message == "pattern_used[r'[^/]+$'] += 1"
+    assert caplog.records[2].levelname == 'DEBUG'
+    assert caplog.records[2].message == "r[1] = r'data_files.tar'"
+    assert caplog.records[3].levelname == 'DEBUG'
+    assert caplog.records[3].message == 'foo.txt in data_files.tar.'
+    assert caplog.records[4].levelname == 'DEBUG'
+    assert caplog.records[4].message == "pattern_used[r'[^/]+$'] += 1"
+    assert caplog.records[5].levelname == 'DEBUG'
+    assert caplog.records[5].message == "r[1] = r'data_files.tar'"
+    assert caplog.records[6].levelname == 'DEBUG'
+    assert caplog.records[6].message == 'bar.txt in data_files.tar.'
+    assert caplog.records[7].levelname == 'DEBUG'
+    assert caplog.records[7].message == r"pattern_used[r'd1/([^/]+\.txt)$'] += 1"
+    assert caplog.records[8].levelname == 'DEBUG'
+    assert caplog.records[8].message == r"r[1] = r'd1/\1'"
+    assert caplog.records[9].levelname == 'DEBUG'
+    assert caplog.records[9].message == 'd1/SINGLE_FILE.txt in d1/SINGLE_FILE.txt.'
 
-    assert caplog.records[2].levelname == 'WARNING'
-    assert caplog.records[2].message == 'Directory d3 is not described in the configuration!'
+    assert caplog.records[10].levelname == 'DEBUG'
+    assert caplog.records[10].message == "pattern_used[r'd1/spectro/data/.*$'] += 1"
+    assert caplog.records[11].levelname == 'DEBUG'
+    assert caplog.records[11].message == "r[1] = r'AUTOMATED'"
+    assert caplog.records[12].levelname == 'DEBUG'
+    assert caplog.records[12].message == "d1/spectro/data/raw1.txt is backed up by some other automated process."
+    assert caplog.records[13].levelname == 'DEBUG'
+    assert caplog.records[13].message == "pattern_used[r'd1/spectro/data/.*$'] += 1"
+    assert caplog.records[14].levelname == 'DEBUG'
+    assert caplog.records[14].message == "r[1] = r'AUTOMATED'"
+    assert caplog.records[15].levelname == 'DEBUG'
+    assert caplog.records[15].message == "d1/spectro/data/raw2.txt is backed up by some other automated process."
 
-    assert caplog.records[3].levelname == 'WARNING'
-    assert caplog.records[3].message == 'Directory d4 is not configured!'
+    assert caplog.records[16].levelname == 'DEBUG'
+    assert caplog.records[16].message == "pattern_used[r'd1/batch/.*$'] += 1"
+    assert caplog.records[17].levelname == 'DEBUG'
+    assert caplog.records[17].message == "r[1] = r'd1/batch.tar'"
+    assert caplog.records[18].levelname == 'DEBUG'
+    assert caplog.records[18].message == "d1/batch/a.txt in d1/batch.tar."
+    assert caplog.records[19].levelname == 'WARNING'
+    assert caplog.records[19].message == 'd1/batch/a.txt is newer than d1/batch.tar, marking as missing!'
+    assert caplog.records[20].levelname == 'DEBUG'
+    assert caplog.records[20].message == "pattern_used[r'd1/batch/.*$'] += 1"
+    assert caplog.records[21].levelname == 'DEBUG'
+    assert caplog.records[21].message == "r[1] = r'd1/batch.tar'"
+    assert caplog.records[22].levelname == 'DEBUG'
+    assert caplog.records[22].message == "d1/batch/b.txt in d1/batch.tar."
+    assert caplog.records[23].levelname == 'WARNING'
+    assert caplog.records[23].message == 'd1/batch/b.txt is newer than d1/batch.tar, marking as missing!'
+    assert caplog.records[24].levelname == 'DEBUG'
+    assert caplog.records[24].message == "pattern_used[r'd2/spectro/redux/([0-9a-zA-Z_-]+)/preproc/.*$'] += 1"
+    assert caplog.records[25].levelname == 'DEBUG'
+    assert caplog.records[25].message == "r[1] = r'EXCLUDE'"
+    assert caplog.records[26].levelname == 'DEBUG'
+    assert caplog.records[26].message == "d2/spectro/redux/specprod/preproc/excluded.txt is excluded from backups."
 
+    assert caplog.records[27].levelname == 'INFO'
+    assert caplog.records[27].message == "       10 files scanned."
+
+    assert caplog.records[28].levelname == 'WARNING'
+    assert caplog.records[28].message == 'Directory d3 is not described in the configuration!'
+
+    assert caplog.records[29].levelname == 'WARNING'
+    assert caplog.records[29].message == 'Directory d4 is not configured!'
+
+    assert caplog.records[30].levelname == 'INFO'
+    assert caplog.records[30].message == "Pattern 'd1/templates/[^/]+$' was never used, maybe files have been removed from disk?"
+
+    # assert False
     with open(missing_files) as j:
         missing = json.load(j)
     assert tuple(missing.keys()) == ('d1/batch.tar', )
@@ -493,6 +554,35 @@ def test_find_missing(test_config, tmpdir, monkeypatch, caplog, mock_call):
     assert missing['d1/batch.tar']['size'] == 30
     assert missing['d1/batch.tar']['newer']
     assert missing['d1/batch.tar']['exists']
+
+
+def test_find_missing_missing_files(test_config, tmpdir, caplog):
+    """Test comparison of disk files to HPSS files, with unconfigured files.
+    """
+    caplog.set_level(DEBUG)
+    hpss_map = compile_map(test_config.config, 'data')
+    hpss_files = {'data_files.tar': (1000, 1552494004),
+                  'd1/batch.tar': (1000, 1552494004),
+                  'd1/SINGLE_FILE.txt': (100, 1552494004)}
+    disk_files_cache = resource_filename('hpsspy.test', 't/test_scan_disk_cache_missing.csv')
+    missing_files = tmpdir.join('missing_files_data.json')
+    status = find_missing(hpss_map, hpss_files, disk_files_cache, str(missing_files),
+                          report=10, limit=1)
+    assert not status
+    assert caplog.records[0].levelname == 'INFO'
+    assert caplog.records[0].message == 'README.html is excluded.'
+    assert caplog.records[1].levelname == 'ERROR'
+    assert caplog.records[1].message == "d2/botch/file1.txt is not mapped to any file on HPSS!"
+    assert caplog.records[2].levelname == 'ERROR'
+    assert caplog.records[2].message == "d2/botch/file2.txt is not mapped to any file on HPSS!"
+    assert caplog.records[13].levelname == 'CRITICAL'
+    assert caplog.records[13].message == "Not all files would be backed up with this configuration!"
+
+
+def test_find_missing_multiple_files(test_config, tmpdir, caplog):
+    """Test comparison of disk files to HPSS files, with multiple matches to files.
+    """
+    pass
 
 
 def test_process_missing(monkeypatch, caplog, mock_call):

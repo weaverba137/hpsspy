@@ -1,8 +1,13 @@
 Name,Size,Mtime
 README.html,50,1552494004
+foo.txt,500,1552494000
+bar.txt,500,1552494000
 d1/SINGLE_FILE.txt,100,1552494004
+d1/spectro/data/raw1.txt,5000,1552493000
+d1/spectro/data/raw2.txt,5000,1552493001
 d1/batch/a.txt,10,1552494014
 d1/batch/b.txt,20,1552494094
+d2/spectro/redux/specprod/preproc/excluded.txt,50,1552495014
 d3/batch/a.txt,10,1552494114
 d3/batch/b.txt,20,1552494194
 d4/random_file.txt,500,1552484194

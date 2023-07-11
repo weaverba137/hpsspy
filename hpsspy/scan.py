@@ -182,6 +182,8 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
         for row in reader:
             f = row['Name']
             nfiles += 1
+            if (nfiles % report) == 0:
+                logger.info("%9d files scanned.", nfiles)
             if f in hpss_map["__exclude__"]:
                 logger.info("%s is excluded.", f)
                 continue
@@ -221,6 +223,8 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                     pattern_used[r[0].pattern] = 0
                 m = r[0].match(f)
                 if m is not None:
+                    logger.debug("pattern_used[r'%s'] += 1", r[0].pattern)
+                    logger.debug("r[1] = r'%s'", r[1])
                     pattern_used[r[0].pattern] += 1
                     mapped += 1
                     if r[1] == "EXCLUDE":
@@ -260,8 +264,6 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
             if mapped > 1:
                 logger.error("%s is mapped to multiple files on HPSS!", f)
                 nmultiple += 1
-            if (nfiles % report) == 0:
-                logger.info("%9d files scanned.", nfiles)
     for p in pattern_used:
         if pattern_used[p] == 0:
             logger.info("Pattern '%s' was never used, " +
