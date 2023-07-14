@@ -634,6 +634,9 @@ def _options():
     parser.add_argument('-D', '--overwrite-disk', action='store_true',
                         dest='overwrite_disk',
                         help='Ignore any existing disk cache files.')
+    parser.add_argument('-E', '--exit-on-error', action='store_true',
+                        dest='errexit',
+                        help='Exit if an error is detected in the file analysis stages.')
     parser.add_argument('-H', '--overwrite-hpss', action='store_true',
                         dest='overwrite_hpss',
                         help='Ignore any existing HPSS cache files.')
@@ -721,7 +724,7 @@ def main():
     disk_roots = physical_disks(release_root, config)
     status = scan_disk(disk_roots, disk_files_cache,
                        overwrite=options.overwrite_disk)
-    if not status:
+    if options.errexit and not status:
         return 1
     #
     # See if the files are on HPSS.
@@ -732,7 +735,7 @@ def main():
     logger.debug("missing_files_cache = '%s'", missing_files_cache)
     status = find_missing(hpss_map, hpss_files, disk_files_cache,
                           missing_files_cache, options.report, options.limit)
-    if not status:
+    if options.errexit and not status:
         return 1
     #
     # Post process to generate HPSS commands
