@@ -18,7 +18,7 @@ is equivalent to::
 Options
 +++++++
 
-There are a lot of command-line options.  ``missing_from_hpss --help`` will
+There are several of command-line options.  ``missing_from_hpss --help`` will
 display all of them. Just the short versions of the commands are
 shown here.
 
@@ -27,6 +27,8 @@ shown here.
             allows the user to choose any directory.
 -D          Delete and recreate the disk cache file
             (described below).
+-E          Exit if an error is detected while processing files
+            on disk or on HPSS.
 -H          Delete and recreate the HPSS cache file
             (described below).
 -l N        Limit archive files to this size in GB.
@@ -60,15 +62,15 @@ by default.  The files are:
 Disk Cache
     A CSV file of the form ``disk_cache_<section>.csv``, where ``<section>`` is
     the section (as defined above) specified on the command-line.  The
-    columns are file name and file size in bytes.
+    columns are file name, file size in bytes and modification time.
 
 HPSS Cache
-    A plain-text file of the form ``hpss_cache_<section>.txt``,
-    where ``<section>`` is the section (as defined above) specified on
-    the command-line.  This is simply a list of files found on HPSS.
+    A CSV file of the form ``hpss_cache_<section>.csv``, where ``<section>`` is
+    the section (as defined above) specified on the command-line.  The
+    columns are file name, file size in bytes and modification time.
 
 Missing File Cache
-    A JSON file of the form ``$HOME/cache/missing_files_<section>.json``,
+    A JSON file of the form ``missing_files_<section>.json``,
     where ``<section>`` is the section (as defined above) specified on the
     command-line. It contains a map of HPSS archive files to the files that
     belong in that archive.  In addition the size of the resulting files

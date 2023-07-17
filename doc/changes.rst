@@ -2,10 +2,16 @@
 Release Notes
 =============
 
-0.6.2 (unreleased)
+0.7.0 (2023-07-14)
 ------------------
 
-* No changes yet.
+* :command:`missing_from_hpss` will proceed through all stages, even if
+  serious errors are detected, to facilitate batch processing. The older
+  behavior can be enabled with ``--exit-on-error`` (PR `#15`_).
+* Fix error handling for a variety of corner cases (PR `#15`_).
+* Increase test coverage to 100% (PR `#15`_).
+
+.. _`#15`: https://github.com/weaverba137/hpsspy/pull/15
 
 0.6.1 (2022-05-20)
 ------------------

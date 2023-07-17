@@ -42,10 +42,10 @@ system at NERSC_.  It is currently being developed on GitHub_.
 Requirements
 ------------
 
-HPSSPy assumes that the HPSS utilities `hsi and htar`_ are installed.  You may
-need a NERSC account to download and install these utilities.
+HPSSPy assumes that the HPSS utilities `hsi and htar`_ are installed.  As of
+2023, these utilities are only available within the NERSC_ environment.
 
-.. _`hsi and htar`: https://www.nersc.gov/users/data-and-file-systems/hpss/storing-and-retrieving-data/software-downloads/
+.. _`hsi and htar`: https://docs.nersc.gov/filesystems/archive/#common-commands
 
 License
 -------

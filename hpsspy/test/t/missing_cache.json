@@ -1,8 +1,35 @@
 {
-    "test_basic_htar.tar": {
-        "files": ["test_basic_htar/test_file1.txt",
-                  "test_basic_htar/test_file2.sha256sum"],
+    "files/test_basic_htar.tar": {
+        "files": ["files/test_basic_htar/test_file1.txt",
+                  "files/test_basic_htar/test_file2.sha256sum"],
         "size": 12345,
+        "newer": true,
+        "exists": true
+    },
+    "test_basic_files.tar": {
+        "files": ["test_file3.txt",
+                  "test_file4.sha256sum"],
+        "size": 54321,
+        "newer": true,
+        "exists": true
+    },
+    "dir_set/test_dir_set_XX.tar": {
+        "files": ["dir_set/01/test_dir_set_01.txt",
+                  "dir_set/02/test_dir_set_02.txt"],
+        "size": 54321,
+        "newer": true,
+        "exists": true
+    },
+    "big_file/test_basic_file.dump": {
+        "files": ["big_file/test_basic_file.dump"],
+        "size": 76543,
+        "newer": true,
+        "exists": true
+    },
+    "bad_dir/test_basic_htar.tar": {
+        "files": ["bad_dir/test_basic_htar/test_file1.txt",
+                  "bad_dir/test_basic_htar/test_file2.sha256sum"],
+        "size": 33411,
         "newer": true,
         "exists": true
     }

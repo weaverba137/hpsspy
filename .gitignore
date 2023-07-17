@@ -47,6 +47,10 @@ nosetests.xml
 .project
 .pydevproject
 
+# VS Code
+.vscode
+.env
+
 # Other
 .*.swp
 *~

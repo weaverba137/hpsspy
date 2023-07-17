@@ -44,9 +44,14 @@ def mock_call():
         def __call__(self, *args, **kwargs):
             self.args.append(tuple(args))
             self.kwargs.append(kwargs)
-            if self.raises:
-                raise self.raises
             r = self.return_values[self.counter]
+            if isinstance(self.raises, list):
+                if self.raises[self.counter] is not None:
+                    raise self.raises[self.counter]
+            elif self.raises is not None:
+                raise self.raises
+            else:
+                pass
             self.counter += 1
             return r
 

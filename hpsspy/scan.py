@@ -182,6 +182,8 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
         for row in reader:
             f = row['Name']
             nfiles += 1
+            if (nfiles % report) == 0:
+                logger.info("%9d files scanned.", nfiles)
             if f in hpss_map["__exclude__"]:
                 logger.info("%s is excluded.", f)
                 continue
@@ -221,6 +223,8 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
                     pattern_used[r[0].pattern] = 0
                 m = r[0].match(f)
                 if m is not None:
+                    logger.debug("pattern_used[r'%s'] += 1", r[0].pattern)
+                    logger.debug("r[1] = r'%s'", r[1])
                     pattern_used[r[0].pattern] += 1
                     mapped += 1
                     if r[1] == "EXCLUDE":
@@ -260,8 +264,6 @@ def find_missing(hpss_map, hpss_files, disk_files_cache, missing_files,
             if mapped > 1:
                 logger.error("%s is mapped to multiple files on HPSS!", f)
                 nmultiple += 1
-            if (nfiles % report) == 0:
-                logger.info("%9d files scanned.", nfiles)
     for p in pattern_used:
         if pattern_used[p] == 0:
             logger.info("Pattern '%s' was never used, " +
@@ -330,6 +332,7 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                 Lfile = os.path.join(get_tmpdir(),
                                      os.path.basename(h.replace('.tar',
                                                                 '.txt')))
+                logger.debug(Lfile)
                 htar_dir = None
                 Lfile_lines = ('\n'.join([os.path.basename(f)
                                           for f in missing[h]['files']]) +
@@ -360,7 +363,13 @@ def process_missing(missing_cache, disk_root, hpss_root, dirmode='2770',
                     continue
             logger.debug("os.chdir('%s')", full_chdir)
             os.chdir(full_chdir)
-            h_dir = os.path.join(hpss_root, disk_chdir)
+            #
+            # Avoid adding a trailing slash.
+            #
+            if disk_chdir:
+                h_dir = os.path.join(hpss_root, disk_chdir)
+            else:
+                h_dir = hpss_root
             if h_dir not in created_directories:
                 logger.debug("makedirs('%s', mode='%s')", h_dir, dirmode)
                 if not test:
@@ -491,24 +500,33 @@ def scan_disk(disk_roots, disk_files_cache, overwrite=False):
         with open(disk_files_cache, 'w', newline='') as t:
             writer = csv.writer(t)
             writer.writerow(['Name', 'Size', 'Mtime'])
-            try:
-                for disk_root in disk_roots:
-                    logger.debug("Starting os.walk at %s.", disk_root)
+            for disk_root in disk_roots:
+                logger.debug("Starting os.walk at %s.", disk_root)
+                try:
                     for root, dirs, files in os.walk(disk_root):
                         logger.debug("Scanning disk directory %s.", root)
                         for f in files:
                             fullname = os.path.join(root, f)
                             if not os.path.islink(fullname):
                                 cachename = fullname.replace(disk_root+'/', '')
-                                s = os.stat(fullname)
-                                writer.writerow([cachename,
-                                                 s.st_size,
-                                                 int(s.st_mtime)])
-            except OSError as e:
-                logger.error('Exception encountered while creating ' +
-                             'disk cache file!')
-                logger.error(e.strerror)
-                return False
+                                try:
+                                    s = os.stat(fullname)
+                                except PermissionError as perr:
+                                    logger.error("%s: %s",
+                                                 perr.strerror, perr.filename)
+                                    continue
+                                try:
+                                    writer.writerow([cachename,
+                                                     s.st_size,
+                                                     int(s.st_mtime)])
+                                except UnicodeEncodeError as e:
+                                    logger.error("Could not write %s to cache file due to unusual characters!",
+                                                 fullname.encode(errors='surrogatepass'))
+                                    logger.error("Message was: %s.", str(e))
+                except OSError as oerr:
+                    logger.error('Exception encountered while traversing %s!', disk_root)
+                    logger.error(oerr.strerror)
+                    return False
     return True
 
 
@@ -577,9 +595,25 @@ def physical_disks(release_root, config):
     if ((len(pd) == 1) and (pd[0] == broot)):
         return (release_root,)
     if pd[0].startswith('/'):
-        return tuple([os.path.join(d, os.path.basename(release_root))
-                      for d in pd])
-    return tuple([release_root.replace(broot, d) for d in pd])
+        roots = [os.path.join(d, os.path.basename(release_root))
+                 for d in pd]
+    else:
+        roots = [release_root.replace(broot, d) for d in pd]
+    #
+    # Is any root a pure symlink to another root?
+    #
+    remove = list()
+    for r in roots:
+        if os.path.islink(r):
+            rr = os.readlink(r)
+            if rr.startswith('.'):
+                rr = os.path.normpath(os.path.join(config['root'], rr))
+            if rr in roots:
+                remove.append(r)
+    rs = set(roots)
+    for r in remove:
+        rs.remove(r)
+    return tuple(rs)
 
 
 def _options():
@@ -600,6 +634,9 @@ def _options():
     parser.add_argument('-D', '--overwrite-disk', action='store_true',
                         dest='overwrite_disk',
                         help='Ignore any existing disk cache files.')
+    parser.add_argument('-E', '--exit-on-error', action='store_true',
+                        dest='errexit',
+                        help='Exit if an error is detected in the file analysis stages.')
     parser.add_argument('-H', '--overwrite-hpss', action='store_true',
                         dest='overwrite_hpss',
                         help='Ignore any existing HPSS cache files.')
@@ -687,7 +724,7 @@ def main():
     disk_roots = physical_disks(release_root, config)
     status = scan_disk(disk_roots, disk_files_cache,
                        overwrite=options.overwrite_disk)
-    if not status:
+    if options.errexit and not status:
         return 1
     #
     # See if the files are on HPSS.
@@ -698,7 +735,7 @@ def main():
     logger.debug("missing_files_cache = '%s'", missing_files_cache)
     status = find_missing(hpss_map, hpss_files, disk_files_cache,
                           missing_files_cache, options.report, options.limit)
-    if not status:
+    if options.errexit and not status:
         return 1
     #
     # Post process to generate HPSS commands
