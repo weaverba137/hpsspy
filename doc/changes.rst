@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-0.7.0 (2023-07-14)
+0.7.0 (2023-07-17)
 ------------------
 
 * :command:`missing_from_hpss` will proceed through all stages, even if
