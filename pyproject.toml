@@ -28,10 +28,10 @@ coverage = ["pytest-cov", "coveralls"]
 doc = ["Sphinx", "sphinx-rtd-theme"]
 
 [project.urls]
-Documentation = "https://hpsspy.readthedocs.io/en/latest/"
+Documentation = "https://hpsspy.readthedocs.io/en/stable/"
 Repository = "https://github.com/weaverba137/hpsspy"
 Issues = "https://github.com/weaverba137/hpsspy/issues"
-Changelog = "https://hpsspy.readthedocs.io/en/latest/changes.html"
+Changelog = "https://hpsspy.readthedocs.io/en/stable/changes.html"
 
 [project.scripts]
 missing_from_hpss = "hpsspy.scan:main"

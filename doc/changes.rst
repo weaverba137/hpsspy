@@ -2,10 +2,12 @@
 Release Notes
 =============
 
-0.7.1 (unreleased)
+0.8.0 (2025-07-16)
 ------------------
 
-* No changes yet.
+* Migrate to a pure ``pyproject.toml`` package infrastructure; no API changes (PR `#16`_).
+
+.. _`#16`: https://github.com/weaverba137/hpsspy/pull/16
 
 0.7.0 (2023-07-17)
 ------------------

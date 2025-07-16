@@ -35,7 +35,7 @@ HPSSPy is a Python_ package for interacting with the HPSS_ tape storage
 system at NERSC_.  It is currently being developed on GitHub_.
 
 .. _Python: https://www.python.org
-.. _HPSS: https://www.nersc.gov/systems/hpss-data-archive/
+.. _HPSS: https://www.nersc.gov/what-we-do/computing-for-science/data-resources/storage
 .. _NERSC: https://www.nersc.gov
 .. _GitHub: https://github.com/weaverba137/hpsspy
 
