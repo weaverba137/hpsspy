@@ -9,7 +9,6 @@ Check the associated data files.
 import pytest
 import json
 from importlib.resources import files
-from pkg_resources import resource_exists, resource_stream
 
 
 parameters = [('sdss.json', 'dr8'),
