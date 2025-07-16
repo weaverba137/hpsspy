@@ -15,7 +15,6 @@
 import sys
 import os
 from importlib import import_module
-# import hpsspy
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -36,18 +35,13 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+    'sphinx_rtd_theme'
 ]
 
 # Configuration for intersphinx, copied from astropy.
 intersphinx_mapping = {
-    'python': ('http://docs.python.org/3/', None),
-    # 'python3': ('http://docs.python.org/3/', path.abspath(path.join(path.dirname(__file__), 'local/python3links.inv'))),
-    # 'numpy': ('http://docs.scipy.org/doc/numpy/', None),
-    # 'scipy': ('http://docs.scipy.org/doc/scipy/reference/', None),
-    # 'matplotlib': ('http://matplotlib.org/', None),
-    # 'astropy': ('http://docs.astropy.org/en/stable/', None),
-    # 'h5py': ('http://docs.h5py.org/en/latest/', None)
+    'python': ('https://docs.python.org/3/', None),
     }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -65,7 +59,7 @@ master_doc = 'index'
 # General information about the project.
 project = u'hpsspy'
 author = 'Benjamin Alan Weaver'
-copyright = u'2014-2022, Benjamin Alan Weaver'
+copyright = u'2014-2025, Benjamin Alan Weaver'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -135,12 +129,7 @@ for missing in ('pytz', ):
 # a list of builtin themes.
 #html_theme = 'default'
 #html_theme = 'haiku'
-try:
-    import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme'
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-except ImportError:
-    pass
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
