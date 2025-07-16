@@ -13,7 +13,7 @@ import os
 import re
 import sys
 from argparse import ArgumentParser
-from pkg_resources import resource_exists, resource_stream
+from importlib.resources import files
 from . import __version__ as hpsspyVersion
 from .os import makedirs, walk
 from .util import get_tmpdir, hsi, htar
@@ -122,12 +122,12 @@ def files_to_hpss(hpss_map_cache, section):
         with open(hpss_map_cache) as t:
             hpss_map = json.load(t)
     else:
-        if resource_exists('hpsspy', 'data/' + hpss_map_cache):
+        dist_cache = files('hpsspy').joinpath('data', hpss_map_cache)
+        if dist_cache.exists():
             logger.info("Reading from file %s in the hpsspy distribution.",
-                        hpss_map_cache)
-            t = resource_stream('hpsspy', 'data/' + hpss_map_cache)
-            hpss_map = json.loads(t.read().decode())
-            t.close()
+                        str(hpss_map_cache))
+            with open(dist_cache, 'rb') as t:
+                hpss_map = json.loads(t.read().decode())
         else:
             logger.warning("Returning empty map file!")
             hpss_map = {"__config__": {},
