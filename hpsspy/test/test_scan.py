@@ -10,7 +10,7 @@ import pytest
 import json
 import re
 from logging import DEBUG
-from pkg_resources import resource_filename, resource_stream
+from importlib.resources import files
 from ..scan import (validate_configuration, compile_map, files_to_hpss,
                     find_missing, process_missing, extract_directory_name,
                     iterrsplit, scan_disk, scan_hpss, physical_disks, _options)
@@ -25,10 +25,9 @@ def test_config():
         """Simple class to set config_file attributes.
         """
         def __init__(self):
-            self.config_name = resource_filename('hpsspy.test', 't/test_scan.json')
-            config_file = resource_stream('hpsspy.test', 't/test_scan.json')
-            self.config = json.loads(config_file.read().decode())
-            config_file.close()
+            self.config_name = str(files('hpsspy').joinpath('test', 't', 'test_scan.json'))
+            with open(self.config_name, 'rb') as config_file:
+                self.config = json.loads(config_file.read().decode())
 
     return TestConfig()
 
@@ -152,7 +151,7 @@ def test_validate_configuration_no_file(caplog):
 def test_validate_configuration_invalid_file(caplog):
     """Test the configuration file validator with an invalid file.
     """
-    invalid = resource_filename('hpsspy.test', 't/invalid_file')
+    invalid = str(files('hpsspy.test').joinpath('t', 'ivalid_file'))
     status = validate_configuration(invalid)
     assert status == 1
     assert caplog.records[0].levelname == 'WARNING'
@@ -255,7 +254,7 @@ def test_scan_hpss_cached(caplog):
     """Test scan_hpss() using an existing cache.
     """
     caplog.set_level(DEBUG)
-    cache = resource_filename('hpsspy.test', 't/hpss_cache.csv')
+    cache = str(files('hpsspy.test').joinpath('t', 'hpss_cache.csv'))
     hpss_files = scan_hpss('/hpss/root', cache)
     assert hpss_files['foo'][0] == 1
     assert hpss_files['bar'][1] == 3
@@ -275,7 +274,6 @@ def test_scan_hpss(monkeypatch, caplog, tmp_path, mock_call):
     monkeypatch.setattr('hpsspy.os._os.islink', i)
     caplog.set_level(DEBUG)
     cache = tmp_path / 'temp_hpss_cache.csv'
-    # cache = resource_filename('hpsspy.test', 't/hpss_cache.csv')
     hpss_files = scan_hpss('/hpss/root', str(cache))
     # print(hpss_files)
     assert hpss_files['/path/name'][0] == 12345
@@ -459,9 +457,11 @@ def test_scan_disk_weird_filename(monkeypatch, caplog, tmp_path, mock_call):
     assert caplog.records[6].levelname == 'DEBUG'
     assert caplog.records[6].message == "Scanning disk directory /bar/subdir."
     assert caplog.records[7].levelname == 'ERROR'
-    assert caplog.records[7].message == r"Could not write b'/bar/subdir/Vpeak60_subhalos_id-\xed\xb3\xacd-upid.h5' to cache file due to unusual characters!"
+    assert caplog.records[7].message == (r"Could not write b'/bar/subdir/Vpeak60_subhalos_id-\xed\xb3\xacd-upid.h5'"
+                                         " to cache file due to unusual characters!")
     assert caplog.records[8].levelname == 'ERROR'
-    assert caplog.records[8].message == r"Message was: 'utf-8' codec can't encode character '\udcec' in position 27: surrogates not allowed."
+    assert caplog.records[8].message == (r"Message was: 'utf-8' codec can't encode character '\udcec'"
+                                         " in position 27: surrogates not allowed.")
 
 
 def test_find_missing(test_config, tmpdir, caplog):
@@ -472,7 +472,7 @@ def test_find_missing(test_config, tmpdir, caplog):
     hpss_files = {'data_files.tar': (1000, 1552494004),
                   'd1/batch.tar': (1000, 1552494004),
                   'd1/SINGLE_FILE.txt': (100, 1552494004)}
-    disk_files_cache = resource_filename('hpsspy.test', 't/test_scan_disk_cache.csv')
+    disk_files_cache = str(files('hpsspy.test').joinpath('t', 'test_scan_disk_cache.csv'))
     missing_files = tmpdir.join('missing_files_data.json')
     status = find_missing(hpss_map, hpss_files, disk_files_cache, str(missing_files),
                           report=10, limit=1)
@@ -594,7 +594,7 @@ def test_find_missing_missing_files(test_config, tmpdir, caplog):
     hpss_files = {'data_files.tar': (1000, 1552494004),
                   'd1/batch.tar': (1000, 1552494004),
                   'd1/SINGLE_FILE.txt': (100, 1552494004)}
-    disk_files_cache = resource_filename('hpsspy.test', 't/test_scan_disk_cache_missing.csv')
+    disk_files_cache = str(files('hpsspy.test').joinpath('t', 'test_scan_disk_cache_missing.csv'))
     missing_files = tmpdir.join('missing_files_data.json')
     status = find_missing(hpss_map, hpss_files, disk_files_cache, str(missing_files),
                           report=10, limit=1)
@@ -617,7 +617,7 @@ def test_find_missing_multiple_files(test_config, tmpdir, caplog):
     hpss_files = {'data_files.tar': (1000, 1552494004),
                   'd1/batch.tar': (1000, 1552494004),
                   'd1/SINGLE_FILE.txt': (100, 1552494004)}
-    disk_files_cache = resource_filename('hpsspy.test', 't/test_scan_disk_cache_multiple.csv')
+    disk_files_cache = str(files('hpsspy.test').joinpath('t', 'test_scan_disk_cache_multiple.csv'))
     missing_files = tmpdir.join('missing_files_data.json')
     status = find_missing(hpss_map, hpss_files, disk_files_cache, str(missing_files),
                           report=10, limit=1)
@@ -651,7 +651,7 @@ def test_find_missing_multiple_files(test_config, tmpdir, caplog):
 def test_process_missing(monkeypatch, caplog, mock_call):
     """Test conversion of missing files into HPSS commands.
     """
-    missing_cache = resource_filename('hpsspy.test', 't/missing_cache.json')
+    missing_cache = str(files('hpsspy.test').joinpath('t', 'missing_cache.json'))
     getcwd = mock_call(['/working/directory', '/working/directory'])
     chdir = mock_call([None, None, None, None, None])
     isdir = mock_call([True, False, True, True, False])
@@ -714,7 +714,8 @@ def test_process_missing(monkeypatch, caplog, mock_call):
     assert caplog.records[16].levelname == 'DEBUG'
     assert caplog.records[16].message == "makedirs('/hpss/root/big_file', mode='2770')"
     assert caplog.records[17].levelname == 'INFO'
-    assert caplog.records[17].message == "hsi('put', '/disk/root/big_file/test_basic_file.dump', ':', '/hpss/root/big_file/test_basic_file.dump')"
+    assert caplog.records[17].message == ("hsi('put', '/disk/root/big_file/test_basic_file.dump',"
+                                          " ':', '/hpss/root/big_file/test_basic_file.dump')")
     assert caplog.records[18].levelname == 'DEBUG'
     assert caplog.records[18].message == "OK"
 
@@ -738,7 +739,7 @@ def test_process_missing(monkeypatch, caplog, mock_call):
 def test_process_missing_test_mode(monkeypatch, caplog, mock_call):
     """Test conversion of missing files into HPSS commands in test mode.
     """
-    missing_cache = resource_filename('hpsspy.test', 't/missing_cache.json')
+    missing_cache = str(files('hpsspy.test').joinpath('t', 'missing_cache.json'))
     getcwd = mock_call(['/working/directory', '/working/directory'])
     chdir = mock_call([None, None, None, None, None])
     isdir = mock_call([True, False, True, True, False])
@@ -802,7 +803,8 @@ def test_process_missing_test_mode(monkeypatch, caplog, mock_call):
     assert caplog.records[16].levelname == 'DEBUG'
     assert caplog.records[16].message == "makedirs('/hpss/root/big_file', mode='2775')"
     assert caplog.records[17].levelname == 'INFO'
-    assert caplog.records[17].message == "hsi('put', '/disk/root/big_file/test_basic_file.dump', ':', '/hpss/root/big_file/test_basic_file.dump')"
+    assert caplog.records[17].message == ("hsi('put', '/disk/root/big_file/test_basic_file.dump',"
+                                          " ':', '/hpss/root/big_file/test_basic_file.dump')")
     assert caplog.records[18].levelname == 'DEBUG'
     assert caplog.records[18].message == "Test mode, skipping hsi command."
 

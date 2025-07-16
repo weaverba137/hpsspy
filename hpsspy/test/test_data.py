@@ -8,6 +8,7 @@ Check the associated data files.
 """
 import pytest
 import json
+from importlib.resources import files
 from pkg_resources import resource_exists, resource_stream
 
 
@@ -28,10 +29,10 @@ parameters = [('sdss.json', 'dr8'),
 def test_json(filename, section):
     """Check a generic JSON file for existence and required section.
     """
-    assert resource_exists('hpsspy', f'data/{filename}'), f"Could not find {filename}!"
-    t = resource_stream('hpsspy', f'data/{filename}')
-    j = t.read()
-    t.close()
+    resource_path = files('hpsspy').joinpath('data', filename)
+    assert resource_path.exists(), f"Could not find {filename}!"
+    with open(resource_path, 'rb') as t:
+        j = t.read()
     try:
         hpss_map = json.loads(j)
     except TypeError:
