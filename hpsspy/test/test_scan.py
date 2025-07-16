@@ -151,7 +151,7 @@ def test_validate_configuration_no_file(caplog):
 def test_validate_configuration_invalid_file(caplog):
     """Test the configuration file validator with an invalid file.
     """
-    invalid = str(files('hpsspy.test').joinpath('t', 'ivalid_file'))
+    invalid = str(files('hpsspy.test').joinpath('t', 'invalid_file'))
     status = validate_configuration(invalid)
     assert status == 1
     assert caplog.records[0].levelname == 'WARNING'

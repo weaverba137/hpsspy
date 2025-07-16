@@ -2,3 +2,68 @@
 requires = ["setuptools",
             "wheel"]
 build-backend = 'setuptools.build_meta'
+
+[project]
+name = "hpsspy"
+dynamic = ["version", "readme"]
+authors = [ { name = "Benjamin Alan Weaver", email = "benjamin.weaver@noirlab.edu" } ]
+license = "BSD-3-Clause"
+# license-files = ["LICENSE.rst"]
+description = "Package for interacting with HPSS."
+requires-python = ">=3.10"
+dependencies = ["pytz"]
+keywords = ["HPSS", "tape", "backup"]
+classifiers = [ "Development Status :: 5 - Production/Stable",
+                "Environment :: Console",
+                "Intended Audience :: Science/Research",
+                "Intended Audience :: System Administrators",
+                "Operating System :: OS Independent",
+                "Programming Language :: Python :: 3",
+                "Topic :: System :: Archiving",
+                "Topic :: Utilities" ]
+
+[project.optional-dependencies]
+test = ["pytest"]
+coverage = ["pytest-cov", "coveralls"]
+doc = ["Sphinx", "sphinx-rtd-theme"]
+
+[project.urls]
+Documentation = "https://hpsspy.readthedocs.io/en/latest/"
+Repository = "https://github.com/weaverba137/hpsspy"
+Issues = "https://github.com/weaverba137/hpsspy/issues"
+Changelog = "https://hpsspy.readthedocs.io/en/latest/changes.html"
+
+[project.scripts]
+missing_from_hpss = "hpsspy.scan:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "hpsspy.__version__"}
+readme = {file = ["README.rst"], content-type = "text/x-rst"}
+
+[tool.setuptools.package-data]
+hpsspy = ["data/*", "test/t/*"]
+
+[tool.coverage.run]
+relative_files = true
+source = ["hpsspy"]
+omit = ["hpsspy/conftest*",
+        "hpsspy/test/.",
+        "*/hpsspy/conftest*",
+        "*/hpsspy/test/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+                # Have to re-enable the standard pragma
+                "pragma: no cover",
+                # Don't complain about packages we have installed
+                "except ImportError",
+                # Don't complain if tests don't hit assertions
+                "raise AssertionError",
+                "raise NotImplementedError",
+                # Don't complain about script hooks
+                "def main\\(.*\\):",
+                # Ignore branches that don't pertain to this version of Python
+                "pragma: py{ignore_python_version}",
+                # Don't complain about IPython completion helper
+                "def _ipython_key_completions_",
+                ]
